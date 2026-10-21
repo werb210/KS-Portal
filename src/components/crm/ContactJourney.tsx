@@ -133,7 +133,7 @@ const box: React.CSSProperties = {
 const subtle: React.CSSProperties = { color: "var(--ui-text-muted)", fontSize: "0.85rem" };
 
 // BF_PORTAL_BLOCK_v570 - endpoint/site let the BI contact page reuse this (BI-Server v568).
-export default function ContactJourney({ contactId, endpoint, site = "boreal.financial" }: { contactId: string; endpoint?: string; site?: string }) {
+export default function ContactJourney({ contactId, endpoint, site = "your website" }: { contactId: string; endpoint?: string; site?: string }) {
   const [data, setData] = useState<JourneyPayload | null>(null);
   const [loading, setLoading] = useState(true);
 

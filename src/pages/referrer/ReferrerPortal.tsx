@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
+import { SUPPORT_EMAIL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import "@/components/partner/partnerPortal.css"; // BF_PORTAL_v828_PARTNER_PORTAL_THEME
 // BF_PORTAL_v828_PARTNER_PORTAL_THEME - dark UI-guide surfaces (was a fixed light page), blue primary actions.
 // BF_PORTAL_REFERRER_PORTAL_V2 - portal + add-referral rebuilt to the approved mockup.
@@ -183,7 +184,7 @@ const ReferrerPortal = () => {
             <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", color: "var(--pp-text)", fontSize: 13.5, lineHeight: 1.55 }}>{para}</p>
           ))}
           <p style={{ margin: "10px 0 0", color: "var(--pp-text)", fontSize: 13.5, lineHeight: 1.55 }}>
-            If you have any questions or concerns, you can contact us at <a href="mailto:info@boreal.financial" style={{ color: C.blue, textDecoration: "none" }}>info@boreal.financial</a>
+            If you have any questions or concerns, you can contact us at <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: C.blue, textDecoration: "none" }}>{SUPPORT_EMAIL}</a>
           </p>
         </div>
       </div>
@@ -218,7 +219,6 @@ const ReferrerPortal = () => {
             <Field label="Mobile phone" hint="Required — this is where the intro text goes."><Input type="tel" inputMode="tel" value={form.phone} onChange={(v) => setForm((s) => ({ ...s, phone: formatPhone(v) }))} /></Field>
             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-text)", margin: "8px 0 8px" }}>Refer them to</div>
             <Check checked={refer.funding} onChange={(c) => setRefer((s) => ({ ...s, funding: c }))} label="Funding" />
-            <Check checked={refer.pgi} onChange={(c) => setRefer((s) => ({ ...s, pgi: c }))} label="Personal Guarantee Insurance" />
             <Check checked={refer.startup} onChange={(c) => setRefer((s) => ({ ...s, startup: c }))} label="Start-up funding" note="waitlist" />
             {refer.startup && <div style={{ fontSize: 12, color: C.muted, background: "var(--surface-elevated)", border: `1px solid ${C.line}`, borderRadius: 8, padding: "9px 11px", margin: "2px 0 6px" }}>Start-up funding isn't open yet. We add this person to the start-up list and text them the moment it launches — no intro goes out now unless Funding or PGI is also picked.</div>}
             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--pp-text)", margin: "16px 0 8px" }}>Intro message <span style={{ color: C.muted, fontWeight: 500 }}>{"\u2014 pick which text they receive"}</span></div>

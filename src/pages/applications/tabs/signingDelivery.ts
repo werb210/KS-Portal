@@ -4,6 +4,7 @@
 // the Lenders tab, so a blocked text (e.g. 30034, unregistered for US texting)
 // is visible instead of looking like it went out.
 import { formatPhone } from "./signingStatus";
+import { CLIENT_URL, hostOf } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 
 export type SigningSmsResponse = {
   name?: string | null;
@@ -45,7 +46,7 @@ export function describeSigningDelivery(r: SigningSmsResponse | null | undefined
   const at = when(sms.sentAt);
   if (status === "delivered") return { tone: "success", text: `Signing text delivered to ${who} at ${phone}${at}.` };
   if (status === "undelivered" || status === "failed") {
-    return { tone: "error", text: `Signing text to ${who} at ${phone}${at} was not delivered: ${explainSmsError(sms.errorCode)}. Contact them another way and ask them to sign in at client.boreal.financial.` };
+    return { tone: "error", text: `Signing text to ${who} at ${phone}${at} was not delivered: ${explainSmsError(sms.errorCode)}. Contact them another way and ask them to sign in at ${hostOf(CLIENT_URL)}.` };
   }
   return { tone: "muted", text: `Signing text sent to ${who} at ${phone}${at}; waiting for the carrier to confirm delivery.` };
 }

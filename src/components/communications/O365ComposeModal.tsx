@@ -11,6 +11,7 @@ import EmojiPicker from "@/components/communications/EmojiPicker"; // BF_PORTAL_
 import { sanitizeHtml } from "@/lib/sanitizeHtml"; // BF_PORTAL_HTML_SANITIZE_v1
 import { useSnippets, snippetBody } from "@/hooks/useSnippets"; // BF_PORTAL_EMAIL_SNIPPET_v48
 import { RecipientAutocomplete } from "./RecipientAutocomplete"; // BF_PORTAL_RECIPIENT_AUTOSUGGEST_v53
+import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 
 type MailboxOption = { value: string; label: string };
 type AppOption = { id: string; label: string };
@@ -422,7 +423,7 @@ export default function O365ComposeModal({
   function insertAppLink() {
     if (!linkAppId) return;
     const clientBase = (typeof window !== "undefined" && (window as any).BF_CLIENT_BASE) ||
-      "https://client.boreal.financial";
+      CLIENT_URL;
     const url = `${clientBase}/portal/${encodeURIComponent(linkAppId)}`;
     insertHtmlAtCursor(`<a href="${url}">${url}</a><br/>`);
   }

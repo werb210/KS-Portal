@@ -4,6 +4,7 @@ import { setGraphAccessToken } from "@/lib/graphToken";
 import { microsoftAuthConfig } from "@/config/microsoftAuth";
 import { featureO365Scopes, signInO365Scopes } from "@/auth/o365Scopes"; // BF_PORTAL_O365_SCOPES_v275 + v789
 import { api } from "@/api";
+import { SERVER_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 
 const isIos = typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent);
 
@@ -88,7 +89,7 @@ export async function bfAcquireSilentO365Tokens(authJwt: string | null, opts?: {
     });
 
     if (authJwt) {
-      const apiBase = import.meta.env.VITE_API_URL || "https://server.boreal.financial";
+      const apiBase = SERVER_URL;
       try {
         const response = await fetch(`${apiBase}/api/users/me/o365-tokens`, {
           method: "POST",

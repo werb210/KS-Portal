@@ -10,48 +10,19 @@
 //   https://bi-server.../api/crm/contacts?silo=bi
 import { getActiveBusinessUnit } from "@/context/BusinessUnitContext";
 
-const BF_SERVER_URL =
-  import.meta.env.VITE_BF_API_URL ||
-  import.meta.env.VITE_API_URL ||
-  "https://server.boreal.financial";
+import { SERVER_URL } from "@/config/licensee";
 
-const BI_SERVER_URL =
-  import.meta.env.VITE_BI_API_URL ||
-  "https://bi-server-cse0apamgkheb9d5.canadacentral-01.azurewebsites.net";
-
-// BF_PORTAL_BLOCK_v_SLF_SERVER_ROUTING_v1 - SLF silo data lives on slf-server
-// (its own deployment, its own DB), exactly like BI lives on bi-server. Only
-// paths under /api/slf/* go to slf-server; shared shell paths (auth, users,
-// telephony) stay on BF-Server.
-const SLF_SERVER_URL =
-  import.meta.env.VITE_SLF_API_URL ||
-  "https://slf-server-gcazhvawa0a8habt.canadacentral-01.azurewebsites.net";
-
-// Path prefixes that ONLY exist on BI-Server. Everything else is BF-Server.
-const BI_SERVER_PATH_PREFIXES = [
-  "/api/v1/bi/",
-  "/api/v1/pgi/",
-  "/api/v1/bi-",
-];
-
-function isBiServerPath(path?: string): boolean {
-  if (!path) return false;
-  return BI_SERVER_PATH_PREFIXES.some((prefix) => path.startsWith(prefix));
-}
-
-function isSlfServerPath(path?: string): boolean {
-  if (!path) return false;
-  return path === "/api/slf" || path.startsWith("/api/slf/") || path.startsWith("/api/slf?");
-}
+// KS_PORTAL_v1_NO_BI - Keystone has one server (its own KS-server); there is no BI-Server or slf-server.
+const BF_SERVER_URL = SERVER_URL;
+const BI_SERVER_URL = SERVER_URL;
+const SLF_SERVER_URL = SERVER_URL;
 
 /**
  * Resolve the server base URL for a given path.
  * - /api/v1/bi/* | /api/v1/pgi/* | /api/v1/bi-* → BI-Server
  * - anything else → BF-Server (regardless of active silo)
  */
-export function resolveApiBase(path?: string): string {
-  if (isSlfServerPath(path)) return SLF_SERVER_URL;
-  if (isBiServerPath(path)) return BI_SERVER_URL;
+export function resolveApiBase(_path?: string): string {
   return BF_SERVER_URL;
 }
 

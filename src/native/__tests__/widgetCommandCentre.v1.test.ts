@@ -16,16 +16,16 @@ describe("widget command centre deep links", () => {
 
   it.each([
     ["bfportal://dashboard?silo=BF", "/portal"],
-    ["bfportal://pipeline?silo=BI", "/pipeline"],
+    ["bfportal://pipeline?silo=BF", "/pipeline"],
     ["bfportal://tasks?silo=BF&view=overdue", "/tasks?view=overdue"],
     ["bfportal://messages?silo=BF&filter=unread", "/communications?tab=inbox&filter=unread"],
-    ["bfportal://crm?silo=SLF", "/crm"],
-    ["bfportal://commission?silo=BI", "/bi/commissions"],
+    ["bfportal://crm?silo=BF", "/crm"],
     ["bfportal://commission?silo=BF", "/portal?focus=commission"],
   ])("routes %s", (url, path) => expect(widgetRoute(url)).toMatchObject({ path }));
 
   it("carries the validated silo and safely rejects malformed URLs", () => {
-    expect(widgetRoute("bfportal://pipeline?silo=BI")).toEqual({ silo: "BI", path: "/pipeline" });
+    expect(widgetRoute("bfportal://pipeline?silo=BF")).toEqual({ silo: "BF", path: "/pipeline" });
+    expect(widgetRoute("bfportal://pipeline?silo=BI")).toEqual({ silo: undefined, path: "/pipeline" }); // KS_PORTAL_v1_NO_BI
     expect(widgetRoute("not a url")).toBeNull();
   });
 

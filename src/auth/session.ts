@@ -1,4 +1,5 @@
 import { clearAuthToken, getAuthToken, setAuthToken } from "@/lib/authToken";
+import { SERVER_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 const STORAGE_KEY = import.meta.env.VITE_JWT_STORAGE_KEY || "auth_token";
 const SESSION_EVENT = "bf-session-changed";
 
@@ -79,7 +80,7 @@ export async function bfRehydrateSession(): Promise<BfSession> {
     return disconnected;
   }
 
-  const base = import.meta.env.VITE_API_URL || "https://server.boreal.financial";
+  const base = SERVER_URL;
 
   try {
     const response = await fetch(`${base}/api/auth/me`, {

@@ -1,4 +1,3 @@
-const BiLendersPage = lazyWithRetry(() => import("@/pages/BiLendersPage"));
 // BF_PORTAL_SHORTCUTS_MOUNT_v1 - v640 targeted AppLayout and its anchors
 // did not match, so the hook shipped and nothing ever called it. Mount it
 // here, inside the Router, which is where navigate() is available.
@@ -38,9 +37,6 @@ const SettingsPage = lazyWithRetry(() => import("@/pages/settings/SettingsPage")
 const AuditEvents = lazyWithRetry(() => import("@/pages/AuditEvents"));
 const MarketingPage = lazyWithRetry(() => import("@/pages/marketing/MarketingPage"));
 const TasksPage = lazyWithRetry(() => import("@/pages/tasks/TasksPage")); // BF_PORTAL_TASKS_V1
-const BIDashboardPage = lazyWithRetry(() => import("@/pages/bi/BIDashboardPage"));
-const BICommissionDashboard = lazyWithRetry(() => import("@/pages/bi/BICommissionDashboard"));
-const BIReferrersPage = lazyWithRetry(() => import("@/pages/bi/BIReferrersPage"));
 // BF_PORTAL_BLOCK_v213_CANONICAL_BI_PIPELINE_REDIRECT_v1 — import removed;
 // /bi/pipeline now redirects and PipelineRouter no longer renders it.
 // The orphan component is still exported in case test files reference it.
@@ -77,7 +73,6 @@ const ReferrerLoginPage = lazyWithRetry(() => import("@/pages/referrer/ReferrerL
 const ReferrerSignupPage = lazyWithRetry(() => import("@/pages/referrer/ReferrerSignupPage")); // REFERRER_SIGNUP_UI_v1
 const BrokerPortalRoutes = lazyWithRetry(() => import("@/pages/broker/BrokerPortal")); // BF_PORTAL_BROKER_PORTAL_v717
 // BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1
-const BISilo = lazyWithRetry(() => import("@/silos/bi/BISilo"));
 const LenderPortalPage = lazyWithRetry(() => import("@/pages/lender/LenderPortalPage"));
 const LenderLoginPage = lazyWithRetry(() => import("@/pages/lender/LenderLoginPage"));
 import { useAuth } from "@/auth/AuthContext";
@@ -224,59 +219,13 @@ const AppRoutes = () => {
         />
         <Route path="/applications/:id/*" element={<ProtectedRoute>{applicationDetailElement}</ProtectedRoute>} />
         {/* BF_PORTAL_BLOCK_v91_BI_LENDERS_PAGE_v1 */}
-        <Route path="/bi-lenders" element={<ProtectedRoute><BiLendersPage /></ProtectedRoute>} />
         <Route path="/lenders/*" element={<ProtectedRoute><LendersPage /></ProtectedRoute>} />
         <Route path="/broker-imports" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} /> {/* BF_PORTAL_PARTNERS_TABS_v720 - Broker Files lives in Marketing > Referrers > Brokers */}
         <Route path="/settings/broker-files" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} />
         <Route path="/library" element={<Navigate to="/settings/library" replace />} /> {/* BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Library is a Settings tab now */}
         <Route path="/reports" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing", "Ops"]}><div style={{ padding: 16 }}><h1 style={{ fontSize: 20, margin: "0 0 12px", color: "var(--ui-text)" }}>Reports</h1><ReportsBoard /></div></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_REPORTS_SECTION_v714 */}
         <Route path="/maya" element={<ProtectedRoute><MayaPage /></ProtectedRoute>} />
-        <Route
-          path="/bi"
-          element={
-            <ProtectedRoute>
-              <RequireRole roles={["Admin", "Staff", "Marketing"]}>
-                <BIDashboardPage />
-              </RequireRole>
-            </ProtectedRoute>
-          }
-        />
-        {/* BF_PORTAL_BLOCK_v213_CANONICAL_BI_PIPELINE_REDIRECT_v1 — orphan /bi/pipeline redirects to canonical */}
-        <Route path="/bi/pipeline" element={<Navigate to="/silo/bi/pipeline" replace />} />
-        <Route
-          path="/bi/commissions"
-          element={
-            <ProtectedRoute>
-              <RequireRole roles={["Admin", "Staff", "Marketing"]}>
-                <BICommissionDashboard />
-              </RequireRole>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bi/referrers"
-          element={
-            <ProtectedRoute>
-              <RequireRole roles={["Admin", "Staff", "Marketing"]}>
-                <BIReferrersPage />
-              </RequireRole>
-            </ProtectedRoute>
-          }
-        />
-        {/* BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1 — mount BI silo shell.
-            BISilo has its own nested router (dashboard/pipeline/crm/lender/
-            referrer/marketing/settings). Without this route the v200 BI nav
-            links all 404. */}
-        <Route
-          path="/silo/bi/*"
-          element={
-            <ProtectedRoute>
-              <RequireRole roles={["Admin", "Staff", "Marketing", "Ops"]}>
-                <BISilo />
-              </RequireRole>
-            </ProtectedRoute>
-          }
-        />
+        {/* KS_PORTAL_v1_NO_BI - the insurance (BI) screens are not part of Keystone. */}
         <Route path="/apply" element={<ApplyPage />} />
         <Route path="/leads" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><Leads /></RequireRole></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><IssueInboxPage /></RequireRole></ProtectedRoute>} />

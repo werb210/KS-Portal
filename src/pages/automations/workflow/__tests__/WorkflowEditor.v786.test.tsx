@@ -182,7 +182,7 @@ describe("WorkflowEditor", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Settings" }));
     expect(screen.getByText("Contacts leave the workflow when they meet the goal.")).toBeInTheDocument();
     expect(screen.queryByLabelText("Silo")).toBeNull();
-    expect(screen.getByTestId("workflow-silo")).toHaveTextContent("BF - Boreal Financial");
+    expect(screen.getByTestId("workflow-silo")).toHaveTextContent("Lending");
     fireEvent.click(screen.getByRole("button", { name: "Set a goal" }));
     fireEvent.change(within(screen.getByTestId("goal-section")).getByLabelText("Property"), { target: { value: "lifecycle_stage" } });
     fireEvent.change(within(screen.getByTestId("goal-section")).getByLabelText("Value"), { target: { value: "lead" } });

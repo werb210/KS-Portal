@@ -48,13 +48,12 @@ describe("referrer portal v2", () => {
     sessionStorage.setItem("referrer_token", "tok");
   });
 
-  it("has the three refer-to options incl start-up", async () => {
+  it("has the refer-to options incl start-up, and no insurance option (KS_PORTAL_v1_NO_BI)", async () => {
     await openModal();
     const funding = screen.getByLabelText("Funding") as HTMLInputElement;
-    const pgi = screen.getByLabelText("Personal Guarantee Insurance") as HTMLInputElement;
+    expect(screen.queryByLabelText("Personal Guarantee Insurance")).toBeNull();
     const startup = screen.getByLabelText(/^Start-up funding/) as HTMLInputElement;
     expect(funding.checked).toBe(true);
-    expect(pgi.checked).toBe(false);
     expect(startup.checked).toBe(false);
     fireEvent.click(startup);
     expect(screen.getByText(/Start-up funding isn't open yet/)).toBeInTheDocument();

@@ -9,29 +9,10 @@ const TEST_BUSINESS_UNIT_STUB = {
   setActiveBusinessUnit: () => undefined
 };
 
-const siloToBusinessUnit = (silo: string): BusinessUnit => {
-  switch (silo) {
-    case "bf":
-      return "BF";
-    case "bi":
-      return "BI";
-    case "slf":
-      return "SLF";
-    default:
-      return DEFAULT_BUSINESS_UNIT;
-  }
-};
+// KS_PORTAL_v1_NO_BI - Keystone has one silo.
+const siloToBusinessUnit = (_silo: string): BusinessUnit => DEFAULT_BUSINESS_UNIT;
 
-const businessUnitToSilo = (businessUnit: BusinessUnit): "bf" | "bi" | "slf" => {
-  switch (businessUnit) {
-    case "BF":
-      return "bf";
-    case "BI":
-      return "bi";
-    case "SLF":
-      return "slf";
-  }
-};
+const businessUnitToSilo = (_businessUnit: BusinessUnit): "bf" => "bf";
 
 export const useBusinessUnit = () => {
   const context = useContext(BusinessUnitContext);

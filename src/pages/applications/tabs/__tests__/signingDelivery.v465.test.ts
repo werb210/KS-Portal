@@ -12,7 +12,7 @@ describe("v465 signing text delivery on the Lenders tab", () => {
     expect(d?.tone).toBe("error");
     expect(d?.text).toContain("Signing text to Brandon Voss at (917) 304-3342");
     expect(d?.text).toContain("not yet registered for US texting (A2P 10DLC) (error 30034)");
-    expect(d?.text).toContain("sign in at client.boreal.financial");
+    expect(d?.text).toContain("sign in at wonderful-island-0b68ae310.5.azurestaticapps.net");
   });
 
   it("delivered is green", () => {

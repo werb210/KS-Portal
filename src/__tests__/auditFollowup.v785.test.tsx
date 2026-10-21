@@ -80,27 +80,7 @@ describe("v785 follow-up fixes", () => {
     expect(screen.queryByText(/^Rating:/)).not.toBeInTheDocument();
   });
 
-  it("3: Global Admin sums the SLF byStage counts from /api/slf/stats", async () => {
-    siloGet.mockImplementation(async (silo: string, path: string) => {
-      if (silo === "BF") return [];
-      if (silo === "BI") return [];
-      if (silo === "SLF" && path === "/api/slf/stats") {
-        return { byStage: [{ stage: "new", n: "120" }, { stage: "funded", n: 35 }, { stage: "lost", n: "7" }], byFamily: [], recentSyncs: [] };
-      }
-      throw new Error("unexpected " + silo + " " + path);
-    });
-    render(<GlobalAdmin />);
-    expect(await screen.findByText("SLF deal count: 162")).toBeInTheDocument();
-  });
 
-  it("3: Global Admin keeps the unavailable fallback for SLF", async () => {
-    siloGet.mockImplementation(async (silo: string) => {
-      if (silo === "SLF") throw new Error("SLF down");
-      return [];
-    });
-    render(<GlobalAdmin />);
-    expect(await screen.findByText("SLF deal count: unavailable")).toBeInTheDocument();
-  });
 
   it("4: the unused chat types file is gone", () => {
     expect(existsSync("src/modules/chat/types.ts")).toBe(false);

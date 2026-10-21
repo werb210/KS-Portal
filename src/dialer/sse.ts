@@ -11,6 +11,7 @@
 import { ringPush } from "./debugRing";
 import { getUrlTicket } from "@/lib/urlTicket";
 import { getAuthToken } from "@/lib/authToken";
+import { SERVER_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 type Handler = (event: string, data: any) => void;
 
 let es: EventSource | null = null;
@@ -65,7 +66,7 @@ function attach(ticket: string, silo: string): void {
   closeEs();
   generation += 1;
   const myGen = generation;
-  const base = (import.meta.env.VITE_API_BASE_URL || "https://server.boreal.financial").replace(/\/$/, "");
+  const base = SERVER_URL.replace(/\/$/, "");
   const url = `${base}/api/realtime/stream?token=${encodeURIComponent(ticket)}&silo=${encodeURIComponent(silo)}`;
   ringPush("sse.connect", { url: url.replace(encodeURIComponent(ticket), "<ticket>") });
   es = new EventSource(url);

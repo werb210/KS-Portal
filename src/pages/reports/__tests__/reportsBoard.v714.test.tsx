@@ -6,7 +6,6 @@ const get = vi.fn();
 const put = vi.fn();
 vi.mock("@/api", () => ({ api: { get: (...a: unknown[]) => get(...a), put: (...a: unknown[]) => put(...a) } }));
 vi.mock("@/components/marketing/GoogleAdsAnalytics", () => ({ AdsStoryPanel: () => <div>story</div>, DropoffPanel: () => <div>dropoff</div>, VisitorsPanel: () => <div>visitors</div> }));
-vi.mock("@/silos/bi/dashboard/BIDashboard", () => ({ default: () => <div>bi</div> }));
 
 import ReportsBoard, { moveCard, moveTab, type Tab } from "../ReportsBoard";
 import { renderReport } from "../ReportDataCards";

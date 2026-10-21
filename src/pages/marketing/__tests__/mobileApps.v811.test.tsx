@@ -32,7 +32,6 @@ vi.mock("@/components/marketing/GoogleAdsAnalytics", () => ({
 }));
 vi.mock("@/components/marketing/CustomerMatchPanel", () => ({ default: () => null }));
 vi.mock("@/pages/settings/tabs/GoogleHealthPanel", () => ({ default: () => null }));
-vi.mock("@/silos/bi/marketing/tabs/SequencesTab", () => ({ default: () => null }));
 
 import MarketingDashboard from "../MarketingDashboard";
 import MobileAppsPanel from "../MobileAppsPanel";

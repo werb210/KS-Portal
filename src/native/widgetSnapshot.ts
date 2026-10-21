@@ -5,10 +5,9 @@ import { fetchLocalEvents } from "@/api/calendar";
 import { pipelineApi } from "@/pipeline/pipeline.api";
 import { normalizeStageId } from "@/pipeline/pipeline.types";
 import { isDraftLikeApplication, type DraftLikeCard } from "@/pages/pipeline/draftLike";
-import { BI_VISIBLE_PIPELINE_STAGES, resolveStageId } from "@/silos/bi/pipeline/biStages";
 
 export const WIDGET_KIND = "BorealPortalSummary";
-export const WIDGET_SILOS = ["BF", "BI", "SLF"] as const;
+export const WIDGET_SILOS = ["BF"] as const; // KS_PORTAL_v1_NO_BI
 const SUMMARY_KEYS = {
   BF: "widget_summary_BF",
   BI: "widget_summary_BI",
@@ -75,10 +74,6 @@ const listFrom = (payload: unknown): unknown[] | null => {
   return null;
 };
 
-const biHideDemo = (): boolean => {
-  try { return localStorage.getItem("bi.dashboard.hide_demo") === "1"; } catch { return false; }
-};
-
 /** The count the portal shows for this silo, or null when it cannot be read. */
 export async function livePipelineCount(silo: WidgetSilo): Promise<number | null> {
   try {
@@ -87,19 +82,7 @@ export async function livePipelineCount(silo: WidgetSilo): Promise<number | null
       const list = listFrom(await api<unknown>("/api/portal/applications", { headers: { "X-Silo": silo } }));
       return list ? (list as DraftLikeCard[]).filter((card) => !isDraftLikeApplication(card)).length : null;
     }
-    if (silo === "BI") {
-      // The BI Dashboard's "Total in pipeline": applications in the visible stage columns.
-      const list = listFrom(await api<unknown>(`/api/v1/bi/applications${biHideDemo() ? "?hide_demo=true" : ""}`));
-      if (!list) return null;
-      const visible = BI_VISIBLE_PIPELINE_STAGES as readonly string[];
-      return (list as Array<{ stage?: string | null }>).filter((a) => {
-        const stage = resolveStageId(a?.stage) ?? String(a?.stage ?? "");
-        return visible.includes(stage);
-      }).length;
-    }
-    // The SLF page's "Deals": every deal synced from SLF.
-    const list = listFrom(await api<unknown>("/api/slf/deals?limit=500"));
-    return list ? list.length : null;
+    return null;
   } catch {
     return null;
   }

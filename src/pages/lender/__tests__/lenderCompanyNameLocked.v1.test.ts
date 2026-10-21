@@ -20,9 +20,9 @@ describe("locked company name is explained, not just greyed out", () => {
   });
 
   it("the company name field tells the lender why it is locked", () => {
-    expect(page).toContain('hint="Locked.');
-    expect(page).toContain("maintained by Boreal");
-    expect(page).toContain("info@boreal.financial");
+    expect(page).toContain("hint={`Locked."); // KS_PORTAL_v1_LICENSEE - the licensee's own support address
+    expect(page).toContain("maintained by us");
+    expect(page).toContain("${SUPPORT_EMAIL}");
   });
 
   it("the field stays visible so the lender can confirm the company", () => {

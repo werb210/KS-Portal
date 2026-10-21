@@ -20,16 +20,8 @@ describe("widget pipeline counts match each silo's own screen", () => {
     expect(await livePipelineCount("BF")).toBe(2);
     expect(h.api).toHaveBeenLastCalledWith("/api/portal/applications", { headers: { "X-Silo": "BF" } });
   });
-  it("Insurance counts the BI Dashboard's visible stages, not pre-pipeline drafts", async () => {
-    h.api.mockResolvedValueOnce([{ stage: "submitted" }, { stage: "in_progress" }, { stage: "draft" }]);
-    expect(await livePipelineCount("BI")).toBe(1);
-  });
-  it("SLF counts every synced deal", async () => {
-    h.api.mockResolvedValueOnce([{ amount: 70350 }, { amount: 500000 }]);
-    expect(await livePipelineCount("SLF")).toBe(2);
-  });
   it("falls back (null) when a count cannot be read", async () => {
     h.api.mockRejectedValueOnce(new Error("offline"));
-    expect(await livePipelineCount("SLF")).toBeNull();
+    expect(await livePipelineCount("BF")).toBeNull();
   });
 });

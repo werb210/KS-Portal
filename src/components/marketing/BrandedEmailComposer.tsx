@@ -6,6 +6,7 @@ import { api, rawApiFetch } from "@/api";
 import { describeSchedule, localInputMax, localInputMin, toIsoInstant } from "./sendLater";
 // BF_PORTAL_SCHEDULED_SENDS_v23
 import { formatSendAt, pendingSends, sendJobCancelPath, sendJobsPath, type ScheduledSend } from "./scheduledSends";
+import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 
 // BF_PORTAL_EMAIL_PREVIEW_WIDTH_v1 - render at the email's desktop width and
 // scale the canvas, rather than triggering its mobile breakpoint in the pane.
@@ -41,7 +42,7 @@ type EmailLibraryTemplate = { id: string; name: string; subject: string | null; 
 
 const DEFAULTS: Tpl = {
   headline: "", heroUrl: "", heroLink: "", body: "",
-  ctaLabel: "See If You Qualify", ctaUrl: "https://client.boreal.financial",
+  ctaLabel: "See If You Qualify", ctaUrl: CLIENT_URL,
   headline2: "", body2: "", rightImageUrl: "", rightImageLink: "",
   cta2Label: "", cta2Url: "",
 };
@@ -478,7 +479,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
         <input value={libName} onChange={(e) => setLibName(e.target.value)} placeholder="Template name" className="block border rounded px-2 py-1 text-sm" style={inputStyle} />
         <button type="button" disabled={!libName.trim() || !subject} onClick={() => void saveNamed()} className="ui-button ui-button--secondary">Save to library</button>
         <label className="text-sm" style={labelStyle}>Test to
-          <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@boreal.financial" className="block border rounded px-2 py-1 text-sm mt-1" style={inputStyle} />
+          <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@yourcompany.com" className="block border rounded px-2 py-1 text-sm mt-1" style={inputStyle} />
         </label>
         <button type="button" disabled={busy || !subject || !testTo} onClick={() => void send(testTo)} className="ui-button ui-button--secondary">Send test</button>
         <label className="text-sm" style={labelStyle}>Send at

@@ -48,13 +48,4 @@ describe("every display path uses the mask", () => {
   it("CRM panels mask the SIN row", () => {
     expect(read("src/components/crm/ContactApplicationDetails.tsx")).toContain("isSinKey(k) ? maskSin(");
   });
-  it("raw JSON views redact before printing", () => {
-    for (const p of [
-      "src/silos/bi/pipeline/tabs/PgiCommsTab.tsx",
-    ]) {
-      const src = read(p);
-      expect(src).toContain("redactSensitive(");
-      expect(src).not.toMatch(/JSON\.stringify\((?!redactSensitive)[^)]*null, 2\)/);
-    }
-  });
 });

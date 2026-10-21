@@ -18,7 +18,7 @@ describe("lender portal header + blurbs", () => {
   it("has the three section blurbs incl the LOC example + mailto", () => {
     expect(src).toContain("Please ensure all your company information is correct");
     expect(src).toContain("required documents A, B, and C");
-    expect(src).toContain("mailto:info@boreal.financial");
+    expect(src).toContain("mailto:${SUPPORT_EMAIL}"); // KS_PORTAL_v1_LICENSEE
     expect(src).toContain("Please provide any marketing or product information sheets");
   });
 });
