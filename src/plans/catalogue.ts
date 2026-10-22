@@ -55,6 +55,8 @@ export const PLAN_ALLOWANCES: Record<PlanKey, { minutes: number; texts: number; 
 
 export const STORAGE_BLOCK_GB = 50;
 export const STORAGE_BLOCK_PRICE_TEXT = "$10/month";
+// KS_PORTAL_v6_USAGE - overage prices (never blocked, billed): per extra call minute and per extra text.
+export const OVERAGE_PRICE = { minutes: 0.04, texts: 0.03 } as const;
 
 /** 1536 -> "1.5 KB", 12.3e9 -> "12.3 GB" (decimal units, as storage is sold). */
 export function formatBytes(bytes: number): string {

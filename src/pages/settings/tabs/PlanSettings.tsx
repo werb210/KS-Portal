@@ -4,10 +4,10 @@
 import { useState, type CSSProperties } from "react";
 import toast from "react-hot-toast";
 import {
-  FEATURES, PLAN_ALLOWANCES, PLAN_LABEL, PLAN_ORDER, STARTER_BASICS, STORAGE_BLOCK_GB, STORAGE_BLOCK_PRICE_TEXT,
+  FEATURES, OVERAGE_PRICE, PLAN_ALLOWANCES, PLAN_LABEL, PLAN_ORDER, STARTER_BASICS, STORAGE_BLOCK_GB, STORAGE_BLOCK_PRICE_TEXT,
   formatBytes, planRank, type PlanKey,
 } from "@/plans/catalogue";
-import { trialOfferText, featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState } from "@/plans/planStore";
+import { trialOfferText, featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState, type PlanUsage } from "@/plans/planStore";
 import { TRIAL_CTA } from "@/plans/FeatureGate";
 import { daysLeftText } from "@/plans/PlanBanners";
 import { PlanBadge, primaryButton, secondaryButton, useIsAdmin } from "@/plans/ui";
@@ -29,6 +29,90 @@ export function storageTone(percent: number): { bar: string; label: string } {
   if (percent >= 100) return { bar: "#b91c1c", label: "Full" };
   if (percent >= 80) return { bar: "#b45309", label: "Almost full" };
   return { bar: "#1d4ed8", label: "" };
+}
+
+// KS_PORTAL_v6_USAGE - "This month": pooled minutes, texts, assistant chats and storage against the allowances.
+/** Amber at 80%, red at 100% of an allowance. */
+export function usageTone(percent: number): { bar: string; label: string } {
+  if (percent >= 100) return { bar: "#b91c1c", label: percent > 100 ? "Over allowance" : "Allowance used" };
+  if (percent >= 80) return { bar: "#b45309", label: "Almost used" };
+  return { bar: "#1d4ed8", label: "" };
+}
+
+const money = (v: number): string => `$${v.toFixed(2)}`;
+const priceText = (v: number): string => `$${v.toFixed(2)}`;
+
+/** "12 extra minutes at $0.04 = $0.48". */
+export function overageLine(extra: number, unit: "minutes" | "texts"): string {
+  const singular = unit === "minutes" ? "minute" : "text";
+  const rate = OVERAGE_PRICE[unit];
+  return `${extra.toLocaleString()} extra ${extra === 1 ? singular : unit} at ${priceText(rate)} = ${money(Math.round(extra * rate * 100) / 100)}`;
+}
+
+function periodLabel(period: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(period);
+  if (!m) return "";
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, 1);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { year: "numeric", month: "long" });
+}
+
+function UsageRow({ id, label, used, allowance, format }: { id: string; label: string; used: number; allowance: number | null; format: (v: number) => string }) {
+  const unlimited = allowance === null;
+  const percent = !unlimited && allowance! > 0 ? (used / allowance!) * 100 : unlimited ? 0 : used > 0 ? 100 : 0;
+  const tone = usageTone(percent);
+  const width = Math.min(100, Math.max(0, percent));
+  return (
+    <div data-testid={`usage-${id}`} style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 14, marginBottom: 4 }}>
+        <span>
+          {label}: <strong>{format(used)}</strong>
+          {unlimited ? " used of Unlimited" : ` of ${format(allowance!)}`}
+        </span>
+        {!unlimited && tone.label && <strong data-testid={`usage-${id}-label`} style={{ color: "var(--ui-text)" }}>{tone.label}</strong>}
+      </div>
+      {!unlimited && (
+        <div
+          role="meter"
+          aria-label={`${label} used`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(width)}
+          style={{ height: 10, borderRadius: 999, background: "#e2e8f0", overflow: "hidden", border: "1px solid #cbd5e1" }}
+        >
+          <div data-testid={`usage-${id}-bar`} style={{ width: `${width}%`, height: "100%", background: tone.bar }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function UsageCard({ usage }: { usage: PlanUsage | null }) {
+  if (!usage) return null;
+  const a = usage.allowances;
+  const count = (v: number) => v.toLocaleString();
+  const when = periodLabel(usage.period);
+  const extra = [
+    usage.overage.minutes > 0 ? overageLine(usage.overage.minutes, "minutes") : "",
+    usage.overage.texts > 0 ? overageLine(usage.overage.texts, "texts") : "",
+  ].filter(Boolean);
+  return (
+    <section style={card} data-testid="plan-usage">
+      <h3 style={h3}>This month{when ? ` (${when})` : ""}</h3>
+      <UsageRow id="minutes" label="Call minutes" used={usage.minutes} allowance={a.minutes} format={count} />
+      <UsageRow id="texts" label="Texts" used={usage.texts} allowance={a.texts} format={count} />
+      <UsageRow id="assistant_chats" label="Assistant chats" used={usage.assistant_chats} allowance={a.assistant_chats} format={count} />
+      <UsageRow id="storage" label="Document storage" used={usage.storage_bytes} allowance={a.storage_bytes} format={formatBytes} />
+      {extra.length > 0 && (
+        <ul data-testid="plan-usage-overage" style={{ margin: "4px 0 0", paddingLeft: 18, fontSize: 14, lineHeight: 1.7 }}>
+          {extra.map((line) => <li key={line}>{line}</li>)}
+        </ul>
+      )}
+      <p style={{ ...muted, margin: "8px 0 0" }}>
+        Minutes and texts are shared by your whole team. Calls and texts are never cut off: anything over the allowance is
+        added to your bill at {priceText(OVERAGE_PRICE.minutes)} a minute and {priceText(OVERAGE_PRICE.texts)} a text.
+      </p>
+    </section>
+  );
 }
 
 function StorageMeter({ state, isAdmin }: { state: PlanState; isAdmin: boolean }) {
@@ -203,6 +287,8 @@ export default function PlanSettings() {
           </ul>
         </section>
       )}
+
+      {state.source === "server" && <UsageCard usage={state.usage} />}
 
       <StorageMeter state={state} isAdmin={isAdmin} />
 

@@ -22,6 +22,8 @@ import SnippetsSettings from "./tabs/SnippetsSettings"; // BF_PORTAL_SNIPPETS_TA
 import CollateralSettings from "./tabs/CollateralSettings"; // v694
 import LibraryPage from "@/pages/library/LibraryPage"; // BF_PORTAL_LIBRARY_IN_SETTINGS_v764
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
+import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
+import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
@@ -40,6 +42,8 @@ const SettingsPage = () => {
 
   const tabs = useMemo(
     () => [
+      // KS_PORTAL_v6_COMPANY - the licensee's company details, branding and connections (Admins only).
+      { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       { id: "users", label: "User Management", visible: isAdmin && !isBI, content: <UserManagement /> },
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
       { id: "ai-knowledge", label: "AI Knowledge", visible: isAdmin && !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : null },
@@ -53,6 +57,7 @@ const SettingsPage = () => {
       // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
       { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
       { id: "plan", label: "Plan", visible: true, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS
+      { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
     [isAdmin, isStaff, isBI]

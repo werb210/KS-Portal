@@ -44,6 +44,7 @@ const BF_NAV: NavItem[] = [
   { label: "Lenders",        path: "/lenders",         roles: ["Admin", "Staff"] },
   { label: "Reports",        path: "/reports",         roles: ["Admin", "Staff", "Ops", "Marketing"] }, // BF_PORTAL_REPORTS_SECTION_v714
   { label: "Settings",       path: "/settings",        roles: ["Admin", "Staff", "Ops"] },
+  { label: "Get help",       path: "/help",            roles: ["Admin", "Staff"] }, // KS_PORTAL_v6_SUPPORT
 ];
 
 // BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1 — repointed BI nav.
@@ -111,7 +112,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const canSee = (item: NavItem) => {
     const label = item.label.toLowerCase();
     if (isAdmin) return true;
-    if (isMarketing) return label !== "lenders";
+    if (isMarketing) return label !== "lenders" && label !== "get help"; // KS_PORTAL_v6_SUPPORT
     if (isStaff) return label !== "marketing";
     return false;
   };
