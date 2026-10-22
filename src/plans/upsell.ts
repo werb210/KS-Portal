@@ -31,9 +31,13 @@ export function showUpsell(req: UpsellRequest): void {
   }
 }
 
-/** Called by the api client for every failed response; acts only on 402 feature_not_in_plan. Returns true when it did. */
-export function reportPlanRefusal(status: number, payload: unknown): boolean {
+/** Called by the api client for every failed response; acts only on 402 feature_not_in_plan. Returns true when it did.
+ *  KS_PORTAL_v4_UPSELL_ON_ACTIONS - only for something the user did (POST/PUT/PATCH/DELETE). A page loading data
+ *  in the background (GET) is refused quietly: the page shows its own lock or empty state instead of a pop-up on
+ *  every visit. */
+export function reportPlanRefusal(status: number, payload: unknown, method: string = "POST"): boolean {
   if (status !== 402 || !payload || typeof payload !== "object") return false;
+  if (String(method || "GET").toUpperCase() === "GET") return false;
   const p = payload as Record<string, unknown>;
   if (p.error !== "feature_not_in_plan" && p.code !== "feature_not_in_plan") return false;
   const feature = typeof p.feature === "string" ? p.feature : "";

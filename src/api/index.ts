@@ -195,7 +195,7 @@ export async function apiFetch<T = any>(path: string, options: RequestOptions = 
       // Ignore non-JSON error responses and preserve fallback message.
     }
     // KS_PORTAL_v3_PLANS - 402 feature_not_in_plan: show the upsell dialog; the caller still gets the error.
-    try { reportPlanRefusal(res.status, details); } catch { /* never let the upsell break error handling */ }
+    try { reportPlanRefusal(res.status, details, String(options.method ?? "GET")); } catch { /* never let the upsell break error handling */ }
     throw new ApiError({
       status: res.status,
       message,
@@ -354,7 +354,7 @@ export function apiForSilo(silo: "BF" | "BI" | "SLF"): ApiFn {
       } catch {
         // ignore
       }
-      try { reportPlanRefusal(res.status, details); } catch { /* KS_PORTAL_v3_PLANS */ }
+      try { reportPlanRefusal(res.status, details, String(options.method ?? "GET")); } catch { /* KS_PORTAL_v3_PLANS */ }
       throw new ApiError({
         status: res.status,
         message,
