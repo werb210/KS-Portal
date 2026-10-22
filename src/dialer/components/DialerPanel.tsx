@@ -14,6 +14,7 @@
 // Supersedes v618, v613 (which claimed a Merge button but never rendered
 // it), v612, v611, v606.
 import React, { useMemo, useState } from "react";
+import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_v3_PLANS - call recording is a Growth feature
 import { brandName } from "@/config/brand";
 import { useDialer } from "../store";
 import { dialerApi } from "../api";
@@ -288,6 +289,8 @@ export default function DialerPanel() {
   const isInternalCall    = !!st.ctx.isStaff;
   const recording         = !!conf?.recording_sid;
   const recordingPaused   = !!conf?.recording_paused;
+  const planState         = usePlan(); // KS_PORTAL_v3_PLANS
+  const canRecord         = hasFeature("call_recording", planState);
 
   if (!st.isOpen && !liveAny && !incoming) return null;
 
@@ -459,7 +462,7 @@ export default function DialerPanel() {
 
           {/* Recording consent / End row */}
           <div style={{ padding: "14px 18px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            {!isInternalCall && <RecordingPill recording={recording} paused={recordingPaused} onToggle={toggleRecording} disabled={!conf} />}
+            {!isInternalCall && <RecordingPill recording={recording} paused={recordingPaused} onToggle={toggleRecording} disabled={!conf || !canRecord} />}{/* KS_PORTAL_v3_PLANS - disabled when the plan has no call recording */}
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setExp("keypad")}
                 style={{ width: 44, height: 44, borderRadius: "50%", background: expander === "keypad" ? "rgba(255,255,255,0.14)" : "transparent", border: `1.5px solid ${T.borderStrong}`, color: T.text, cursor: "pointer", display: "grid", placeItems: "center" }}

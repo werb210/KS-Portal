@@ -4,6 +4,7 @@
 // newest-first. Replaces the old stacked ActivityTimeline + bottom
 // ContactEmailFeed/ContactCallFeed sections.
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS - recordings (Growth) and call summaries (Growth)
 import { crmApi, type Scope, type TimelineItem } from "@/api/crm";
 import { api } from "@/api";
 // BF_PORTAL_v789_AUTHED_MEDIA - recordings load with the Authorization header when played (blob: URL),
@@ -238,21 +239,25 @@ function CallCard({ call, isOpen, onToggle }: { call: CallRow; isOpen: boolean; 
       <div style={{ fontSize: 14, color: "var(--ui-text)", textTransform: "capitalize" }}>
         {call.direction || "call"}{fmtDur(call.recording_duration_sec)}
       </div>
+      <FeatureGate feature="call_recording" compact>
       {call.recording_url ? (
         <AuthedAudio path={`/api/communications/recordings/by-conference/${encodeURIComponent(call.conference_id)}/media`} style={{ marginTop: 8 }} />
       ) : (
         <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginTop: 6 }}>No recording.</div>
       )}
+      </FeatureGate>
       {hasTranscript && (
+        <FeatureGate feature="call_summaries" compact>
         <button type="button" onClick={onToggle} style={{ marginTop: 6, background: "transparent", border: "none", color: "var(--ui-accent-blue)", fontSize: 13, cursor: "pointer", padding: 0 }}>
           {isOpen ? "Hide transcript" : "Show transcript"}
         </button>
-      )}
-      {isOpen && hasTranscript && (
+        {isOpen && (
         <div style={{ marginTop: 6 }}>
           {call.transcript_summary && <div style={{ fontSize: 13, color: "var(--ui-text-muted)", fontStyle: "italic", marginBottom: 6 }}>{call.transcript_summary}</div>}
           {call.transcript_text && <div style={{ fontSize: 13, color: "var(--ui-text)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{call.transcript_text}</div>}
         </div>
+        )}
+        </FeatureGate>
       )}
     </div>
   );

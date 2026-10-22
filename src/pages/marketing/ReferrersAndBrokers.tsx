@@ -4,6 +4,7 @@
 import { useState } from "react";
 import BFReferrerManagement from "./BFReferrerManagement";
 import BrokerImportsPage from "@/pages/brokerImports/BrokerImportsPage";
+import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS - referrer portal is a Growth feature
 
 // BF_PORTAL_v827_REFERRAL_PIPELINE_CARD - lender referrals moved to the Sales Pipeline (Received cards).
 type Sub = "referrers" | "brokers";
@@ -15,10 +16,10 @@ export default function ReferrersAndBrokers({ initial = "referrers" }: { initial
     <div className="space-y-4">
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} role="tablist" aria-label="Partners">
         {SUBS.map(([id, label]) => (
-          <button key={id} type="button" role="tab" aria-selected={sub === id} className={`ui-button ${sub === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setSub(id)}>{label}</button>
+          <button key={id} type="button" role="tab" aria-selected={sub === id} className={`ui-button ${sub === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setSub(id)}>{label}{id === "referrers" && <LockedBadge feature="referrer_portal" />}</button>
         ))}
       </div>
-      {sub === "referrers" ? <BFReferrerManagement /> : <BrokerImportsPage />}
+      {sub === "referrers" ? <FeatureGate feature="referrer_portal"><BFReferrerManagement /></FeatureGate> : <BrokerImportsPage />}
     </div>
   );
 }

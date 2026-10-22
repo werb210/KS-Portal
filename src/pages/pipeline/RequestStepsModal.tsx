@@ -5,6 +5,8 @@
 // only moved the stage with no client-facing tasks.
 import { useState } from "react";
 import { api } from "@/api";
+import { useLockedBadgePlan } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS - bank connect is a Pro feature
+import { PlanBadge } from "@/plans/ui";
 
 const FORMS: Array<{ id: string; label: string }> = [
   { id: "upload", label: "Government ID" },
@@ -44,6 +46,7 @@ export default function RequestStepsModal({
   const [custom, setCustom] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const bankLockedPlan = useLockedBadgePlan("bank_connect"); // KS_PORTAL_v3_PLANS
 
   const toggleForm = (id: string) =>
     setForms((prev) => {
@@ -112,9 +115,11 @@ export default function RequestStepsModal({
 
         <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: "var(--ui-text-muted)", fontWeight: 700, marginBottom: 8 }}>Forms</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-          {FORMS.map((f) => (
+          {FORMS.map((f) => (f.id === "flinks" && bankLockedPlan ? (
+            <span key={f.id} data-testid="bank-connect-locked" title="Bank connect is not in your plan - see Settings > Plan" style={{ ...chip(false), cursor: "not-allowed", opacity: 0.75 }}>{f.label}<PlanBadge plan={bankLockedPlan} /></span>
+          ) : (
             <span key={f.id} onClick={() => toggleForm(f.id)} style={chip(forms.has(f.id))}>{f.label}</span>
-          ))}
+          )))}
         </div>
 
         <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: "var(--ui-text-muted)", fontWeight: 700, marginBottom: 8 }}>Documents to upload</div>

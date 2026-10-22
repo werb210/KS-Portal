@@ -11,6 +11,7 @@ import { ContactAiSummary } from "@/components/crm/ContactAiSummary"; // BF_PORT
 import { ContactApplicantFields, ContactAdvisors, ContactPartners, ContactMarketingSource, ContactCreditReadiness } from "@/components/crm/ContactApplicationDetails"; // BF_PORTAL_CRM_CONTACT_PANELS_v1 + BF_PORTAL_CREDIT_READINESS_v1
 import { EntityEditModal } from "@/components/EntityEditModal";
 import ContactJourney from "@/components/crm/ContactJourney"; // BF_PORTAL_VISITOR_JOURNEY_v1
+import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 import ContactRecordTabs from "@/components/crm/ContactRecordTabs"; // BF_PORTAL_CONTACT_RECORD_TABS_v272
 import { ContactDocuments } from "@/components/crm/ContactDocuments"; // BF_PORTAL_CONTACT_DOCUMENTS_v1
 import { ContactDuplicates } from "@/components/crm/ContactDuplicates"; // BF_PORTAL_CONTACT_MERGE_v1
@@ -122,7 +123,7 @@ export default function ContactDetailPage() {
             <>
               <ContactStageHistory contactId={id} showEmpty />
               <ContactAiSummary contactId={id} />
-              <ContactJourney contactId={id} /> {/* BF_PORTAL_VISITOR_JOURNEY_v1 */}
+              <FeatureGate feature="visitor_tracking" compact><ContactJourney contactId={id} /></FeatureGate> {/* BF_PORTAL_VISITOR_JOURNEY_v1 + KS_PORTAL_v3_PLANS */}
               {/* BF_PORTAL_APOLLO_RETIRED_v784 - the BI Apollo marketing header and tab
                   called /api/v1/bi/contacts/:id/marketing and /enrich, both retired. */}
             </>
