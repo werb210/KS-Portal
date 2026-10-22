@@ -10,17 +10,19 @@ export const PLAN_LABEL: Record<PlanKey, string> = { starter: "Starter", growth:
 export type FeatureInfo = { key: string; label: string; plan: PlanKey; description: string };
 
 export const FEATURES: FeatureInfo[] = [
+  // KS_PORTAL_v9_PORTAL_PLANS - lender portal on every plan; broker portal growth and up (Todd, Oct 22).
+  { key: "lender_portal", plan: "starter", label: "Lender portal (lenders can send you deals they can't place)", description: "Lenders sign in to see the files you send them, post their decisions, and send you deals they can't place themselves." },
   { key: "call_recording", plan: "growth", label: "Call recording", description: "Record calls and play them back from the contact's timeline." },
   { key: "call_summaries", plan: "growth", label: "Call summaries", description: "The assistant writes a short summary and transcript of every recorded call." },
   { key: "voicemail_transcription", plan: "growth", label: "Voicemail transcription", description: "Voicemails turned into text you can read at a glance." },
   { key: "watch_ipad_apps", plan: "growth", label: "Apple Watch and iPad apps", description: "Take calls on Apple Watch and run the portal as an iPad app." },
   { key: "templates", plan: "growth", label: "Templates", description: "Reusable email and text templates your whole team can send from." },
   { key: "referrer_portal", plan: "growth", label: "Referrer portal", description: "Give referral partners their own portal to send you deals and follow their progress." },
+  { key: "broker_portal", plan: "growth", label: "Broker portal", description: "Partner brokers sign up, sign your broker agreement, upload client files and agree the commission split with you." },
   { key: "full_reports", plan: "growth", label: "Reports", description: "The Reports page: pipeline, team, money and marketing reports, goals and commission tracking. Starter keeps a basic dashboard." }, // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   { key: "multiple_lines", plan: "pro", label: "Multiple phone lines", description: "Give each person on your team their own direct phone number." },
-  { key: "lender_portal", plan: "pro", label: "Lender portal", description: "Lenders sign in to see the files you send them and post their decisions." },
   { key: "bank_connect", plan: "pro", label: "Bank connect", description: "Ask clients to connect their bank account (view-only) instead of uploading statements." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
