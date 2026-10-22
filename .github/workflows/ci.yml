@@ -52,9 +52,7 @@ jobs:
       - name: Check tracked directory casing
         run: node scripts/check-case-collisions.mjs
 
-      # BF_PORTAL_v789 - BI silo files only call BI-Server (/api/v1/*); source-text tests may not grow.
-      - name: BI silo isolation
-        run: bash scripts/check-bi-silo-isolation.sh
+      # KS_PORTAL_v1_NO_BI - the BI silo isolation check is gone with the BI silo. Source-text tests may not grow.
       - name: Source-grep test count
         run: node scripts/check-source-grep-tests.mjs
 
