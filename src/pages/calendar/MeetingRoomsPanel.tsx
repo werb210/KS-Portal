@@ -1,8 +1,9 @@
 // BF_PORTAL_MEETING_ROOMS_v736 - conference rooms with access codes. Staff schedule a room,
 // get a 6-digit code and a meeting link, and copy the invite for clients and lenders. Everyone
-// (staff included) joins by calling (866) 631-8939, pressing 3 and entering the code.
+// (staff included) joins by calling the licensee's main line, pressing 3 and entering the code.
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/api";
+import { conferenceDialText } from "@/config/brand"; // KS_PORTAL_v2_BRANDING
 import { joinMeetingRoom } from "@/dialer/actions"; // BF_PORTAL_v827_JOIN_IN_DIALER
 import PeoplePicker, { type Person } from "@/components/meetings/PeoplePicker"; // BF_PORTAL_MEETING_PARTICIPANTS_v737
 
@@ -73,7 +74,7 @@ export default function MeetingRoomsPanel({ initialPeople = [], defaultTitle = "
   return (
     <section data-testid="meeting-rooms" style={{ background: "#fff", color: NAVY, border: "1px solid #E4EAF2", borderRadius: 8, padding: 16, marginBottom: 16 }}>
       <h2 style={{ fontSize: 16, margin: "0 0 4px" }}>Conference rooms</h2>
-      <p style={{ margin: "0 0 12px", fontSize: 13, color: MUTED }}>Callers dial (866) 631-8939, press 3 and enter the access code. The room opens 15 minutes before the start.</p>
+      <p style={{ margin: "0 0 12px", fontSize: 13, color: MUTED }}>{conferenceDialText()} The room opens 15 minutes before the start.</p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <input aria-label="Meeting title" placeholder="Meeting title" value={title} onChange={(e) => setTitle(e.target.value)} style={{ ...input, minWidth: 220 }} />
         <input aria-label="Start time" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} style={input} />

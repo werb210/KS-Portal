@@ -106,6 +106,11 @@ export function brandName(): string { return current.company_name; }
 export function legalName(): string { return current.legal_name || current.company_name; }
 /** The AI assistant's display name (BF-portal called it "Maya"). */
 export function assistantName(): string { return current.assistant_name; }
+/** KS_PORTAL_v2_BRANDING - how callers reach a conference room: the licensee's support line, or a neutral line when none is set. */
+export function conferenceDialText(): string {
+  const n = current.support_phone.trim();
+  return n ? `Callers dial ${n}, press 3 and enter the access code.` : "Callers dial your company's main line, press 3 and enter the access code.";
+}
 export function brandInitial(): string { return (current.company_name.match(/[A-Za-z0-9]/)?.[0] ?? "K").toUpperCase(); }
 /** Window title: "<Company> Portal". */
 export function portalTitle(): string { return `${current.company_name} Portal`; }

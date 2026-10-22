@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { brandName } from "@/config/brand";
+import { brandName, conferenceDialText } from "@/config/brand";
 import { PopupShell, popupInputStyle } from "./PopupShell";
 import { crmApi, type Scope } from "@/api/crm";
 // BF_PORTAL_MEETING_DATETIME_PICKER_v1 - same picker as TaskModal.
@@ -65,7 +65,7 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
       ...(contactId ? { contactId } : {}),
     });
     const told = describeMeetingDelivery(r.delivery);
-    setRoomResult({ ok: told.ok, text: "Conference room booked. Access code " + r.meeting.code + ". Callers dial (866) 631-8939, press 3 and enter the code. " + told.text + (r.refused ? " " + r.refused + " not added - a room holds 10 people." : "") });
+    setRoomResult({ ok: told.ok, text: "Conference room booked. Access code " + r.meeting.code + ". " + conferenceDialText() + " " + told.text + (r.refused ? " " + r.refused + " not added - a room holds 10 people." : "") });
     onCreated();
   }
 
@@ -184,7 +184,7 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
       )}
       {meetingType === "conference" && (
         <>
-          <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>Books a {brandName()} conference room. Everyone dials (866) 631-8939, presses 3 and enters the access code. Attendees get the invite by email, and by text when a phone number is known.</div>
+          <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>Books a {brandName()} conference room. {conferenceDialText()} Attendees get the invite by email, and by text when a phone number is known.</div>
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Client's mobile for the text invite (optional)" style={{ ...popupInputStyle, marginBottom: 8 }} />
         </>
       )}
