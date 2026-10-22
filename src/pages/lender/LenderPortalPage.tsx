@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import { formatDollar, unformatDollar } from "@/utils/format";
 import { Field, inputStyle } from "@/pages/lenders/components/lenderFieldShared";
+import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON
 import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "@/pages/lenders/components/SbaIvesFields"; // BF_PORTAL_LENDER_SBA_IVES_v747
 import LenderReferralsSection from "./LenderReferralsSection"; // BF_PORTAL_v825_LENDER_REFERRALS
 import FileDrop from "@/components/partner/FileDrop"; // BF_PORTAL_v828_PARTNER_PORTAL_THEME
@@ -125,6 +126,7 @@ const DOC_CORE: Array<{ key: string; label: string; defaultStage: 1 | 2 }> = [
   { label: "Business plan / projections", defaultStage: 2 },
   { label: "Lease agreement (if applicable)", defaultStage: 2 },
   { label: "Debt stack", defaultStage: 2 },
+  { label: "Banking connection (Flinks view-only)", defaultStage: 2 },
   { label: "CRA view-only access", defaultStage: 2 },
   { label: "Real estate collateral", defaultStage: 2 },
   { label: "Equipment collateral", defaultStage: 2 },
@@ -198,6 +200,7 @@ export function initialLenderTab(): LenderTab {
 }
 
 export default function LenderPortalPage() {
+  const bankConnect = useAddon("bank_connect"); // KS_PORTAL_BANK_CONNECT_ADDON - Flinks doc only with the add-on
   const [tab, setTabState] = useState<LenderTab>(initialLenderTab); // BF_PORTAL_v835_LENDER_TABS
   const setTab = (next: LenderTab) => {
     setTabState(next);
@@ -667,7 +670,7 @@ export default function LenderPortalPage() {
                 <div style={{ border: "1px solid var(--ui-border)", borderRadius: 8, padding: 12, background: "var(--ui-surface)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--ui-text-muted)", marginBottom: 6 }}>CORE UNDERWRITING PACK</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 6 }}>
-                    {DOC_CORE.map((d) => {
+                    {DOC_CORE.filter((d) => bankConnect || d.label !== "Banking connection (Flinks view-only)").map((d) => {
                       const on = checkedDocs.has(d.key);
                       const stage = docStages.get(d.key) ?? d.defaultStage;
                       return (

@@ -5,9 +5,11 @@
 // only moved the stage with no client-facing tasks.
 import { useState } from "react";
 import { api } from "@/api";
+import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON - bank connect is a hidden add-on, not a plan feature
 
 const FORMS: Array<{ id: string; label: string }> = [
   { id: "upload", label: "Government ID" },
+  { id: "flinks", label: "Connect Bank (View-Only)" },
   { id: "cra", label: "CRA Authorization" },
   { id: "networth", label: "Personal Net Worth" },
   { id: "debt", label: "Debt Stack" },
@@ -43,6 +45,10 @@ export default function RequestStepsModal({
   const [custom, setCustom] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // KS_PORTAL_BANK_CONNECT_ADDON - Connect Bank is offered only while the add-on is on; otherwise it is simply not there
+  // (no locked chip, no plan badge).
+  const bankConnect = useAddon("bank_connect");
+  const formChoices = bankConnect ? FORMS : FORMS.filter((f) => f.id !== "flinks");
 
   const toggleForm = (id: string) =>
     setForms((prev) => {
@@ -111,8 +117,8 @@ export default function RequestStepsModal({
 
         <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, color: "var(--ui-text-muted)", fontWeight: 700, marginBottom: 8 }}>Forms</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
-          {FORMS.map((f) => (
-            <span key={f.id} onClick={() => toggleForm(f.id)} style={chip(forms.has(f.id))}>{f.label}</span>
+          {formChoices.map((f) => (
+            <span key={f.id} data-testid={`request-step-${f.id}`} onClick={() => toggleForm(f.id)} style={chip(forms.has(f.id))}>{f.label}</span>
           ))}
         </div>
 

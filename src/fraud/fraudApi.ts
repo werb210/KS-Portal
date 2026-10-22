@@ -60,6 +60,7 @@ export const fraudApi = {
   network: (id: string) => api.get<{ ok: boolean; network: Network }>(`${base(id)}/network`),
   prescreen: (id: string) => api.get<{ ok: boolean; score: FraudScore; include_in_package: boolean; lines: string[] }>(`${base(id)}/prescreen`),
   setPrescreen: (id: string, include: boolean) => api.put<{ ok: boolean; include_in_package: boolean }>(`${base(id)}/prescreen`, { include_in_package: include }),
+  setBankLink: (id: string, loginId: string) => api.put<{ ok: boolean }>(`${base(id)}/bank-link`, { login_id: loginId }),
   settings: () => api.get<FraudSettingsView & { ok: boolean }>("/api/fraud/settings"),
   saveSettings: (patch: Partial<Pick<FraudSettings, "watchlist_opt_in" | "include_prescreen_in_package">>) =>
     api.put<{ ok: boolean; settings: FraudSettings; ops: { told: boolean; error: string | null } }>("/api/fraud/settings", patch),

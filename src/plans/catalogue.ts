@@ -26,8 +26,9 @@ export const FEATURES: FeatureInfo[] = [
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
-  // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all 15
-  // (fraud_3 "statement vs live bank data" retired with bank connect - KS_PORTAL_NO_BANK_CONNECT; keys not renumbered).
+  // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
+  // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they
+  // are the hidden bank_connect add-on operations switches on per licensee (planStore hasAddon). Never listed here.
   { key: "fraud_1", plan: "starter", label: "Document tamper scan", description: "Every upload is checked for signs of editing: editing software, re-saves, mixed fonts, text pasted over a scan, re-compressed pages." },
   { key: "fraud_2", plan: "starter", label: "Bank statement math check", description: "Every transaction on each bank statement is re-added and the running and closing balances checked." },
   { key: "fraud_4", plan: "starter", label: "Duplicate document check", description: "Spots the same file, ID or void cheque (exact copy or near-identical picture) on another application." },

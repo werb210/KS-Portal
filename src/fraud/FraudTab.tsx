@@ -1,6 +1,7 @@
 // KS_PORTAL_v7_FRAUD - the application's "Fraud check" tab. Shows the fraud score (pro), a red / amber / green badge
 // per document with its reasons, every check with its result (locked ones with the plan that includes them), the
-// network map (pro), the lender pre-screen (pro) and the bank link for the live-bank comparison (pro).
+// network map (pro), the lender pre-screen (pro) and - only with the hidden bank_connect add-on operations switches on
+// (KS_PORTAL_BANK_CONNECT_ADDON) - check 3 and the bank link for the live-bank comparison.
 // Results are hints for a human to review, never a verdict - the page says so.
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import toast from "react-hot-toast";
@@ -8,7 +9,8 @@ import { fraudApi, type FraudCheck, type FraudDocument, type FraudOverview, type
 import { BAND_STYLE, chipStyle } from "@/fraud/status";
 import NetworkGraph from "@/fraud/NetworkGraph";
 import { LockedFeature, LockedBadge } from "@/plans/FeatureGate";
-import { secondaryButton } from "@/plans/ui";
+import { primaryButton, secondaryButton } from "@/plans/ui";
+import { useAddon } from "@/plans/planStore";
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 8px", fontSize: 16, color: "var(--ui-text)" };
@@ -121,6 +123,8 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
   const [network, setNetwork] = useState<Network | null>(null);
   const [netError, setNetError] = useState<string | null>(null);
   const [prescreen, setPrescreen] = useState<string[] | null>(null);
+  const [loginId, setLoginId] = useState("");
+  const bankConnect = useAddon("bank_connect"); // KS_PORTAL_BANK_CONNECT_ADDON
 
   const load = useCallback(async () => {
     if (!applicationId) return;
@@ -139,7 +143,9 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
   if (error) return <p role="alert" style={{ color: "#7f1d1d", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 8, padding: "8px 12px" }}>{error}</p>;
   if (!data) return <p role="status" style={{ color: "var(--ui-text)" }}>Loading fraud checks…</p>;
 
-  const allowed = (k: string) => data.checks.some((c) => c.key === k && !c.locked);
+  // KS_PORTAL_BANK_CONNECT_ADDON - check 3 is never shown (not even locked) unless the add-on is on.
+  const checks = bankConnect ? data.checks : data.checks.filter((c) => c.key !== "fraud_3");
+  const allowed = (k: string) => checks.some((c) => c.key === k && !c.locked);
   const runAgain = async () => {
     setBusy(true);
     try {
@@ -165,6 +171,15 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
   const previewPrescreen = async () => {
     try { setPrescreen((await fraudApi.prescreen(applicationId)).lines); } catch (e) { try { toast.error((e as Error)?.message || "Could not load the pre-screen."); } catch { /* no toaster */ } }
   };
+  const saveBankLink = async () => {
+    try {
+      await fraudApi.setBankLink(applicationId, loginId.trim());
+      setLoginId("");
+      try { toast.success("Bank link saved. The comparison runs with the next check."); } catch { /* no toaster */ }
+    } catch (e) {
+      try { toast.error((e as Error)?.message || "Could not save the bank link."); } catch { /* no toaster */ }
+    }
+  };
   const lastChecked = data.queue.done_at ? new Date(data.queue.done_at).toLocaleString() : null;
 
   return (
@@ -184,7 +199,7 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
       <DocumentsCard documents={data.documents} showMath={allowed("fraud_2")} />
 
       <Section title="All checks" testId="fraud-checks">
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>{data.checks.filter((c) => c.key !== "fraud_16").map((c) => <CheckRow key={c.key} check={c} />)}</ul>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>{checks.filter((c) => c.key !== "fraud_16").map((c) => <CheckRow key={c.key} check={c} />)}</ul>
       </Section>
 
       {allowed("fraud_12") && (
@@ -210,6 +225,15 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
         </Section>
       )}
 
+      {allowed("fraud_3") && (
+        <Section title="Connected bank account" testId="fraud-bank-link">
+          <p style={{ ...muted, margin: "0 0 8px" }}>Paste the client's Flinks LoginId to compare their uploaded statements with the bank's own records.</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input aria-label="Flinks LoginId" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="LoginId" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--ui-border)", background: "var(--ui-surface-input, var(--ui-surface))", color: "var(--ui-text)", fontSize: 14, minWidth: 240 }} />
+            <button type="button" style={primaryButton} disabled={loginId.trim().length < 8} onClick={() => void saveBankLink()}>Save</button>
+          </div>
+        </Section>
+      )}
     </div>
   );
 }
