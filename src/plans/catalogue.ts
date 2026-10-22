@@ -27,6 +27,23 @@ export const FEATURES: FeatureInfo[] = [
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
+  // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all 16.
+  { key: "fraud_1", plan: "starter", label: "Document tamper scan", description: "Every upload is checked for signs of editing: editing software, re-saves, mixed fonts, text pasted over a scan, re-compressed pages." },
+  { key: "fraud_2", plan: "starter", label: "Bank statement math check", description: "Every transaction on each bank statement is re-added and the running and closing balances checked." },
+  { key: "fraud_4", plan: "starter", label: "Duplicate document check", description: "Spots the same file, ID or void cheque (exact copy or near-identical picture) on another application." },
+  { key: "fraud_5", plan: "starter", label: "Revenue vs bank deposits", description: "Compares the revenue on tax returns, financials and the application with the money actually deposited." },
+  { key: "fraud_6", plan: "growth", label: "Business reality check", description: "Checks the business is registered, the applicant is a director, the address is not a mail drop, and the website and phone look established." },
+  { key: "fraud_7", plan: "growth", label: "Phone and email risk", description: "Flags internet (VoIP) phone lines, throwaway email addresses, brand-new email domains and names that do not match the email." },
+  { key: "fraud_8", plan: "growth", label: "ID checks", description: "Matches the name and date of birth on the ID to the applicant, and spots screenshots and ID pictures used before." },
+  { key: "fraud_3", plan: "pro", label: "Statement vs live bank data", description: "Compares uploaded statements with the bank's own data from the client's connected account." },
+  { key: "fraud_9", plan: "pro", label: "Device and location check", description: "Notices VPNs, several businesses applying from one device or connection, and applications from outside your region." },
+  { key: "fraud_10", plan: "pro", label: "Application behaviour signals", description: "Notices pasted bank and ID numbers, impossibly fast applications and answers identical to another application. No keystrokes are kept." },
+  { key: "fraud_11", plan: "pro", label: "Loan stacking detector", description: "Finds recent advances and daily or weekly debits from other lenders that the applicant did not mention." },
+  { key: "fraud_12", plan: "pro", label: "Fraud network map", description: "Links applications that share a phone, email, address, bank account, device or director, and shows the network." },
+  { key: "fraud_13", plan: "pro", label: "Shared fraud watchlist", description: "Checks applicants against confirmed fraud reported by other brokerages. Only scrambled codes are shared, never personal details." },
+  { key: "fraud_14", plan: "pro", label: "Inside-job alerts", description: "Alerts Admins when staff change banking details on a file, export in bulk, approve their own file or work at unusual hours." },
+  { key: "fraud_15", plan: "pro", label: "Call voice check", description: "Recorded calls with the applicant are checked for synthetic or cloned voices (needs a voice-analysis service)." },
+  { key: "fraud_16", plan: "pro", label: "Fraud score and lender pre-screen", description: "One 0-100 score with plain-English reasons, and a pre-screen summary you can add to the lender package." },
 ];
 
 const BY_KEY = new Map(FEATURES.map((f) => [f.key, f]));

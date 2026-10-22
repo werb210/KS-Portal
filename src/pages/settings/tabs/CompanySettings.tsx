@@ -10,6 +10,7 @@ import {
   saveCompany, type CompanyForm, type FormField,
 } from "@/company/licenseeAdmin";
 import { primaryButton, useIsAdmin } from "@/plans/ui";
+import FraudProtectionCard from "@/fraud/FraudProtectionCard"; // KS_PORTAL_v7_FRAUD
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 4px", fontSize: 16, color: "var(--ui-text)" };
@@ -262,6 +263,9 @@ export default function CompanySettings() {
         </button>
         {saved && <span role="status" style={{ fontSize: 14 }}>{saved}</span>}
       </div>
+
+      {/* KS_PORTAL_v7_FRAUD - saves on its own, separate from the company details above. */}
+      <div style={{ marginTop: 20 }}><FraudProtectionCard /></div>
     </div>
   );
 }

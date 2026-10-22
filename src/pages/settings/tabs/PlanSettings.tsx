@@ -162,6 +162,8 @@ function StorageMeter({ state, isAdmin }: { state: PlanState; isAdmin: boolean }
   );
 }
 
+const isFraudFeature = (key: string) => /^fraud_\d+$/.test(key); // KS_PORTAL_v7_FRAUD
+
 function ComparisonTable({ state }: { state: PlanState }) {
   const mark = (on: boolean) => (on ? <span aria-label="Included">✓</span> : <span aria-label="Not included" style={{ color: "var(--ui-text-muted)" }}>-</span>);
   const head = (p: PlanKey) => (
@@ -180,7 +182,15 @@ function ComparisonTable({ state }: { state: PlanState }) {
             {STARTER_BASICS.map((b) => (
               <tr key={b}><td style={cell}>{b}</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{mark(true)}</td>)}</tr>
             ))}
-            {FEATURES.map((f) => (
+            {FEATURES.filter((f) => !isFraudFeature(f.key)).map((f) => (
+              <tr key={f.key}>
+                <td style={cell}>{featureLabel(f.key, state)}</td>
+                {PLAN_ORDER.map((p) => <td key={p} style={cell}>{mark(planRank(p) >= planRank(f.plan))}</td>)}
+              </tr>
+            ))}
+            {/* KS_PORTAL_v7_FRAUD - the fraud-protection checks under their own heading. */}
+            <tr><th colSpan={PLAN_ORDER.length + 1} style={{ ...cell, fontWeight: 700, paddingTop: 12 }}>Fraud protection</th></tr>
+            {FEATURES.filter((f) => isFraudFeature(f.key)).map((f) => (
               <tr key={f.key}>
                 <td style={cell}>{featureLabel(f.key, state)}</td>
                 {PLAN_ORDER.map((p) => <td key={p} style={cell}>{mark(planRank(p) >= planRank(f.plan))}</td>)}
