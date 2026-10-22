@@ -16,10 +16,10 @@ export default function ReferrersAndBrokers({ initial = "referrers" }: { initial
     <div className="space-y-4">
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} role="tablist" aria-label="Partners">
         {SUBS.map(([id, label]) => (
-          <button key={id} type="button" role="tab" aria-selected={sub === id} className={`ui-button ${sub === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setSub(id)}>{label}{id === "referrers" && <LockedBadge feature="referrer_portal" />}</button>
+          <button key={id} type="button" role="tab" aria-selected={sub === id} className={`ui-button ${sub === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setSub(id)}>{label}<LockedBadge feature={id === "referrers" ? "referrer_portal" : "broker_portal"} /></button>
         ))}
       </div>
-      {sub === "referrers" ? <FeatureGate feature="referrer_portal"><BFReferrerManagement /></FeatureGate> : <BrokerImportsPage />}
+      {sub === "referrers" ? <FeatureGate feature="referrer_portal"><BFReferrerManagement /></FeatureGate> : <FeatureGate feature="broker_portal"><BrokerImportsPage /></FeatureGate>} {/* KS_PORTAL_v9_PORTAL_PLANS */}
     </div>
   );
 }
