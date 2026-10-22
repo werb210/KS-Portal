@@ -38,13 +38,17 @@ export function moveTab(tabs: Tab[], tabId: string, beforeTabId: string): Tab[] 
   return rest;
 }
 
-// KS_PORTAL_v3_PLANS - which plan feature a report card needs. Operations reports are the basic reports every plan
-// has; money and marketing reports are "full reports"; the Google Ads cards need ad attribution / visitor tracking.
-export function reportFeature(report: string, group?: ReportDef["group"]): string | null {
+// KS_PORTAL_v5_NO_REPORTS_ON_STARTER - Starter has no reports (Todd, Oct 22); it keeps these basic Dashboard sections.
+// Same list as KS-server's STARTER_DASHBOARD_REPORTS.
+export const STARTER_DASHBOARD_REPORTS: ReadonlySet<string> = new Set(["dash_kpis", "dash_pipeline", "dash_dropoffs", "dash_doc_issues", "dash_team"]);
+
+// KS_PORTAL_v3_PLANS - which plan feature a report card needs: the Google Ads cards need ad attribution / visitor
+// tracking; every other card except the basic Dashboard sections needs Reports (Growth and up).
+export function reportFeature(report: string, _group?: ReportDef["group"]): string | null {
   if (report === "ads_story") return "ad_attribution";
   if (report === "ads_dropoff" || report === "ads_visitors") return "visitor_tracking";
-  if (group === "money" || group === "marketing") return "full_reports";
-  return null;
+  if (STARTER_DASHBOARD_REPORTS.has(report)) return null;
+  return "full_reports";
 }
 
 export function CardBody({ report, days, group }: { report: string; days?: number; group?: ReportDef["group"] }): ReactNode {
@@ -103,7 +107,13 @@ function TabButton({ tab, active, onClick }: { tab: Tab; active: boolean; onClic
   return <span ref={drop.setNodeRef} style={{ outline: drop.isOver ? "2px dashed var(--ui-text)" : "none", borderRadius: 8 }}><button ref={drag.setNodeRef} {...drag.listeners} {...drag.attributes} type="button" onClick={onClick} className={active ? "ui-button ui-button--primary" : "ui-button ui-button--secondary"} style={{ touchAction: "none" }} data-testid={`reports-tab-${tab.name}`}>{tab.name}</button></span>;
 }
 
+// KS_PORTAL_v5_NO_REPORTS_ON_STARTER - the Reports page is a Growth feature; the Dashboard uses the board too and stays.
 export default function ReportsBoard({ mode = "reports" }: { mode?: "reports" | "dashboard" }) {
+  if (mode === "reports") return <FeatureGate feature="full_reports"><ReportsBoardInner mode={mode} /></FeatureGate>;
+  return <ReportsBoardInner mode={mode} />;
+}
+
+function ReportsBoardInner({ mode }: { mode: "reports" | "dashboard" }) {
   const silo = String((useContext(SiloContext) as { silo?: string } | null)?.silo ?? "BF").toUpperCase();
   const [catalog, setCatalog] = useState<ReportDef[]>([]);
   const [layout, setLayout] = useState<Layout | null>(null);

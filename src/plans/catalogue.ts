@@ -16,7 +16,7 @@ export const FEATURES: FeatureInfo[] = [
   { key: "watch_ipad_apps", plan: "growth", label: "Apple Watch and iPad apps", description: "Take calls on Apple Watch and run the portal as an iPad app." },
   { key: "templates", plan: "growth", label: "Templates", description: "Reusable email and text templates your whole team can send from." },
   { key: "referrer_portal", plan: "growth", label: "Referrer portal", description: "Give referral partners their own portal to send you deals and follow their progress." },
-  { key: "full_reports", plan: "growth", label: "Full reports", description: "Money and marketing reports on top of the basic operations reports." },
+  { key: "full_reports", plan: "growth", label: "Reports", description: "The Reports page: pipeline, team, money and marketing reports, goals and commission tracking. Starter keeps a basic dashboard." }, // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   { key: "multiple_lines", plan: "pro", label: "Multiple phone lines", description: "Give each person on your team their own direct phone number." },
