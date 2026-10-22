@@ -17,6 +17,7 @@ import { api } from "@/api";
 import ModalFooterWithDelete from "@/components/ModalFooterWithDelete";
 import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "./components/SbaIvesFields"; // BF_PORTAL_LENDER_SBA_IVES_v747
 import { phoneInputHandler, formatDollar, formatRate, unformatDollar } from "@/utils/format";
+import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON
 import { CATEGORY_ORDER, CATEGORY_LABELS, CREDIT_SCORE_BANDS, bfBandFromMin, bfMinFromBand, ProductCoreFields } from "./productFormShared"; // PRODUCT_CORE_FIELDS_SHARED_v1
 
 
@@ -420,6 +421,9 @@ function CreateLenderModal({
   );
 }
 
+/** KS_PORTAL_BANK_CONNECT_ADDON - the core-pack label that exists only with the bank_connect add-on. */
+const BANK_CONNECT_DOC_LABEL = "Banking connection (Flinks view-only)";
+
 // ─── Create Product Modal ─────────────────────────────────────────────────────
 function CreateProductModal({
   defaultLenderId,
@@ -441,6 +445,8 @@ function CreateProductModal({
   // staff doc types that do not belong to a lender product. The one gap it
   // was hiding - the SBA Stage 2 set - is added explicitly as sbaTypes.
   const queryClient = useQueryClient();
+  // KS_PORTAL_BANK_CONNECT_ADDON - the Flinks banking connection is offered only while the bank_connect add-on is on.
+  const bankConnect = useAddon("bank_connect");
   const alwaysRequiredDoc = { key: "business_banking_statements_6_months", label: "6 months business banking statements" };
   const equipmentFinanceAlwaysRequiredDoc = {
     key: "purchase_order_or_invoice",
@@ -471,6 +477,7 @@ function CreateProductModal({
     { label: "Lease agreement (if applicable)", defaultStage: 2 as 1 | 2 },
     { label: "Debt stack", defaultStage: 2 as 1 | 2, hasForm: true },
     // BF_PORTAL_BLOCK_v306_STAGE2_DOCS_v1 — new Accord stage-2 docs (CMP forms)
+    { label: "Banking connection (Flinks view-only)", defaultStage: 2 as 1 | 2, hasForm: true },
     { label: "CRA view-only access", defaultStage: 2 as 1 | 2, hasForm: true },
     { label: "Real estate collateral", defaultStage: 2 as 1 | 2, hasForm: true },
     // BF_PORTAL_BLOCK_v307_EQUIPMENT_DOC_v1 — Equipment collateral now a real CMP form
@@ -878,7 +885,7 @@ function CreateProductModal({
               <div style={{ ...sectionStyle, marginBottom: 10 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: "var(--ui-text)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px" }}>Core Underwriting Pack</p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 16px" }}>
-                  {coreTypes.map((d) => (
+                  {coreTypes.filter((d) => bankConnect || d.label !== BANK_CONNECT_DOC_LABEL).map((d) => (
                     <DocCheckbox
                       key={d.key}
                       id={d.key}

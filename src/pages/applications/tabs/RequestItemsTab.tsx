@@ -11,6 +11,7 @@ import { api } from "@/api";
 import { useAuth } from "@/hooks/useAuth";
 import { resolveUserRole } from "@/utils/roles";
 import LenderQaSection from "@/pages/applications/tabs/LenderQaSection"; // BF_PORTAL_LENDER_QA_MOVED_v1
+import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON
 
 interface Props { applicationId?: string }
 type ReqDoc = { document_type: string; label: string };
@@ -40,6 +41,7 @@ const CATALOG_DOCS: string[] = [
 const FORMS: Array<{ id: string; label: string }> = [
   { id: "networth", label: "Personal net worth" },
   { id: "debt", label: "Debt stack" },
+  { id: "flinks", label: "Banking connection (Flinks view-only)" },
   { id: "cra", label: "CRA view-only access" },
   { id: "realestate", label: "Real estate collateral" },
   { id: "equipment", label: "Equipment collateral" },
@@ -54,6 +56,10 @@ export default function RequestItemsTab({ applicationId }: Props) {
   const { user } = useAuth();
   const isAdmin =
     resolveUserRole((user as { role?: string | null } | null)?.role ?? null) === "Admin";
+  // KS_PORTAL_BANK_CONNECT_ADDON - the Flinks banking connection is listed only while operations has switched the
+  // bank_connect add-on on for this licensee.
+  const bankConnect = useAddon("bank_connect");
+  const forms = bankConnect ? FORMS : FORMS.filter((f) => f.id !== "flinks");
 
   const [required, setRequired] = useState<ReqDoc[]>([]);
   const [waived, setWaived] = useState<Set<string>>(new Set());
@@ -354,7 +360,7 @@ export default function RequestItemsTab({ applicationId }: Props) {
             Forms
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
-            {FORMS.map((f) => {
+            {forms.map((f) => {
               const isRequested = requestedForms.has(f.id);
               const checked = isRequested ? !formsWaived.has(f.id) : formsManual.has(f.id);
               const disabled = isRequested ? (!isAdmin || formWaiveBusy === f.id) : false;

@@ -49,6 +49,7 @@ export const DOCUMENT_TYPES = [
   "identity_documents",
   "net_worth_statement",
   // BF_PORTAL_BLOCK_v303_COLLATERAL_DOCTYPES_v1 — Accord LOC doc types
+  "flinks_banking",
   "cra_view_only_authorization",
   "real_estate_collateral_disclosure",
   "org_chart_beneficial_ownership",
@@ -78,6 +79,7 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   identity_documents: "Identity documents",
   net_worth_statement: "Net worth statement",
   // BF_PORTAL_BLOCK_v303_COLLATERAL_DOCTYPES_v1 — Accord LOC doc types
+  flinks_banking: "Banking — Flinks view-only connection",
   cra_view_only_authorization: "CRA Level-1 view-only authorization",
   real_estate_collateral_disclosure: "Real estate collateral disclosure",
   org_chart_beneficial_ownership: "Org chart / beneficial ownership",

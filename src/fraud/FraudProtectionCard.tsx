@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { fraudApi, type FraudSettingsView, type StaffAlert } from "@/fraud/fraudApi";
 import { LockedFeature } from "@/plans/FeatureGate";
 import { StatusChip } from "@/fraud/FraudTab";
+import { useAddon } from "@/plans/planStore";
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const muted: CSSProperties = { color: "var(--ui-text-muted)", fontSize: 13, margin: "4px 0 0" };
@@ -20,6 +21,7 @@ const ALERT_TEXT: Record<string, string> = {
 };
 
 export default function FraudProtectionCard() {
+  const bankConnect = useAddon("bank_connect"); // KS_PORTAL_BANK_CONNECT_ADDON - the Flinks row only with the add-on
   const [view, setView] = useState<FraudSettingsView | null>(null);
   const [alerts, setAlerts] = useState<StaffAlert[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -90,7 +92,7 @@ export default function FraudProtectionCard() {
       <details style={{ borderTop: "1px solid var(--ui-border)", paddingTop: 10 }}>
         <summary style={{ cursor: "pointer", fontSize: 14, fontWeight: 600, color: "var(--ui-text)" }}>Outside services the checks use</summary>
         <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }} data-testid="fraud-services">
-          {view.services.map((s) => (
+          {view.services.filter((s) => bankConnect || s.key !== "bank").map((s) => (
             <li key={s.key} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", padding: "4px 0", fontSize: 13 }}>
               <StatusChip status={s.configured ? "green" : "not_configured"} />
               <span style={{ color: "var(--ui-text)" }}>{s.label}</span>

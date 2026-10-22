@@ -32,6 +32,9 @@ export type PlanState = {
   storage: { used_bytes: number; allowance_bytes: number; extra_blocks: number; seats: number | null; percent: number } | null;
   /** KS_PORTAL_v6_USAGE - this month's pooled usage; null when the server does not report it (then the card is hidden). */
   usage: PlanUsage | null;
+  /** KS_PORTAL_BANK_CONNECT_ADDON - add-ons Keystone operations switched on for this licensee (only true ones).
+   *  Not plan features: an add-on that is off is never shown, locked or offered. Empty in the fallback. */
+  addons: Record<string, true>;
 };
 
 export type PlanUsage = {
@@ -57,6 +60,7 @@ export function fallbackPlan(): PlanState {
     trial_usage: {},
     storage: null,
     usage: null,
+    addons: {},
   };
 }
 
@@ -107,7 +111,20 @@ export function normalizePlan(raw: unknown): PlanState | null {
     trial_usage: usage,
     storage: normalizeStorage(r.storage),
     usage: normalizeUsage(r.usage),
+    addons: normalizeAddons(r.addons),
   };
+}
+
+/** KS_PORTAL_BANK_CONNECT_ADDON - GET /api/plan `addons`: keep only the keys that are exactly true. */
+export function normalizeAddons(raw: unknown): Record<string, true> {
+  const out: Record<string, true> = {};
+  for (const [k, v] of Object.entries(obj(raw))) if (v === true) out[k] = true;
+  return out;
+}
+
+/** KS_PORTAL_BANK_CONNECT_ADDON - is this add-on switched on? Off (and unknown, and the fallback) means hidden. */
+export function hasAddon(key: string, state: PlanState = current): boolean {
+  return state.source === "server" && state.addons?.[key] === true;
 }
 
 /** KS_PORTAL_v6_USAGE - GET /api/plan `usage`; null unless the used counts are numbers. */
@@ -243,6 +260,11 @@ export function trialOfferText(state: PlanState): string {
 
 export function usePlan(): PlanState {
   return useSyncExternalStore(subscribe, getPlan, getPlan);
+}
+
+/** KS_PORTAL_BANK_CONNECT_ADDON - React hook: true only while operations has switched the add-on on. */
+export function useAddon(key: string): boolean {
+  return hasAddon(key, usePlan());
 }
 
 const FOCUS_REFRESH_MS = 30_000;
