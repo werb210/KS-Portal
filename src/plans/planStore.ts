@@ -30,6 +30,19 @@ export type PlanState = {
   trial_usage: Record<string, number>;
   /** KS_PORTAL_v3_STORAGE - pooled document storage; null when the server does not report it (then nothing is shown). */
   storage: { used_bytes: number; allowance_bytes: number; extra_blocks: number; seats: number | null; percent: number } | null;
+  /** KS_PORTAL_v6_USAGE - this month's pooled usage; null when the server does not report it (then the card is hidden). */
+  usage: PlanUsage | null;
+};
+
+export type PlanUsage = {
+  period: string;
+  minutes: number;
+  texts: number;
+  assistant_chats: number;
+  storage_bytes: number;
+  /** Pooled totals for the period; null = unlimited (or not reported). */
+  allowances: { minutes: number | null; texts: number | null; assistant_chats: number | null; storage_bytes: number | null };
+  overage: { minutes: number; texts: number };
 };
 
 export function fallbackPlan(): PlanState {
@@ -43,6 +56,7 @@ export function fallbackPlan(): PlanState {
     allowances: { minutes_per_seat: null, texts_per_seat: null, assistant_chats: null, trial_bonus_minutes: 0, trial_bonus_texts: 0, storage_gb_per_seat: null },
     trial_usage: {},
     storage: null,
+    usage: null,
   };
 }
 
@@ -92,6 +106,29 @@ export function normalizePlan(raw: unknown): PlanState | null {
     },
     trial_usage: usage,
     storage: normalizeStorage(r.storage),
+    usage: normalizeUsage(r.usage),
+  };
+}
+
+/** KS_PORTAL_v6_USAGE - GET /api/plan `usage`; null unless the used counts are numbers. */
+export function normalizeUsage(raw: unknown): PlanUsage | null {
+  const u = obj(raw);
+  const minutes = num(u.minutes), texts = num(u.texts), chats = num(u.assistant_chats), storage = num(u.storage_bytes);
+  if (minutes === null && texts === null && chats === null && storage === null) return null;
+  const a = obj(u.allowances);
+  const o = obj(u.overage);
+  const nn = (v: number | null) => Math.max(0, v ?? 0);
+  const allowance = (v: unknown) => { const x = num(v); return x === null || x < 0 ? null : x; };
+  const al = { minutes: allowance(a.minutes), texts: allowance(a.texts), assistant_chats: allowance(a.assistant_chats), storage_bytes: allowance(a.storage_bytes) };
+  const over = (used: number, server: number | null, cap: number | null) => Math.max(0, server ?? (cap === null ? 0 : used - cap));
+  return {
+    period: str(u.period) ?? "",
+    minutes: nn(minutes),
+    texts: nn(texts),
+    assistant_chats: nn(chats),
+    storage_bytes: nn(storage),
+    allowances: al,
+    overage: { minutes: over(nn(minutes), num(o.minutes), al.minutes), texts: over(nn(texts), num(o.texts), al.texts) },
   };
 }
 

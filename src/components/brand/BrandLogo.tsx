@@ -18,11 +18,21 @@ export function readableTextOn(bg: string): string {
   return lum > 0.4 ? "#0f172a" : "#ffffff";
 }
 
-type Props = { height?: number; style?: CSSProperties; className?: string; alt?: string };
+// KS_PORTAL_v6_COMPANY - `preview` shows unsaved values (Settings -> Company) instead of the store's.
+type Preview = { logo_url?: string; primary_color?: string; company_name?: string };
+type Props = { height?: number; style?: CSSProperties; className?: string; alt?: string; preview?: Preview };
 
-export default function BrandLogo({ height = 40, style, className, alt }: Props) {
-  const brand = useBrand();
+export default function BrandLogo({ height = 40, style, className, alt, preview }: Props) {
+  const stored = useBrand();
+  const brand = preview
+    ? {
+        logo_url: preview.logo_url ?? stored.logo_url,
+        primary_color: preview.primary_color || stored.primary_color,
+        company_name: preview.company_name || stored.company_name,
+      }
+    : stored;
   const label = alt ?? brand.company_name;
+  const initial = preview ? (brand.company_name.match(/[A-Za-z0-9]/)?.[0] ?? "K").toUpperCase() : brandInitial();
   if (brand.logo_url) {
     return <img src={brand.logo_url} alt={label} className={className} style={{ height, width: "auto", display: "block", ...style }} />;
   }
@@ -49,7 +59,7 @@ export default function BrandLogo({ height = 40, style, className, alt }: Props)
         ...style,
       }}
     >
-      {brandInitial()}
+      {initial}
     </span>
   );
 }

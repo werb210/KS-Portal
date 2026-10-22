@@ -33,6 +33,7 @@ const CRMPage = lazyWithRetry(() => import("@/pages/crm/CRMPage"));
 const CalendarPage = lazyWithRetry(() => import("@/pages/calendar/CalendarPage"));
 const CommunicationsPage = lazyWithRetry(() => import("@/pages/communications/CommunicationsPage"));
 const SettingsPage = lazyWithRetry(() => import("@/pages/settings/SettingsPage"));
+const HelpPage = lazyWithRetry(() => import("@/pages/help/HelpPage")); // KS_PORTAL_v6_SUPPORT
 // BF_PORTAL_AUDIT_EVENTS_v1
 const AuditEvents = lazyWithRetry(() => import("@/pages/AuditEvents"));
 const MarketingPage = lazyWithRetry(() => import("@/pages/marketing/MarketingPage"));
@@ -203,6 +204,7 @@ const AppRoutes = () => {
         <Route path="/audit" element={<ProtectedRoute><RequireRole roles={["Admin"]}><AuditEvents /></RequireRole></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/settings/:tab" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/help" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff"]}><HelpPage /></RequireRole></ProtectedRoute>} /> {/* KS_PORTAL_v6_SUPPORT */}
         <Route path="/marketing/*" element={<ProtectedRoute><RequireRole roles={["Admin", "Marketing"]}><MarketingPage /></RequireRole></ProtectedRoute>} />
         <Route path="/portal/*" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
         <Route path="/dashboard" element={<Navigate to="/portal" replace />} />

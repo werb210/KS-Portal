@@ -16,6 +16,8 @@ export type Brand = {
   accent_color: string;
   time_zone: string;
   country: string;
+  /** KS_PORTAL_v6_COMPANY - postal address printed in marketing email footers (Canada's anti-spam law). */
+  mailing_address: string;
   urls: { server: string; portal: string; client: string; website: string };
 };
 
@@ -41,6 +43,7 @@ export function defaultBrand(): Brand {
     accent_color: "#f59e0b",
     time_zone: "",
     country: "",
+    mailing_address: "",
     urls: { server: "", portal: "", client: "", website: "" },
   };
 }
@@ -68,6 +71,7 @@ function normalize(raw: unknown): Brand {
     accent_color: isColor(accent) ? accent : d.accent_color,
     time_zone: str(r.time_zone),
     country: str(r.country),
+    mailing_address: str(r.mailing_address),
     urls: { server: str(urls.server), portal: str(urls.portal), client: str(urls.client), website: str(urls.website) },
   };
 }
@@ -121,13 +125,28 @@ function applyDocumentTitle(): void {
   } catch { /* no DOM */ }
 }
 
-/** Fetch the licensee from the server, update the store and the cache. Resolves false (keeping what it had) on any failure. */
-export async function loadBrand(timeoutMs = 2500): Promise<boolean> {
+/** KS_PORTAL_v6_COMPANY - put a licensee object (e.g. the PUT /api/licensee answer) into the store and the cache. */
+export function applyBrand(raw: unknown): void {
+  if (!raw || typeof raw !== "object") return;
+  const next = normalize(raw);
+  writeCache(next);
+  setBrand(next);
+  applyDocumentTitle();
+}
+
+/**
+ * Fetch the licensee from the server, update the store and the cache. Resolves false (keeping what it had) on any failure.
+ * KS_PORTAL_v6_COMPANY - `fresh` skips the browser's HTTP cache (GET /api/licensee is cacheable for 60s), used right
+ * after an admin saves the company details so the header and logo change at once.
+ */
+export async function loadBrand(timeoutMs = 2500, opts: { fresh?: boolean } = {}): Promise<boolean> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
     timer = setTimeout(() => ctrl?.abort(), timeoutMs);
-    const res = await fetch(`${SERVER_URL}/api/licensee`, { signal: ctrl?.signal, headers: { Accept: "application/json" } });
+    const init: RequestInit = { signal: ctrl?.signal, headers: { Accept: "application/json" } };
+    if (opts.fresh) init.cache = "no-store";
+    const res = await fetch(`${SERVER_URL}/api/licensee`, init);
     if (!res.ok) return false;
     const body = (await res.json()) as { ok?: boolean; licensee?: unknown };
     if (!body || !body.licensee || typeof body.licensee !== "object") return false;
