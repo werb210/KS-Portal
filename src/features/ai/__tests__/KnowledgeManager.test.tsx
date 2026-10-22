@@ -37,7 +37,7 @@ describe("KnowledgeManager", () => {
 
     await screen.findByText("Indexed entries (0)");
     await user.type(screen.getByPlaceholderText("Title (optional)"), "Playbook");
-    await user.type(screen.getByPlaceholderText("Paste reference content Maya should know about…"), "Useful text");
+    await user.type(screen.getByPlaceholderText("Paste reference content Assistant should know about…"), "Useful text");
     await user.click(screen.getByRole("button", { name: "Add entry" }));
 
     await waitFor(() => {
@@ -56,7 +56,7 @@ describe("KnowledgeManager", () => {
     render(<KnowledgeManager />);
 
     await screen.findByText("Indexed entries (0)");
-    await user.type(screen.getByPlaceholderText("Paste reference content Maya should know about…"), "Useful text");
+    await user.type(screen.getByPlaceholderText("Paste reference content Assistant should know about…"), "Useful text");
     await user.click(screen.getByRole("button", { name: "Add entry" }));
 
     expect(await screen.findByText("Saved without embeddings.")).toBeInTheDocument();

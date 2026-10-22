@@ -6,7 +6,7 @@ import type { ContextType } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 // The Swift bridge cannot run under Vitest; its plugin registrations are read as data.
 import bridgeSwift from "../../ios/App/App/BorealBridgeViewController.swift?raw";
-import { COMMAND_SHORTCUTS, resolveCommandShortcut, useCommandShortcuts } from "@/hooks/useCommandShortcuts";
+import { commandShortcuts, resolveCommandShortcut, useCommandShortcuts } from "@/hooks/useCommandShortcuts";
 import MayaCommandBar from "@/components/maya/MayaCommandBar";
 import ShortcutHelp from "@/components/ShortcutHelp";
 import DocumentsTab from "@/pages/applications/tabs/DocumentsTab";
@@ -66,10 +66,10 @@ describe("Cmd shortcuts", () => {
   });
 
   it("is listed in the help overlay", () => {
-    expect(COMMAND_SHORTCUTS.map((s) => s.keys)).toEqual(["Cmd K", "Cmd 1", "Cmd 2", "Cmd 3", "Cmd 4"]);
+    expect(commandShortcuts().map((s) => s.keys)).toEqual(["Cmd K", "Cmd 1", "Cmd 2", "Cmd 3", "Cmd 4"]);
     render(<ShortcutHelp open onClose={vi.fn()} />);
     const dialog = screen.getByRole("dialog", { name: "Keyboard shortcuts" });
-    for (const s of COMMAND_SHORTCUTS) {
+    for (const s of commandShortcuts()) {
       expect(dialog).toHaveTextContent(s.keys);
       expect(dialog).toHaveTextContent(s.label);
     }

@@ -1,6 +1,7 @@
 // BF_PORTAL_v810_LIBRARY_PLUS - calls for the Dropbox-style Staff Library (BF-Server v810, /api/o365/library/...).
 // OneDrive calls ask for Files.ReadWrite when they are used, like the rest of the library.
 import { api } from "@/api";
+import { brandName } from "@/config/brand";
 import { withO365Scopes } from "@/api/o365Interceptor";
 import { FILES_READWRITE_SCOPES } from "@/auth/o365Scopes";
 import { apiBlob } from "@/utils/api";
@@ -61,7 +62,7 @@ export async function sendToClient(it: Item, c: Client, how: "portal" | "email" 
   const small = it.size != null && it.size <= SMALL && how !== "text";
   const file = small ? await content(it.id) : null;
   const link = file ? null : (await shareLink(it.id, { expiresDays: 7, password: "", allowDownload: true })).url ?? "";
-  const intro = note.trim() || "Here is " + it.name + " from Boreal Financial.";
+  const intro = note.trim() || "Here is " + it.name + " from " + brandName() + ".";
   if (how === "portal") {
     if (!c.application_id && !c.id) throw new Error("This contact has no client portal yet.");
     await api.post("/api/communications/messages/send", {

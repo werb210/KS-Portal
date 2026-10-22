@@ -132,7 +132,7 @@ describe("v810 sharing outside Boreal", () => {
   it("makes a share link with an expiry and a password", async () => {
     await page();
     openMenu("Agreement.pdf");
-    fireEvent.click(screen.getByRole("menuitem", { name: "Share link (outside Boreal)..." }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Share link (outside Keystone)..." }));
     const dlg = screen.getByTestId("library-share-dialog");
     fireEvent.change(within(dlg).getByLabelText("Link works for"), { target: { value: "30" } });
     fireEvent.change(within(dlg).getByLabelText("Password (optional)"), { target: { value: "bf2026" } });
@@ -166,7 +166,7 @@ describe("v810 send to client", () => {
     const dlg = await pick("Agreement.pdf");
     fireEvent.click(within(dlg).getByTestId("sd-send"));
     await waitFor(() => expect(h.apiFn.post).toHaveBeenCalledWith("/api/communications/messages/send", {
-      applicationId: "app1", contactId: "c1", body: "Here is Agreement.pdf from Boreal Financial.",
+      applicationId: "app1", contactId: "c1", body: "Here is Agreement.pdf from Keystone.",
       attachments: [{ name: "Agreement.pdf", contentType: "application/pdf", dataUrl: "data:application/pdf;base64,aGVsbG8=" }],
     }));
     expect(await screen.findByText("Sent to Sam Client's client portal.")).toBeTruthy();

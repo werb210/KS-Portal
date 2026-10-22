@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { assistantName } from "@/config/brand";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import {
@@ -47,11 +48,11 @@ export default function MayaIntelligence() {
     throw new Error("Model rolled back.");
   }
 
-  if (!data) return <div>Loading Maya Intelligence...</div>;
+  if (!data) return <div>Loading {assistantName()} Intelligence...</div>;
 
   return (
     <div className="p-6 space-y-14">
-      <h1 className="text-2xl font-bold">Maya Executive Intelligence</h1>
+      <h1 className="text-2xl font-bold">{assistantName()} Executive Intelligence</h1>
 
       {data.clusterDistribution?.length ? (
         <Card>

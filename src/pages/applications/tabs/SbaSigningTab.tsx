@@ -1,6 +1,7 @@
 // BF_PORTAL_SBA_SIGNING_TAB_v146
 // Staff can inspect SBA signing progress and refresh expired SignNow links.
 import { useCallback, useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 import { getErrorMessage } from "@/utils/errors";
 
@@ -105,7 +106,7 @@ export default function SbaSigningTab({ applicationId }: { applicationId: string
     {/* BF_PORTAL_SBA_ONE_BUTTON_v771 - one way to sign: this tab shows status only. */}
     <div style={s.card} data-testid="sba-how-to-sign">
       <div style={s.h}>How signing starts</div>
-      <div style={s.note}>Same as every other file: on the Lenders tab tick the lender and press Send. Every owner then signs once: the Boreal application and their SBA forms together (1919 for owner 1, 912, a 4506-C for each saved lender with IVES details, and 413). Owner 1 is texted and signs in the client portal; other owners get an email from SignNow. Once everyone has signed the package goes to the lender on its own. After the applicant edits anything, press Send for signing on the Application tab to have them sign again.</div>
+      <div style={s.note}>Same as every other file: on the Lenders tab tick the lender and press Send. Every owner then signs once: the {brandName()} application and their SBA forms together (1919 for owner 1, 912, a 4506-C for each saved lender with IVES details, and 413). Owner 1 is texted and signs in the client portal; other owners get an email from SignNow. Once everyone has signed the package goes to the lender on its own. After the applicant edits anything, press Send for signing on the Application tab to have them sign again.</div>
     </div>
   </div>;
 }

@@ -8,9 +8,9 @@ import { describe, expect, it } from "vitest";
 const src = readFileSync(join(process.cwd(), "src", "pages", "lender", "LenderPortalPage.tsx"), "utf-8");
 
 describe("lender portal header + blurbs", () => {
-  it("header shows logo, Boreal Financial Group, and Welcome firstname - lender", () => {
-    expect(src).toContain("logo-boreal-mountains-white");
-    expect(src).toContain("Boreal Financial Group");
+  it("header shows logo, licensee name, and Welcome firstname - lender", () => {
+    expect(src).toContain("<BrandLogo"); // KS_PORTAL_v2_BRANDING
+    expect(src).toContain("{brandName()}</span>");
     expect(src).toContain("profile.contact_name");
     expect(src).toContain("Welcome");
   });

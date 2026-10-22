@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { isIOSSafari, isStandalonePWA } from "@/auth/msalLoginStrategy";
 
 // BF_PORTAL_MACOS_SAFARI_INSTALL_v1 - Safari (iOS and macOS) never fires beforeinstallprompt,
@@ -53,7 +54,7 @@ export function IOSInstallBanner() {
   return (
     <div
       role="dialog"
-      aria-label="Install Boreal Financial as an app"
+      aria-label={`Install ${brandName()} as an app`}
       style={{
         position: "fixed",
         left: 16,
@@ -75,7 +76,7 @@ export function IOSInstallBanner() {
       }}
     >
       <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>Install Boreal as an app</div>
+        <div style={{ fontWeight: 600, marginBottom: 4 }}>Install {brandName()} as an app</div>
         <div>
           {mode === "ios" ? (
             <>

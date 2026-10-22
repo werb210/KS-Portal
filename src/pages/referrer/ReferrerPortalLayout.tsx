@@ -1,8 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { legalName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import ReferrerPortal from "@/pages/referrer/ReferrerPortal";
 import ReferrerProfilePage from "@/pages/referrer/ReferrerProfilePage";
 import "@/components/partner/partnerPortal.css";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg";
 
 // BF_PORTAL_REFERRER_BRAND_HEADER_v1 - the referrer portal had no branding at
 // all. Match the BF client-app header: dark navy bar, white mountain mark,
@@ -25,7 +26,7 @@ function ReferrerBrandHeader() {
           margin: "0 auto",
         }}
       >
-        <img src={logoUrl} alt="Boreal" style={{ height: 34, width: "auto", flexShrink: 0 }} />
+        <BrandLogo height={34} />
         <span
           style={{
             color: "#fff",
@@ -35,7 +36,7 @@ function ReferrerBrandHeader() {
             lineHeight: 1.2,
           }}
         >
-          Boreal Group of Companies
+          {legalName()}
         </span>
       </div>
     </header>

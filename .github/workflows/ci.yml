@@ -56,6 +56,10 @@ jobs:
       - name: Source-grep test count
         run: node scripts/check-source-grep-tests.mjs
 
+      # KS_PORTAL_v2_BRANDING - the licensee's name comes from src/config/brand.ts; no "Boreal" in visible text.
+      - name: No Boreal text
+        run: node scripts/check-no-boreal-text.mjs
+
       - run: npm run typecheck
       # BF_PORTAL_AUDIT_v777 - the test files' types (tsconfig.tests.json) and lint were never checked in CI.
       - run: npm run typecheck:all

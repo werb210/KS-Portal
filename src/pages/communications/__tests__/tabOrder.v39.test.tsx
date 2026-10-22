@@ -66,7 +66,7 @@ describe("communications tab order", () => {
       "Team",
       "Phone",
       "Issues",
-      "Maya",
+      "Assistant",
     ]);
   });
 

@@ -3,6 +3,7 @@
 // BF_PORTAL_MARKETING_FUNNEL_LIVE_v1 — Analytics tab renders the live
 // application funnel from GET /api/marketing/funnel (respondOk envelope).
 import { useCallback, useContext, useEffect, useState } from "react";
+import { brandName, assistantName } from "@/config/brand";
 import { api } from "@/api";
 import BrandedEmailComposer from "@/components/marketing/BrandedEmailComposer"; // BF_PORTAL_BRANDED_EMAIL_COMPOSER_MOUNT_v1
 import LinkClicksPanel from "@/components/marketing/LinkClicksPanel"; // BF_PORTAL_LINK_CLICKS_PANEL_v9
@@ -239,8 +240,8 @@ function MayaSuggestionsPanel() {
   const dismiss = (id: string) => setItems((xs) => xs.filter((x) => x.id !== id));
   return (
     <section className="drawer-section">
-      <div className="drawer-section__title mb-1">Maya's recommendations</div>
-      <p style={{ color: "var(--ui-text-muted)", marginBottom: 8, fontSize: "0.85rem" }}>Suggestions from your Google Ads data. Make the change in Google Ads; Boreal's Google Ads access is for reporting only.</p>
+      <div className="drawer-section__title mb-1">{assistantName()}'s recommendations</div>
+      <p style={{ color: "var(--ui-text-muted)", marginBottom: 8, fontSize: "0.85rem" }}>Suggestions from your Google Ads data. Make the change in Google Ads; {brandName()}'s Google Ads access is for reporting only.</p>
       {loading && <p style={{ color: "var(--ui-text-muted)" }}>Loading...</p>}
       {!loading && caveat && <p data-testid="maya-caveat" style={{ color: "#8a4b00", marginBottom: 8, fontSize: "0.85rem" }}>{caveat}</p>}
       {!loading && !configured && <p style={{ color: "var(--ui-text-muted)" }}>Connect Google Ads to see recommendations.</p>}
@@ -599,7 +600,7 @@ function LinkedInSuggestionsPanel() {
   };
   return (
     <section className="drawer-section">
-      <div className="drawer-section__title mb-1">Maya's recommendations</div>
+      <div className="drawer-section__title mb-1">{assistantName()}'s recommendations</div>
       <p style={{ color: "var(--ui-text-muted)", marginBottom: 8, fontSize: "0.85rem" }}>Suggestions from your LinkedIn Ads data. Nothing changes until you approve it.</p>
       {loading && <p style={{ color: "var(--ui-text-muted)" }}>Loading...</p>}
       {!loading && !configured && <p style={{ color: "var(--ui-text-muted)" }}>Connect LinkedIn Ads to see recommendations.</p>}

@@ -3,12 +3,14 @@
 // any key pressed with Cmd, so none of these existed. Kept separate from
 // buildShortcuts: those are plain navigation, these depend on where you are.
 import { useEffect } from "react";
+import { assistantName } from "@/config/brand";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const APPLICATION_TAB_SHORTCUTS = ["application", "banking-analysis", "financials", "documents"] as const;
 
-export const COMMAND_SHORTCUTS: { keys: string; label: string }[] = [
-  { keys: "Cmd K", label: "Ask Maya / command" },
+// KS_PORTAL_v2_BRANDING - a function so the Cmd K label carries the licensee's assistant name once it has loaded.
+export const commandShortcuts = (): { keys: string; label: string }[] => [
+  { keys: "Cmd K", label: `Ask ${assistantName()} / command` },
   { keys: "Cmd 1", label: "Application tab" },
   { keys: "Cmd 2", label: "Banking Analysis tab" },
   { keys: "Cmd 3", label: "Financials tab" },

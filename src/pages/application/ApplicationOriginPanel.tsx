@@ -5,6 +5,7 @@
 //   referrer - the referral partner who sent the client
 // Nothing for website, Maya or staff-entered applications.
 import { useCallback, useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 import LenderReferralPanel from "@/pages/lenderReferrals/LenderReferralPanel";
 import type { StaffReferral } from "@/pages/lenderReferrals/lenderReferralShared";
@@ -21,7 +22,7 @@ const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-
 
 export function splitText(split: Split | null): string {
   if (!split || split.status === null) return "No split agreed yet - set it on the Lenders tab.";
-  const pct = `Boreal ${split.borealPct ?? "-"}% / broker ${split.partnerPct ?? "-"}%${split.terms ? ` (${split.terms})` : ""}`;
+  const pct = `${brandName()} ${split.borealPct ?? "-"}% / broker ${split.partnerPct ?? "-"}%${split.terms ? ` (${split.terms})` : ""}`;
   if (split.status === "accepted") return `Agreed: ${pct}`;
   if (split.status === "countered") return `The broker proposed a different split: ${pct}`;
   return `Proposed, waiting for the broker: ${pct}`;

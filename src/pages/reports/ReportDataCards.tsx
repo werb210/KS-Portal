@@ -1,6 +1,7 @@
 // BF_PORTAL_REPORTS_SECTION_v714 - cards for the reports BF-Server v714 serves
 // from /api/reports/data/:key.
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 
 const th: CSSProperties = { textAlign: "left", padding: "4px 8px", color: "var(--ui-text-muted)", fontWeight: 600, fontSize: 12 };
@@ -154,7 +155,7 @@ export function renderReport(report: string, d: any): ReactNode {
   if (report === "missed_calls") return <><p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--ui-text)" }}>{d.missed} missed in the last {d.days} days; <strong>{d.not_called_back}</strong> not called back.</p><T headers={["When", "Caller", "Called back"]} rows={(d.items ?? []).map((c: any) => [new Date(c.created_at).toLocaleString("en-CA"), c.caller ?? "-", c.minutes_to_callback == null ? "Not yet" : `after ${c.minutes_to_callback} min`])} /></>;
   if (report === "monthly_cohorts") return <T headers={["Month", "Started", "Submitted", "Funded"]} rows={(d.months ?? []).map((m: any) => [m.month, m.started, `${m.submitted} (${m.started ? Math.round((m.submitted / m.started) * 100) : 0}%)`, `${m.funded} (${m.started ? Math.round((m.funded / m.started) * 100) : 0}%)`])} />;
   if (report === "renewal_opportunities") return <><p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--ui-text-muted)" }}>Clients funded 9 to 15 months ago.</p><T headers={["Client", "Product", "Funded", "Funded on"]} rows={(d.items ?? []).map((r: any) => [<a key="a" href={"/applications/" + r.application_id} style={{ color: "var(--ui-text)" }}>{r.name ?? "Client"}</a>, r.product_category ?? "-", money(r.funded_amount), r.funded_at ? new Date(r.funded_at).toLocaleDateString("en-CA") : "-"])} /></>;
-  if (report === "insurance_cross_sell") return <p style={{ margin: 0, fontSize: 13, color: "var(--ui-text)" }}>Of <strong>{d.funded}</strong> Financial deals funded in the last {d.days} days, <strong>{d.with_insurance}</strong> also have a Boreal Insurance application{d.funded ? ` (${Math.round((d.with_insurance / d.funded) * 100)}%)` : ""}.</p>;
+  if (report === "insurance_cross_sell") return <p style={{ margin: 0, fontSize: 13, color: "var(--ui-text)" }}>Of <strong>{d.funded}</strong> Financial deals funded in the last {d.days} days, <strong>{d.with_insurance}</strong> also have a {brandName()} Insurance application{d.funded ? ` (${Math.round((d.with_insurance / d.funded) * 100)}%)` : ""}.</p>;
   return <p style={{ color: "var(--ui-text-muted)", fontSize: 13 }}>This report is not available.</p>;
 }
 

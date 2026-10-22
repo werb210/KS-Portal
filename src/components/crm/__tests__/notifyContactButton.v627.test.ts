@@ -6,9 +6,9 @@ import { notifyOutcome } from "../NotifyContactButton";
 
 describe("v627 notify outcome wording", () => {
   it("says which channel was used", () => {
-    expect(notifyOutcome({ ok: true, channel: "app" })).toMatch(/Boreal app/);
+    expect(notifyOutcome({ ok: true, channel: "app" })).toMatch(/Keystone app/);
     expect(notifyOutcome({ ok: true, channel: "sms" })).toMatch(/text message/);
-    expect(notifyOutcome({ ok: true, channel: "bi" })).toMatch(/Boreal Risk/);
+    expect(notifyOutcome({ ok: true, channel: "bi" })).toMatch(/Keystone app \(text message/);
     expect(notifyOutcome({ ok: false, channel: "none", error: "no_phone" })).toMatch(/no mobile number/);
   });
 });

@@ -47,10 +47,10 @@ describe("BF_PORTAL_REFERRER_MSG_PREVIEW_TRUTH_v1", () => {
     mockApi({ profile: { full_name: "Jane Referrer" } });
     await openModal();
     expect(
-      await screen.findByText(/^Jane Referrer referred you to Boreal Financial\. They help businesses like yours get funding fast/),
+      await screen.findByText(/^Jane Referrer referred you to Keystone\. They help businesses like yours get funding fast/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/^You have been referred to Boreal Financial for business funding\. Start whenever you are ready/),
+      screen.getByText(/^You have been referred to Keystone for business funding\. Start whenever you are ready/),
     ).toBeInTheDocument();
     expect(screen.getAllByText("+ their personal application link")).toHaveLength(2);
   });
@@ -65,7 +65,7 @@ describe("BF_PORTAL_REFERRER_MSG_PREVIEW_TRUTH_v1", () => {
   it("interpolates the referrer's own name into version A, read from /api/referrer/me", async () => {
     mockApi({ profile: { full_name: "  Sam Smith  " } });
     await openModal();
-    expect(await screen.findByText(/^Sam Smith referred you to Boreal Financial\./)).toBeInTheDocument();
+    expect(await screen.findByText(/^Sam Smith referred you to Keystone\./)).toBeInTheDocument();
     expect(h.apiFn).toHaveBeenCalledWith(
       "/api/referrer/me",
       expect.objectContaining({ headers: { Authorization: "Bearer tok" } }),

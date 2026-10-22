@@ -3,6 +3,7 @@
 // Server: /api/collateral (GET list, POST upload [admin], DELETE /:id [admin]),
 // GET /api/collateral/:id/file for download. Files attach in the composer.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { brandName } from "@/config/brand";
 import Button from "@/components/ui/Button";
 import api from "@/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -100,7 +101,7 @@ export default function CollateralSettings() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Boreal One-Pager"
+              placeholder={`e.g. ${brandName()} One-Pager`}
               style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--ui-border)", marginTop: 4 }}
             />
           </label>

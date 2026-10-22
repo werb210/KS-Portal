@@ -4,6 +4,7 @@
 // time, and follow each one. Boreal reviews every file first: the client hears nothing until Boreal accepts it.
 // A complete package earns the lender 50% of Boreal's fee if it funds. The lender sees status only.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { brandName } from "@/config/brand";
 import { api, rawApiFetch } from "@/api";
 import FileDrop from "@/components/partner/FileDrop";
 import StageTracker, { type TrackerInput } from "@/components/partner/StageTracker";
@@ -60,7 +61,7 @@ export function rowProblems(rows: ReferralRow[], consent: boolean): string[] {
     if (!r.businessName.trim()) problems.push(`${label}: enter the business name.`);
     if (phoneDigits(r.clientPhone).length !== 10) problems.push(`${label}: enter the client's 10-digit cell number.`);
   });
-  if (rows.length > 0 && !consent) problems.push("Confirm each client agreed to be referred to Boreal Financial.");
+  if (rows.length > 0 && !consent) problems.push(`Confirm each client agreed to be referred to ${brandName()}.`);
   return problems;
 }
 
@@ -143,7 +144,7 @@ export default function LenderReferralsSection() {
       setResults(list.filter((r) => !r.ok));
       const sent = Number(j.sent ?? 0);
       if (sent > 0) {
-        setMsg(`Sent ${sent} file${sent === 1 ? "" : "s"}. Boreal will review ${sent === 1 ? "it" : "them"} before contacting the client.`);
+        setMsg(`Sent ${sent} file${sent === 1 ? "" : "s"}. ${brandName()} will review ${sent === 1 ? "it" : "them"} before contacting the client.`);
         const failed = new Set(list.filter((r) => !r.ok).map((r) => r.file));
         setRows((cur) => cur.filter((r) => failed.has(r.file.name)));
         if (failed.size === 0) setConsent(false);
@@ -169,7 +170,7 @@ export default function LenderReferralsSection() {
       </p>
       <p style={{ ...muted, margin: "0 0 14px" }}>
         We review each file first. The client hears nothing from us until we accept the file. If the file is a complete
-        package and it funds, you receive 50% of Boreal's fee.
+        package and it funds, you receive 50% of {brandName()}'s fee.
       </p>
 
       <FileDrop inputRef={picker} label="Choose client zip files" title="Tap to choose client zips, or drop them here"
@@ -195,7 +196,7 @@ export default function LenderReferralsSection() {
           ))}
           <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 14, color: "var(--ui-text)" }}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3 }} />
-            <span>I confirm each client above agreed to be referred to Boreal Financial.</span>
+            <span>I confirm each client above agreed to be referred to {brandName()}.</span>
           </label>
           {showProblems && problems.length > 0 && (
             <ul role="alert" className="pp-error" style={{ margin: 0, paddingLeft: 18 }}>

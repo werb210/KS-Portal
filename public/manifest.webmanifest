@@ -1,6 +1,6 @@
 {
-  "name": "Boreal Financial Portal",
-  "short_name": "Boreal Portal",
+  "name": "Keystone Staff Portal",
+  "short_name": "Staff Portal",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0B1F3A",
@@ -28,7 +28,7 @@
       "type": "image/png"
     }
   ],
-  "description": "Boreal Financial staff portal \u2014 CRM, pipeline, communications, and lender management.",
+  "description": "Staff portal \u2014 CRM, pipeline, communications, and lender management.",
   "id": "/",
   "scope": "/",
   "orientation": "any"

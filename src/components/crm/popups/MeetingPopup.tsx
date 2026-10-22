@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { brandName } from "@/config/brand";
 import { PopupShell, popupInputStyle } from "./PopupShell";
 import { crmApi, type Scope } from "@/api/crm";
 // BF_PORTAL_MEETING_DATETIME_PICKER_v1 - same picker as TaskModal.
@@ -183,7 +184,7 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
       )}
       {meetingType === "conference" && (
         <>
-          <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>Books a Boreal conference room. Everyone dials (866) 631-8939, presses 3 and enters the access code. Attendees get the invite by email, and by text when a phone number is known.</div>
+          <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>Books a {brandName()} conference room. Everyone dials (866) 631-8939, presses 3 and enters the access code. Attendees get the invite by email, and by text when a phone number is known.</div>
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Client's mobile for the text invite (optional)" style={{ ...popupInputStyle, marginBottom: 8 }} />
         </>
       )}

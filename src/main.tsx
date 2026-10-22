@@ -25,6 +25,7 @@ import "./styles/light-inputs.css";
 import "./styles/bi-theme.css"; // BF_PORTAL_BLOCK_v_BI_THEME_AWARE_v1
 import { initTheme } from "@/theme/theme";
 import { installDocumentPreview } from "./native/documentPreviewDelegate";
+import { loadBrand } from "@/config/brand"; // KS_PORTAL_v2_BRANDING
 
 initTheme();
 // v115-doc-preview: use native Quick Look for document links on iPad.
@@ -68,6 +69,9 @@ async function assertBackend() {
 }
 
 async function bootstrap() {
+  // KS_PORTAL_v2_BRANDING - fetch the licensee (name, logo, colours) alongside the other start-up work; the first
+  // render waits for it (loadBrand never throws and gives up after ~2.5 s, keeping the cached/default name).
+  const brandReady = loadBrand();
   // BF_PORTAL_v789_NATIVE_SESSION_MEMORY - native: Keychain -> in-memory cache (never localStorage).
   await hydrateSecureTokens(NATIVE_SESSION_KEYS).catch(() => undefined);
 
@@ -98,6 +102,7 @@ async function bootstrap() {
     sessionStorage.removeItem("bf_msal_redirect_attempted");
   }
   await bfRehydrateSession();
+  await brandReady;
 
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>

@@ -26,7 +26,7 @@ describe("lender portal: sending declined files", () => {
   it("checks every file before sending", () => {
     expect(phoneDigits("+1 (780) 555-0100")).toBe("7805550100");
     expect(rowProblems([row()], true)).toEqual([]);
-    expect(rowProblems([row()], false)).toEqual(["Confirm each client agreed to be referred to Boreal Financial."]);
+    expect(rowProblems([row()], false)).toEqual(["Confirm each client agreed to be referred to Keystone."]);
     expect(rowProblems([row({ businessName: " ", clientPhone: "555", file: zip("a.pdf") })], true)).toEqual([
       "File 1 (a.pdf): upload a .zip file.",
       "File 1 (a.pdf): enter the business name.",
@@ -60,7 +60,7 @@ describe("lender portal: sending declined files", () => {
     expect(opts.body.getAll("files")).toHaveLength(2);
     expect(JSON.parse(String(opts.body.get("details"))).map((d: any) => d.client_phone)).toEqual(["7805550100", "4035550142"]);
     expect((await screen.findByRole("status")).textContent).toContain("Sent 2 files");
-    expect(await screen.findByText("Received - Boreal is reviewing the file")).toBeTruthy(); // BF_PORTAL_v828_PARTNER_STAGE_TRACKER
+    expect(await screen.findByText("Received - Keystone is reviewing the file")).toBeTruthy(); // BF_PORTAL_v828_PARTNER_STAGE_TRACKER
     expect(screen.queryAllByTestId("referral-row")).toHaveLength(0);
   });
 });
@@ -77,7 +77,7 @@ describe("staff: lender referral on the application", () => {
   it("describes each decision", () => {
     expect(decisionText(staffRow())).toBe("Needs review - the client has not been contacted");
     expect(decisionText(staffRow({ status: "declined" }))).toBe("Declined - the client was not contacted");
-    expect(decisionText(staffRow({ status: "accepted", complete_package: true, client_texted_at: "x" }))).toBe("Accepted (complete package, lender gets 50% of Boreal's fee) - client texted");
+    expect(decisionText(staffRow({ status: "accepted", complete_package: true, client_texted_at: "x" }))).toBe("Accepted (complete package, lender gets 50% of Keystone's fee) - client texted");
   });
 
   it("shows nothing on an application that did not come from a lender", async () => {

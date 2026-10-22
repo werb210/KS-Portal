@@ -2,6 +2,7 @@
 // below so it fits the narrow nav column. Screen-aware: attaches the
 // current screen context and executes Maya's navigate / dial actions.
 import { safeInternalPath } from "@/lib/safeInternalPath";
+import { assistantName } from "@/config/brand";
 import { MayaMessage } from "./mayaMarkdown";
 import MayaPendingActions from "./MayaPendingActions"; // BF_PORTAL_MAYA_PENDING_ACTIONS_v784
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -111,7 +112,7 @@ export default function MayaCommandBar() {
         }
       }
       setText("");
-    } catch { setReply("Sorry — I couldn't reach Maya just now."); }
+    } catch { setReply(`Sorry — I couldn't reach ${assistantName()} just now.`); }
     finally { setBusy(false); setPendingKey((k) => k + 1); }
   }, [busy, navigate, speak]);
 
@@ -143,7 +144,7 @@ export default function MayaCommandBar() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, minHeight: 0 }}>
       <div style={{ fontSize: 11, color: "var(--ui-text-muted)", lineHeight: 1.4 }}>
-        Ask Maya — e.g. “open the newest application”, “open this contact”, “call this client”.
+        Ask {assistantName()} — e.g. “open the newest application”, “open this contact”, “call this client”.
       </div>
       <textarea
         value={text}
@@ -181,7 +182,7 @@ export default function MayaCommandBar() {
               return !m;
             });
           }}
-          title={muted ? "Maya voice off — tap to turn on" : "Maya voice on — tap to mute"}
+          title={muted ? `${assistantName()} voice off — tap to turn on` : `${assistantName()} voice on — tap to mute`}
           style={{
             width: 40, height: 34, borderRadius: 8,
             border: "1px solid var(--ui-border)",

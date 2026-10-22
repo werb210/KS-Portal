@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { brandName } from "@/config/brand";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import { SUPPORT_EMAIL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
@@ -85,10 +86,10 @@ function timeAgo(iso: string): string {
 // referralInvite.ts whenever the copy is finalised.
 function previewA(referrerName: string | null): string {
   const who = referrerName && referrerName.trim() ? referrerName.trim() : "You";
-  return `${who} referred you to Boreal Financial. They help businesses like yours get funding fast - mind if they reach out?`;
+  return `${who} referred you to ${brandName()}. They help businesses like yours get funding fast - mind if they reach out?`;
 }
 function previewB(): string {
-  return "You have been referred to Boreal Financial for business funding. Start whenever you are ready - link below.";
+  return `You have been referred to ${brandName()} for business funding. Start whenever you are ready - link below.`;
 }
 const MSG_PREVIEW: Record<"A" | "B", { label: string; text: (referrerName: string | null) => string }> = {
   A: { label: "Version A · warm intro (your name included)", text: (n) => previewA(n) },

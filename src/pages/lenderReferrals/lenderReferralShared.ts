@@ -1,6 +1,7 @@
 // BF_PORTAL_v827_REFERRAL_PIPELINE_CARD - shared bits for lender referrals (files lenders declined and sent us).
 import { rawApiFetch } from "@/api";
 
+import { brandName } from "@/config/brand";
 export type StaffReferral = {
   id: string;
   lender_name: string | null;
@@ -32,7 +33,7 @@ export function decisionText(r: Pick<StaffReferral, "status" | "complete_package
   if (r.status === "pending") return "Needs review - the client has not been contacted";
   if (r.status === "accepting") return "Accepting...";
   if (r.status === "declined") return "Declined - the client was not contacted";
-  const share = r.complete_package ? "complete package, lender gets 50% of Boreal's fee" : "incomplete package, no lender share";
+  const share = r.complete_package ? `complete package, lender gets 50% of ${brandName()}'s fee` : "incomplete package, no lender share";
   return `Accepted (${share})${r.client_texted_at ? " - client texted" : " - client not texted yet"}`;
 }
 

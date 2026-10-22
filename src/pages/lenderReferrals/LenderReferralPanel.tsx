@@ -3,6 +3,7 @@
 // gets 50% of Boreal's fee if it funds) and texts the client to sign in. Declining takes it off the pipeline; the
 // client is never contacted.
 import { useCallback, useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import { decisionText, formatPhone, money, referralAction, type StaffReferral } from "./lenderReferralShared";
@@ -80,7 +81,7 @@ export default function LenderReferralPanel({ applicationId, initial }: { applic
         <div style={{ marginTop: 10 }} data-testid="accept-panel">
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Is this a complete package?</div>
           <label style={{ display: "block", fontSize: 14 }}>
-            <input type="radio" name="complete-package" checked={complete === true} onChange={() => setComplete(true)} /> Yes - the lender gets 50% of Boreal's fee if it funds
+            <input type="radio" name="complete-package" checked={complete === true} onChange={() => setComplete(true)} /> Yes - the lender gets 50% of {brandName()}'s fee if it funds
           </label>
           <label style={{ display: "block", fontSize: 14 }}>
             <input type="radio" name="complete-package" checked={complete === false} onChange={() => setComplete(false)} /> No - no lender share

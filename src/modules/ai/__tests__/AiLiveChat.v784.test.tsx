@@ -33,7 +33,7 @@ describe("AI page", () => {
   it("shows an error when the conversations cannot load", async () => {
     call.mockRejectedValue(new Error("Server down"));
     render(<AiLiveChat />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load Maya conversations: Server down");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load Assistant conversations: Server down");
   });
 
   it("chats through /api/ai/ai/start, /message and /close", async () => {
@@ -45,7 +45,7 @@ describe("AI page", () => {
       throw new Error("unexpected " + path);
     });
     render(<AiLiveChat />);
-    fireEvent.change(screen.getByLabelText("Message Maya"), { target: { value: "Hi" } });
+    fireEvent.change(screen.getByLabelText("Message Assistant"), { target: { value: "Hi" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
     expect(await screen.findByText("Hello from Maya")).toBeInTheDocument();
     expect(post).toHaveBeenCalledWith("/api/ai/ai/start", expect.anything());
@@ -58,9 +58,9 @@ describe("AI page", () => {
     call.mockResolvedValue({ sessions: [] });
     post.mockRejectedValue(new Error("Nope"));
     render(<AiLiveChat />);
-    fireEvent.change(screen.getByLabelText("Message Maya"), { target: { value: "Hi" } });
+    fireEvent.change(screen.getByLabelText("Message Assistant"), { target: { value: "Hi" } });
     fireEvent.click(screen.getByRole("button", { name: "Send" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Maya could not reply: Nope");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Assistant could not reply: Nope");
   });
 
   it("has no redirect loop, WebSocket or missing endpoints", () => {

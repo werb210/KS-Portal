@@ -5,9 +5,10 @@
 // North-American number is entered (short debounce, button retained), and verifies once the
 // 6th digit of the OTP lands. +1 only - US/Canada are the only permitted countries.
 import { useEffect, useRef, useState } from "react";
+import { brandName, legalName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "@/api";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg";
 
 function normalizeNAPhone(value: string): string | null {
   const digits = (value || "").replace(/\D/g, "");
@@ -108,14 +109,14 @@ export default function ReferrerLoginPage({ kind = "referrer" }: { kind?: "refer
     <div data-testid="referrer-login-screen" className="min-h-screen w-screen flex items-center justify-center bg-[#020817] px-4 py-12">
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <div className="text-center">
-          <img src={logoUrl} alt="Boreal" style={{ display: "block", margin: "0 auto 18px", height: 88, width: "auto" }} />
-          <h1 className="text-2xl font-semibold text-white">Boreal Financial Group</h1>
+          <BrandLogo height={88} style={{ margin: "0 auto 18px" }} />
+          <h1 className="text-2xl font-semibold text-white">{brandName()}</h1>
           <p className="mt-1 text-sm font-medium text-white/70">{isBroker ? "Broker Portal" : "Referral Portal"}</p>
         </div>
 
         <div className="w-full bg-white border border-slate-200 rounded-xl p-6 shadow-md">
           <p className="text-sm text-slate-700 mb-4 text-center">
-            Welcome to the Boreal Financial {isBroker ? "Broker" : "Group Referral"} Portal. If this is your first visit, please click the{" "}
+            Welcome to the {brandName()} {isBroker ? "Broker" : "Referral"} Portal. If this is your first visit, please click the{" "}
             {isBroker ? <Link to="/broker/signup" className="font-semibold text-blue-700 underline">Sign up</Link> : <Link to="/referrer/signup" className="font-semibold text-blue-700 underline">Sign up</Link>} link.
           </p>
 
@@ -188,7 +189,7 @@ export default function ReferrerLoginPage({ kind = "referrer" }: { kind?: "refer
         </div>
 
         <p className="text-xs text-white/50 text-center">
-          Boreal Financial Group &middot; 450 Sparling Crt SW, Edmonton, AB T6X 1G9
+          {legalName()}
         </p>
       </div>
     </div>

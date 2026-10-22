@@ -115,8 +115,8 @@ describe("referrer portal - launch readiness", () => {
       </MemoryRouter>,
     );
     const banner = screen.getByRole("banner");
-    expect(within(banner).getByText("Boreal Group of Companies")).toBeInTheDocument();
-    expect(within(banner).getByAltText("Boreal")).toBeInTheDocument();
+    expect(within(banner).getByText("Keystone")).toBeInTheDocument();
+    expect(within(banner).getByRole("img", { name: "Keystone" })).toBeInTheDocument();
     expect(await screen.findByText("My Referrals")).toBeInTheDocument();
   });
 
