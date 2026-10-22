@@ -119,4 +119,9 @@ async function bootstrap() {
   registerPortalSW();
 }
 
-void bootstrap();
+// KS_PORTAL_v8_DEMO - /demo is the self-serve sales demo: it boots on its own, without the portal's sign-in.
+if (window.location.pathname === "/demo" || window.location.pathname.startsWith("/demo/")) {
+  void import("./demo/bootDemo").then((m) => m.bootDemo());
+} else {
+  void bootstrap();
+}

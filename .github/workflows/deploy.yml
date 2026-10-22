@@ -34,6 +34,9 @@ jobs:
           echo "VITE_MSAL_TENANT_ID=${{ secrets.VITE_MSAL_TENANT_ID }}" >> .env
           echo "VITE_MSAL_REDIRECT_URI=${{ secrets.VITE_MSAL_REDIRECT_URI }}" >> .env
           echo "VITE_MSAL_SCOPES=${{ secrets.VITE_MSAL_SCOPES }}" >> .env
+          # KS_PORTAL_v8_DEMO - the self-serve demo at /demo (repo variables; empty leaves the demo off)
+          echo "VITE_KS_OPS_URL=${{ vars.VITE_KS_OPS_URL }}" >> .env
+          echo "VITE_DEMO_SERVER_URL=${{ vars.VITE_DEMO_SERVER_URL }}" >> .env
 
       # ❌ REMOVE ALL previous "verify env" steps — they are wrong
 
