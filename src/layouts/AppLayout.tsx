@@ -23,6 +23,10 @@ import { usePushRegistration } from "@/hooks/usePushRegistration";
 // BF_PORTAL_BLOCK_v478_BUILD_STAMP_AND_UPDATE_PROMPT
 import UpdatePromptBanner from "@/components/UpdatePromptBanner";
 import { buildStampLabel } from "@/lib/buildInfo";
+// KS_PORTAL_v3_PLANS - plan/trial store, the trial and storage bars, and the 402 upsell dialog.
+import { usePlanBootstrap } from "@/plans/planStore";
+import PlanBanners from "@/plans/PlanBanners";
+import UpsellHost from "@/plans/UpsellHost";
 
 
 const TOPBAR_HEIGHT = 68;
@@ -84,6 +88,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { user } = useAuth();
   usePushRegistration(Boolean(user));
+  usePlanBootstrap(Boolean(user)); // KS_PORTAL_v3_PLANS
   const { silo } = useSilo();
   const role = (user as { role?: string } | null)?.role ?? "";
   const capabilities = (((user as { capabilities?: string[] } | null)?.capabilities) ?? []) as string[];
@@ -156,6 +161,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   return (
     <div style={{ display: "flex", height: "100dvh", overflow: "hidden" }}>
       <NotificationToast />
+      <UpsellHost />{/* KS_PORTAL_v3_PLANS */}
       {/* ── Sidebar ── */}
       <aside
         style={{
@@ -221,6 +227,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         <div style={{ position: "sticky", top: 0, zIndex: 30, flexShrink: 0 }}><Topbar onToggleSidebar={() => setMobileNavOpen((prev) => !prev)} /></div>
         <main style={{ height: `calc(100dvh - ${TOPBAR_HEIGHT}px)`, overflowY: "auto", padding: 24, background: "var(--bg-primary)" }}>
           <UpdatePromptBanner />{/* BF_PORTAL_BLOCK_v478 - was built but never rendered */}
+          <PlanBanners role={role} />{/* KS_PORTAL_v3_PLANS */}
           {children ?? <Outlet />}
         </main>
       </div>

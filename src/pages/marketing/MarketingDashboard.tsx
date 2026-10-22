@@ -21,6 +21,7 @@ import GoogleHealthPanel from "@/pages/settings/tabs/GoogleHealthPanel"; // BF_P
 import MobileAppsPanel from "./MobileAppsPanel"; // BF_PORTAL_v811_MOBILE_APPS
 import SiloContext from "@/context/SiloContext"; // BF_PORTAL_v811_MOBILE_APPS
 import { WEBSITE_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
+import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
@@ -36,6 +37,14 @@ const ADS_TABS: Array<[AdsTab, string]> = [
   ["story", "Story"], ["campaigns", "Campaigns & Keywords"], ["negatives", "Search Terms & Negatives"], ["visitors", "Visitors"],
   ["dropoff", "Drop-off"], ["audiences", "Audiences"], ["website", "Website (GA4)"], ["health", "Health"],
 ];
+
+// KS_PORTAL_v3_PLANS - the plan feature behind each tab / Google Ads report (shown with a badge when locked).
+// Referrers is gated inside ReferrersAndBrokers (its Brokers sub-tab stays open on every plan).
+const MARKETING_TAB_FEATURE: Partial<Record<MarketingTab, string>> = { ads: "ad_attribution" };
+const ADS_TAB_FEATURE: Record<AdsTab, string> = {
+  story: "ad_attribution", campaigns: "ad_attribution", negatives: "ad_attribution", audiences: "ad_attribution", health: "ad_attribution",
+  visitors: "visitor_tracking", dropoff: "visitor_tracking", website: "visitor_tracking",
+};
 
 const MARKETING_TABS: { id: MarketingTab; label: string }[] = [
   { id: "analytics", label: "Analytics" },
@@ -1478,6 +1487,7 @@ const MarketingDashboard = () => {
             onClick={() => setTab(entry.id)}
           >
             {entry.label}
+            {MARKETING_TAB_FEATURE[entry.id] && <LockedBadge feature={MARKETING_TAB_FEATURE[entry.id]!} />}
           </button>
         ))}
       </div>
@@ -1493,9 +1503,10 @@ const MarketingDashboard = () => {
           <div className="space-y-4">
           <div className="flex flex-wrap gap-2" data-testid="ads-google-tabs">
             {ADS_TABS.map(([id, label]) => (
-              <button key={id} type="button" className={`ui-button ${adsTab === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setAdsTab(id)}>{label}</button>
+              <button key={id} type="button" className={`ui-button ${adsTab === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setAdsTab(id)}>{label}<LockedBadge feature={ADS_TAB_FEATURE[id]} /></button>
             ))}
           </div>
+          <FeatureGate key={adsTab} feature={ADS_TAB_FEATURE[adsTab]}>{/* KS_PORTAL_v3_PLANS */}
           {adsTab === "story" && <AdsStoryPanel />}
           {adsTab === "campaigns" && <div className="space-y-4"><GoogleAdsPanel /><MayaSuggestionsPanel /><DiagnosticsPanel only={["ads"]} /><UtmBuilderPanel /></div>}
           {adsTab === "negatives" && <NegativesPanel />}
@@ -1504,9 +1515,10 @@ const MarketingDashboard = () => {
           {adsTab === "audiences" && (<div className="space-y-4"><AudiencesNote /><CustomerMatchPanel /><IcpBuilderPanel /></div>)}{/* BF_PORTAL_CUSTOMER_MATCH_LISTS_v711 */}
           {adsTab === "website" && (<div className="space-y-4"><Ga4Panel /><ClarityPanel /></div>)}
           {adsTab === "health" && (<div className="space-y-4"><GoogleHealthPanel /><AdsConversionStatus /><AdsConversionsPanel /><DiagnosticsPanel only={["queue", "funnel", "failures"]} /></div>)}
+          </FeatureGate>
           </div>
           )}
-          {adsService === "linkedin" && (<div className="space-y-4"><LinkedInAdsPanel /><LinkedInSuggestionsPanel /><LinkedInConversionsPanel /><LinkedInAudiencePanel /></div>)}
+          {adsService === "linkedin" && (<FeatureGate feature="ad_attribution"><div className="space-y-4"><LinkedInAdsPanel /><LinkedInSuggestionsPanel /><LinkedInConversionsPanel /><LinkedInAudiencePanel /></div></FeatureGate>)}
           {adsService === "microsoft" && <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>Microsoft Ads - coming soon.</div>}
         </div>
       )}

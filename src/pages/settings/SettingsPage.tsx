@@ -21,6 +21,12 @@ import TemplatesSettings from "./tabs/TemplatesSettings"; // v694
 import SnippetsSettings from "./tabs/SnippetsSettings"; // BF_PORTAL_SNIPPETS_TAB_v46
 import CollateralSettings from "./tabs/CollateralSettings"; // v694
 import LibraryPage from "@/pages/library/LibraryPage"; // BF_PORTAL_LIBRARY_IN_SETTINGS_v764
+import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
+import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
+
+// KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
+// Per-person direct numbers are the Pro "multiple lines" feature; templates are Growth.
+const TAB_FEATURE: Record<string, string | undefined> = { phone: "multiple_lines", templates: "templates" };
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -46,6 +52,7 @@ const SettingsPage = () => {
       { id: "collateral", label: "Collateral", visible: !isBI, content: <CollateralSettings /> }, // v694
       // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
       { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
+      { id: "plan", label: "Plan", visible: true, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
     [isAdmin, isStaff, isBI]
@@ -95,11 +102,14 @@ const SettingsPage = () => {
                     onClick={() => navigate(`/settings/${tab.id}`)}
                   >
                     {tab.label}
+                    {TAB_FEATURE[tab.id] && <LockedBadge feature={TAB_FEATURE[tab.id]!} />}
                   </button>
                 ))}
               </div>
               <div className="settings-content" role="tabpanel">
-                <ErrorBoundary>{activeTab?.content}</ErrorBoundary>
+                <ErrorBoundary>
+                  {activeTab && TAB_FEATURE[activeTab.id] ? <FeatureGate key={activeTab.id} feature={TAB_FEATURE[activeTab.id]!}>{activeTab.content}</FeatureGate> : activeTab?.content}
+                </ErrorBoundary>
               </div>
             </div>
           )}

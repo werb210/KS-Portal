@@ -7,6 +7,7 @@ import { AdsStoryPanel, DropoffPanel, VisitorsPanel } from "@/components/marketi
 import { ReportDataCard } from "./ReportDataCards";
 import { MobileAppsSummary } from "@/pages/marketing/MobileAppsPanel"; // BF_PORTAL_v819_MOBILE_REPORT
 import { MOBILE_APPS_KEY, withPortalReports } from "./reportLibrary"; // BF_PORTAL_v819_MOBILE_REPORT
+import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 
 export type ReportDef = { key: string; title: string; silo: string; group: "money" | "marketing" | "operations"; size: "half" | "full"; description: string };
 export type Card = { id: string; report: string; size: "half" | "full"; days?: number };
@@ -37,7 +38,22 @@ export function moveTab(tabs: Tab[], tabId: string, beforeTabId: string): Tab[] 
   return rest;
 }
 
-export function CardBody({ report, days }: { report: string; days?: number }): ReactNode {
+// KS_PORTAL_v3_PLANS - which plan feature a report card needs. Operations reports are the basic reports every plan
+// has; money and marketing reports are "full reports"; the Google Ads cards need ad attribution / visitor tracking.
+export function reportFeature(report: string, group?: ReportDef["group"]): string | null {
+  if (report === "ads_story") return "ad_attribution";
+  if (report === "ads_dropoff" || report === "ads_visitors") return "visitor_tracking";
+  if (group === "money" || group === "marketing") return "full_reports";
+  return null;
+}
+
+export function CardBody({ report, days, group }: { report: string; days?: number; group?: ReportDef["group"] }): ReactNode {
+  const feature = reportFeature(report, group);
+  if (feature) return <FeatureGate feature={feature}><CardBodyInner report={report} days={days} /></FeatureGate>;
+  return <CardBodyInner report={report} days={days} />;
+}
+
+function CardBodyInner({ report, days }: { report: string; days?: number }): ReactNode {
   if (report === "ads_story") return <AdsStoryPanel />;
   if (report === "ads_dropoff") return <DropoffPanel />;
   if (report === "ads_visitors") return <VisitorsPanel />;
@@ -118,9 +134,9 @@ export default function ReportsBoard({ mode = "reports" }: { mode?: "reports" | 
   return <div data-testid={mode === "dashboard" ? "dashboard-board" : "reports-board"}><DndContext sensors={sensors} onDragEnd={onDragEnd}>
     {mode === "reports" && <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>{layout.tabs.map((t) => <TabButton key={t.id} tab={t} active={current?.id === t.id} onClick={() => setActive(t.id)} />)}{layout.teamTabs.map((t) => <button key={t.id} type="button" className={current?.id === t.id ? "ui-button ui-button--primary" : "ui-button ui-button--secondary"} onClick={() => setActive(t.id)}>{t.name} (team)</button>)}<button type="button" className="ui-button ui-button--secondary" onClick={() => { const tab = { id: newId(), name: "New tab", cards: [] }; void commitTabs([...layout.tabs, tab]); setActive(tab.id); }}>+ Tab</button>{current && !isTeam && <><button type="button" className="ui-button ui-button--secondary" onClick={() => { const name = window.prompt("Tab name", current.name); if (name?.trim()) void commitTabs(layout.tabs.map((t) => t.id === current.id ? { ...t, name: name.trim().slice(0, 60) } : t)); }}>Rename</button><button type="button" className="ui-button ui-button--secondary" onClick={() => { if (window.confirm(`Delete the tab "${current.name}"?`)) { const rest = layout.tabs.filter((t) => t.id !== current.id); void commitTabs(rest); setActive(rest[0]?.id ?? ""); } }}>Delete tab</button></>}{layout.canPublishTeamTabs && !isTeam && current && <button type="button" className="ui-button ui-button--secondary" onClick={async () => { if (!window.confirm(`Publish "${current.name}" as a team tab everyone sees? People only see the cards their role allows.`)) return; const teamTabs = [...layout.teamTabs.filter((t) => t.name !== current.name), { ...current, id: newId() }]; try { await api.put("/api/reports/team-tabs", { silo, tabs: teamTabs }); setLayout({ ...layout, teamTabs }); setMsg("Published as a team tab."); } catch { setMsg("Could not publish the team tab."); } }}>Share with team</button>}</div>}
     {!isTeam && current && <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}><button type="button" className="ui-button ui-button--primary" onClick={() => setAdding((v) => !v)} data-testid="reports-add">+ Add report</button>{msg && <span role="status" style={{ color: "var(--ui-text)", fontSize: 13 }}>{msg}</span>}</div>}
-    {adding && current && <div style={{ ...box, marginBottom: 12, display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }} data-testid="reports-library">{!catalog.some((r) => r.silo === silo) && <p style={{ color: "var(--ui-text-muted)" }}>No reports for this silo yet.</p>}{catalog.filter((r) => r.silo === silo).map((r) => <button key={r.key} type="button" className="ui-button ui-button--secondary" style={{ textAlign: "left", whiteSpace: "normal", height: "auto", padding: 10 }} onClick={() => { void updateCurrent([...current.cards, { id: newId(), report: r.key, size: r.size }]); setAdding(false); }}><strong>{r.title}</strong><br /><span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>{r.description}</span></button>)}</div>}
+    {adding && current && <div style={{ ...box, marginBottom: 12, display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }} data-testid="reports-library">{!catalog.some((r) => r.silo === silo) && <p style={{ color: "var(--ui-text-muted)" }}>No reports for this silo yet.</p>}{catalog.filter((r) => r.silo === silo).map((r) => <button key={r.key} type="button" className="ui-button ui-button--secondary" style={{ textAlign: "left", whiteSpace: "normal", height: "auto", padding: 10 }} onClick={() => { void updateCurrent([...current.cards, { id: newId(), report: r.key, size: r.size }]); setAdding(false); }}><strong>{r.title}</strong>{reportFeature(r.key, r.group) && <LockedBadge feature={reportFeature(r.key, r.group)!} />}<br /><span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>{r.description}</span></button>)}</div>}
     {current && !current.cards.length && !adding && <p style={{ color: "var(--ui-text-muted)" }}>{isTeam ? "This team tab is empty." : "No reports here yet. Press + Add report."}</p>}
     {/* BF_PORTAL_REPORTS_MASONRY_v774 - cards pack into the space under shorter cards instead of lining up in rows. */}
-    {current && <div data-testid="reports-masonry" style={MASONRY_GRID}>{current.cards.map((card) => <MasonryCell key={card.id} full={card.size === "full"}>{isTeam ? <section style={{ ...box }}><strong style={{ color: "var(--ui-text)" }}>{byKey.get(card.report)?.title ?? card.report}</strong><CardBody report={card.report} days={card.days} /></section> : <DraggableCard tabId={current.id} card={card} def={byKey.get(card.report)} onRemove={() => void updateCurrent(current.cards.filter((c) => c.id !== card.id))} onResize={() => void updateCurrent(current.cards.map((c) => c.id === card.id ? { ...c, size: c.size === "full" ? "half" : "full" } : c))} onDashboard={mode === "reports" ? () => void save({ ...layout, dashboard: { cards: [...(layout.dashboard?.cards ?? []), { ...card, id: newId() }] } }).then(() => setMsg("Added to your Dashboard.")) : undefined}><CardBody report={card.report} days={card.days} /></DraggableCard>}</MasonryCell>)}</div>}
+    {current && <div data-testid="reports-masonry" style={MASONRY_GRID}>{current.cards.map((card) => <MasonryCell key={card.id} full={card.size === "full"}>{isTeam ? <section style={{ ...box }}><strong style={{ color: "var(--ui-text)" }}>{byKey.get(card.report)?.title ?? card.report}</strong><CardBody report={card.report} days={card.days} group={byKey.get(card.report)?.group} /></section> : <DraggableCard tabId={current.id} card={card} def={byKey.get(card.report)} onRemove={() => void updateCurrent(current.cards.filter((c) => c.id !== card.id))} onResize={() => void updateCurrent(current.cards.map((c) => c.id === card.id ? { ...c, size: c.size === "full" ? "half" : "full" } : c))} onDashboard={mode === "reports" ? () => void save({ ...layout, dashboard: { cards: [...(layout.dashboard?.cards ?? []), { ...card, id: newId() }] } }).then(() => setMsg("Added to your Dashboard.")) : undefined}><CardBody report={card.report} days={card.days} group={byKey.get(card.report)?.group} /></DraggableCard>}</MasonryCell>)}</div>}
   </DndContext></div>;
 }
