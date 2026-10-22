@@ -27,6 +27,7 @@ import { buildStampLabel } from "@/lib/buildInfo";
 import { usePlanBootstrap } from "@/plans/planStore";
 import PlanBanners from "@/plans/PlanBanners";
 import UpsellHost from "@/plans/UpsellHost";
+import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
 
 
 const TOPBAR_HEIGHT = 68;
@@ -148,6 +149,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           })}
         >
           {item.label}
+          {item.path === "/reports" && <LockedBadge feature="full_reports" />}
           {item.path === "/communications" && messagesUnread > 0 && (
             <span style={{ marginLeft: 8, background: "#ef4444", color: "#fff", borderRadius: 999, fontSize: 11, fontWeight: 700, padding: "1px 7px", minWidth: 18, display: "inline-block", textAlign: "center" }}>
               {messagesUnread}
