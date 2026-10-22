@@ -5,7 +5,7 @@
 import { useState, type ReactNode } from "react";
 import toast from "react-hot-toast";
 import { featureInfo, includedInText, PLAN_LABEL, type PlanKey } from "@/plans/catalogue";
-import { featureLabel, hasFeature, requestUpgrade, requiredPlan, startTrial, usePlan } from "@/plans/planStore";
+import { trialOfferText, featureLabel, hasFeature, requestUpgrade, requiredPlan, startTrial, usePlan } from "@/plans/planStore";
 import { PlanBadge, PlanLink, primaryButton, secondaryButton, useIsAdmin } from "@/plans/ui";
 
 export const TRIAL_CTA = "Try every feature free for 14 days";
@@ -87,7 +87,7 @@ export function LockedFeature({ feature, compact = false, planOverride, trialAva
       <p style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 600, color: "var(--ui-text)" }}>{includedInText(plan)}.</p>
       {trialAvailable && isAdmin && (
         <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--ui-text)" }}>
-          Try every Growth and Pro feature free for 14 days, with 100 bonus minutes and 100 bonus texts per seat. No card needed.
+          {trialOfferText(state)} No card needed.
         </p>
       )}
       {trialUsed && isAdmin && <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--ui-text)" }}>Your free trial has been used.</p>}

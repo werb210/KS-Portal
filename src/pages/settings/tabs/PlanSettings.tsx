@@ -7,7 +7,7 @@ import {
   FEATURES, PLAN_ALLOWANCES, PLAN_LABEL, PLAN_ORDER, STARTER_BASICS, STORAGE_BLOCK_GB, STORAGE_BLOCK_PRICE_TEXT,
   formatBytes, planRank, type PlanKey,
 } from "@/plans/catalogue";
-import { featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState } from "@/plans/planStore";
+import { trialOfferText, featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState } from "@/plans/planStore";
 import { TRIAL_CTA } from "@/plans/FeatureGate";
 import { daysLeftText } from "@/plans/PlanBanners";
 import { PlanBadge, primaryButton, secondaryButton, useIsAdmin } from "@/plans/ui";
@@ -165,7 +165,7 @@ export default function PlanSettings() {
           {isAdmin && state.trial.status === "available" && (
             <div style={{ marginTop: 14, padding: 14, borderRadius: 10, background: "#e0e7ff", color: "#1e1b4b", border: "1px solid #a5b4fc" }}>
               <p style={{ margin: "0 0 10px", fontSize: 14 }}>
-                Try every Growth and Pro feature free for 14 days, with 100 bonus minutes and 100 bonus texts per seat. You can only do this once.
+                {trialOfferText(state)} You can only do this once.
               </p>
               <button type="button" style={primaryButton} disabled={busy !== null} onClick={() => void onTrial()}>
                 {busy === "trial" ? "Starting…" : TRIAL_CTA}

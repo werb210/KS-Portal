@@ -197,6 +197,13 @@ function subscribe(cb: () => void): () => void {
 }
 
 /** React hook: the licensee's plan; re-renders when it loads or changes. */
+/** The trial offer in words, from the server's bonus allowances. */
+export function trialOfferText(state: PlanState): string {
+  const m = Number(state.allowances?.trial_bonus_minutes ?? 0), t = Number(state.allowances?.trial_bonus_texts ?? 0);
+  const parts = [m > 0 ? `${m} bonus minutes` : "", t > 0 ? `${t} bonus texts` : ""].filter(Boolean);
+  return `Try every Growth and Pro feature free for 14 days${parts.length ? `, with ${parts.join(" and ")} per seat` : ""}.`;
+}
+
 export function usePlan(): PlanState {
   return useSyncExternalStore(subscribe, getPlan, getPlan);
 }
