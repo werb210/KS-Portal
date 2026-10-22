@@ -32,10 +32,8 @@ vi.mock("@/components/marketing/GoogleAdsAnalytics", () => ({
 }));
 vi.mock("@/components/marketing/CustomerMatchPanel", () => ({ default: () => null }));
 vi.mock("@/pages/settings/tabs/GoogleHealthPanel", () => ({ default: () => null }));
-vi.mock("@/silos/bi/marketing/tabs/SequencesTab", () => ({ default: () => null }));
 
 import MarketingDashboard from "../MarketingDashboard";
-import BIMarketing from "@/silos/bi/marketing/BIMarketing";
 
 beforeEach(() => {
   h.apiFn.get.mockReset();
@@ -54,11 +52,6 @@ describe("link report parity across silos", () => {
     expect(screen.getByTestId("link-clicks-panel")).toHaveTextContent("bf");
   });
 
-  it("BI still has its Links tab", () => {
-    render(<BIMarketing />);
-    fireEvent.click(screen.getByRole("tab", { name: "Links" }));
-    expect(screen.getByTestId("link-clicks-panel")).toHaveTextContent("/api/v1/bi/marketing");
-  });
 
   it("the panel is no longer duplicated inside the BF Analytics tab", () => {
     render(<MarketingDashboard />);

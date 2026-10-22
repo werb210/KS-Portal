@@ -39,7 +39,7 @@ beforeEach(() => {
 describe("widget snapshots", () => {
   it("uses the authenticated summary API and writes one snapshot for every silo", async () => {
     expect(await publishWidgetSnapshot()).toBe(true);
-    for (const silo of ["BF", "BI", "SLF"] as const) {
+    for (const silo of ["BF"] as const) { // KS_PORTAL_v1_NO_BI - one silo
       expect(h.api).toHaveBeenCalledWith("/api/widget/summary", { headers: { "X-Silo": silo } });
       expect(h.setItem).toHaveBeenCalledWith({
         group: "group.com.borealfinancial.portal",
@@ -81,15 +81,6 @@ describe("widget snapshots", () => {
     expect(snapshot).not.toHaveProperty("injected");
   });
 
-  it("keeps successful snapshots when another silo is unavailable", async () => {
-    h.api.mockImplementation((_path: string, options: { headers: { "X-Silo": keyof typeof summaries } }) =>
-      options.headers["X-Silo"] === "BI" ? Promise.reject(new Error("forbidden")) : Promise.resolve(summaries[options.headers["X-Silo"]]));
-    expect(await publishWidgetSnapshot()).toBe(true);
-    expect(h.setItem).toHaveBeenCalledTimes(2);
-    expect(h.setItem).toHaveBeenCalledWith(expect.objectContaining({ key: "widget_summary_BF" }));
-    expect(h.setItem).toHaveBeenCalledWith(expect.objectContaining({ key: "widget_summary_SLF" }));
-    expect(h.reloadAllTimelines).toHaveBeenCalledOnce();
-  });
 
   it("does no API or App Group work in a browser", async () => {
     h.native = false;

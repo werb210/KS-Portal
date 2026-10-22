@@ -790,7 +790,7 @@ function SharedMailboxSignaturePanel() {
           rows={8}
           disabled={!loaded || !address}
           aria-label="Shared mailbox signature HTML"
-          placeholder="<p>Boreal Financial<br>submissions@boreal.financial</p>"
+          placeholder="<p>Your Company<br>you@yourcompany.com</p>"
           style={{ width: "100%", padding: 8, fontFamily: "monospace", fontSize: 12, borderRadius: 6, border: "1px solid var(--ui-border)" }}
         />
         <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}>

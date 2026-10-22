@@ -23,12 +23,12 @@ const POLL_MS = 10 * 60 * 1000;
 // Widget deep links arrive as bfportal://<host>. Anything not listed is ignored
 // rather than navigated to, so a stale widget can never push the app somewhere
 // that no longer exists.
-export function widgetRoute(url: string): { silo?: "BF" | "BI" | "SLF"; path: string } | null {
+export function widgetRoute(url: string): { silo?: "BF"; path: string } | null {
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== "bfportal:") return null;
     const rawSilo = parsed.searchParams.get("silo")?.toUpperCase();
-    const silo = rawSilo === "BF" || rawSilo === "BI" || rawSilo === "SLF" ? rawSilo : undefined;
+    const silo = rawSilo === "BF" ? rawSilo : undefined; // KS_PORTAL_v1_NO_BI
     switch (parsed.hostname) {
       case "applications": case "pipeline": return { silo, path: "/pipeline" };
       case "crm": return { silo, path: "/crm" };
@@ -39,7 +39,7 @@ export function widgetRoute(url: string): { silo?: "BF" | "BI" | "SLF"; path: st
         return { silo, path: `/tasks${suffix}` };
       }
       case "messages": return { silo, path: `/communications?tab=inbox${parsed.searchParams.get("filter") === "unread" ? "&filter=unread" : ""}` };
-      case "commission": return { silo, path: silo === "BI" ? "/bi/commissions" : "/portal?focus=commission" };
+      case "commission": return { silo, path: "/portal?focus=commission" };
       default: return { silo, path: "/portal" };
     }
   } catch { return null; }

@@ -9,6 +9,6 @@ describe("portal tidy-ups", () => {
     expect(s).not.toContain('"#fef3c7"');
   });
   it("campaign links default to www", () => {
-    expect(readFileSync("src/pages/marketing/MarketingDashboard.tsx", "utf8")).toContain('useState("https://www.boreal.financial")');
+    expect(readFileSync("src/pages/marketing/MarketingDashboard.tsx", "utf8")).toContain("useState(WEBSITE_URL)"); // KS_PORTAL_v1_LICENSEE - the licensee's website
   });
 });

@@ -61,8 +61,6 @@ const SMSComposer = ({ visible, contact, onClose }: SMSComposerProps) => {
         <div className="flex gap-2 items-center mt-2">
           <Select value={silo} onChange={() => undefined}>
             <option value="BF">BF</option>
-            <option value="BI">BI</option>
-            <option value="SLF">SLF</option>
           </Select>
           <Input
             placeholder="Type message"

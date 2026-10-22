@@ -12,28 +12,22 @@ import {
 } from "@/types/businessUnit";
 
 const unitLabels: Record<BusinessUnit, { short: string; full: string }> = {
-  BF: { short: "Financial", full: "Boreal Financial" },
-  BI: { short: "Insurance", full: "Boreal Insurance" },
-  SLF: { short: "SLF", full: "Site Level Financial" },
+  BF: { short: "Financial", full: "Lending" }, // KS_PORTAL_v1_NO_BI - Keystone is lending only
 };
 
 const unitAccents: Record<BusinessUnit, string> = {
   BF: "var(--accent)", // RESKIN3::SELECTOR — live silo accent (BF blue)
-  BI: "#2FA86A", // BF_PORTAL_BLOCK_v_RESKIN_6_v1 — BI brand green (retired purple); matches :root[data-silo="BI"] --accent
-  SLF: "#d97706", // matches AppLayout SILO_BRAND.SLF
 };
 
-const ALL_UNITS: BusinessUnit[] = ["BF", "BI", "SLF"];
+const ALL_UNITS: BusinessUnit[] = ["BF"];
 
 // BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1
 const SILO_HOME: Record<BusinessUnit, string> = {
   BF: "/portal",
-  BI: "/silo/bi/dashboard",
-  SLF: "/pipeline",
 };
 
 const isBusinessUnit = (value: unknown): value is BusinessUnit =>
-  value === "BF" || value === "BI" || value === "SLF";
+  value === "BF";
 
 const BusinessUnitSelector = () => {
   const { silo, setSilo } = useSilo();

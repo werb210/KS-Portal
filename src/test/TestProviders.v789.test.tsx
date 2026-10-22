@@ -13,8 +13,4 @@ describe("TestProviders", () => {
     render(<TestProviders><Show /></TestProviders>);
     expect(screen.getByTestId("silo").textContent).toBe("bf");
   });
-  it("can force another silo", () => {
-    render(<TestProviders silo="BI"><Show /></TestProviders>);
-    expect(screen.getByTestId("silo").textContent).toBe("bi");
-  });
 });

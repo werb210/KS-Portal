@@ -26,10 +26,10 @@ describe("the CSP allows what index.html actually asks for", () => {
   it.each(CONFIGS)("%s keeps every origin it already allowed", (f) => {
     const csp: string = JSON.parse(read(f)).globalHeaders["Content-Security-Policy"];
     for (const origin of [
-      "https://server.boreal.financial",
+      "https://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net",
       "https://login.microsoftonline.com",
       "https://app.signnow.com",
-      "wss://server.boreal.financial",
+      "wss://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net",
     ]) {
       expect(csp).toContain(origin);
     }

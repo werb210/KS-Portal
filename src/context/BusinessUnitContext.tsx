@@ -10,7 +10,7 @@ const canUseLocalStorage = () =>
   typeof window !== "undefined" && typeof window.sessionStorage !== "undefined";
 
 const isBusinessUnit = (value: unknown): value is BusinessUnit =>
-  value === "BF" || value === "BI" || value === "SLF";
+  value === "BF";
 
 const readStoredBusinessUnit = (): BusinessUnit | null => {
   if (!canUseLocalStorage()) return null;
@@ -73,7 +73,7 @@ export const BusinessUnitProvider = ({ children }: { children: React.ReactNode }
   // it back to BF - the button looked dead. SLF-server now syncs, and admins
   // have SLF ticked under Silo access, so admins get all three silos.
   const normalizedBusinessUnits: BusinessUnit[] = isAdmin
-    ? ["BF", "BI", "SLF"]
+    ? ["BF"] // KS_PORTAL_v1_NO_BI - Keystone has one silo
     : (userBusinessUnits.length ? userBusinessUnits : [DEFAULT_BUSINESS_UNIT]);
   const fallbackBusinessUnit = normalizedBusinessUnits[0] ?? DEFAULT_BUSINESS_UNIT;
   const preferredUserBusinessUnit = ((user as { silo?: string } | null)?.silo

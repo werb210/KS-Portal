@@ -430,9 +430,7 @@ const UserManagement = () => {
               <label className="ui-field__label">Silo access</label>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "var(--ui-card-bg)", border: "1px solid var(--ui-border)", borderRadius: 6 }}>
                 {[
-                  { v: "BF", label: "BF — Boreal Financial" },
-                  { v: "BI", label: "BI — Boreal Insurance" },
-                  { v: "SLF", label: "SLF — Site Level Financial" },
+                  { v: "BF", label: "Lending" }, // KS_PORTAL_v1_NO_BI
                 ].map(({ v, label }) => (
                   <label key={v} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--ui-text)" }}>
                     <input

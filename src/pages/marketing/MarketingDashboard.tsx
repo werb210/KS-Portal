@@ -19,6 +19,7 @@ import CustomerMatchPanel from "@/components/marketing/CustomerMatchPanel"; // B
 import GoogleHealthPanel from "@/pages/settings/tabs/GoogleHealthPanel"; // BF_PORTAL_GOOGLE_ADS_ANALYTICS_v707
 import MobileAppsPanel from "./MobileAppsPanel"; // BF_PORTAL_v811_MOBILE_APPS
 import SiloContext from "@/context/SiloContext"; // BF_PORTAL_v811_MOBILE_APPS
+import { WEBSITE_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
@@ -260,7 +261,7 @@ function MayaSuggestionsPanel() {
 }
 // BF_PORTAL_UTM_BUILDER_v1 - campaign URL builder (consistent utm tagging).
 function UtmBuilderPanel() {
-  const [base, setBase] = useState("https://www.boreal.financial"); // BF_PORTAL_WWW_AND_FEE_COLOUR_v744 - www is the host that serves every page
+  const [base, setBase] = useState(WEBSITE_URL); // BF_PORTAL_WWW_AND_FEE_COLOUR_v744 - www is the host that serves every page
   const [source, setSource] = useState("google");
   const [medium, setMedium] = useState("cpc");
   const [campaign, setCampaign] = useState("");
@@ -729,7 +730,7 @@ function EmailComposerPanel() {
         <p style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>Merge fields: {"{{first_name}}"}, {"{{name}}"}, {"{{company}}"}, {"{{email}}"}.</p>
         <div className="flex flex-wrap gap-2 items-end">
           <label className="text-sm" style={{ color: "var(--ui-text)" }}>Test to
-            <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@boreal.financial" className="block border rounded px-2 py-1 text-sm mt-1" style={{ color: "var(--ui-text)", background: "var(--ui-surface-strong)", borderColor: "var(--ui-border)" }} />
+            <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@yourcompany.com" className="block border rounded px-2 py-1 text-sm mt-1" style={{ color: "var(--ui-text)", background: "var(--ui-surface-strong)", borderColor: "var(--ui-border)" }} />
           </label>
           <button type="button" disabled={busy || !subject || !html || !testTo} onClick={() => void post(testTo)} className="ui-button ui-button--secondary">Send test</button>
           <button type="button" disabled={busy || !subject || !html || !count} onClick={() => { if (window.confirm(`Send this email to ${count} recipients? It will hold for 5 minutes and you can cancel.`)) void post(); }} className="ui-button ui-button--primary">{busy ? "Sending..." : `Send to ${count}`}</button>
@@ -839,7 +840,7 @@ function SmsComposerPanel() {
         </label>
         <p style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>{body.length} chars. Merge: {"{{first_name}}"}, {"{{name}}"}, {"{{company}}"} all work in SMS. Keep it short. A tracked link is appended if you add a landing page below.</p>
         <label className="text-sm block" style={{ color: "var(--ui-text)" }}>Landing page (optional, tracked)
-          <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://boreal.financial/..." className="block border rounded px-2 py-1 text-sm mt-1 w-full" style={{ color: "var(--ui-text)", background: "var(--ui-surface-strong)", borderColor: "var(--ui-border)" }} />
+          <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className="block border rounded px-2 py-1 text-sm mt-1 w-full" style={{ color: "var(--ui-text)", background: "var(--ui-surface-strong)", borderColor: "var(--ui-border)" }} />
         </label>
         {/* BF_PORTAL_BLOCK_v204_SMS_TEMPLATES */}
         <div className="border-t pt-2 flex flex-wrap gap-2 items-end" style={{ borderColor: "var(--ui-border)" }}>

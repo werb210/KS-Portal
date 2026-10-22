@@ -15,6 +15,7 @@ import { Field, inputStyle } from "@/pages/lenders/components/lenderFieldShared"
 import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "@/pages/lenders/components/SbaIvesFields"; // BF_PORTAL_LENDER_SBA_IVES_v747
 import LenderReferralsSection from "./LenderReferralsSection"; // BF_PORTAL_v825_LENDER_REFERRALS
 import FileDrop from "@/components/partner/FileDrop"; // BF_PORTAL_v828_PARTNER_PORTAL_THEME
+import { SUPPORT_EMAIL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import "@/components/partner/partnerPortal.css"; // BF_PORTAL_v828_PARTNER_PORTAL_THEME
 import {
   ProductCoreFields,
@@ -467,7 +468,7 @@ export default function LenderPortalPage() {
             have different requirements for different levels of funding then create each level. Example:
             a LOC from $50,000 to $100,000 has required documents A; a LOC from $100,001 to $250,000 has
             required documents A, B, and C. If you need any further clarification please email{" "}
-            <a href="mailto:info@boreal.financial" style={{ color: "var(--ui-accent-fg, #93B4F5)" }}>info@boreal.financial</a>.
+            <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: "var(--ui-accent-fg, #93B4F5)" }}>{SUPPORT_EMAIL}</a>.
           </p>
           {!productsLoaded && <div style={{ fontSize: 13, color: "var(--ui-text-muted)" }}>Loading...</div>}
           {productsLoaded && products.length === 0 && (
@@ -571,7 +572,7 @@ export default function LenderPortalPage() {
                 lender reasonably assumed the form was failing. Keep the field
                 visible (it confirms WHICH company the lender is editing) and say
                 plainly why it is locked and who to ask. */}
-            <Field label="Company name" hint="Locked. Your company name appears on submissions to us, so it is maintained by Boreal - email info@boreal.financial to have it changed.">
+            <Field label="Company name" hint={`Locked. Your company name appears on submissions to us, so it is maintained by us - email ${SUPPORT_EMAIL} to have it changed.`}>
               <input
                 value={profileDraft.name ?? ""}
                 readOnly

@@ -42,11 +42,11 @@ afterEach(() => {
 });
 
 describe("email preview, assets, and audience layout", () => {
-  it("keeps both static web app configs identical and permits BI email assets", () => {
+  it("keeps both static web app configs identical and permits server email assets", () => {
     expect(publicConfig).toEqual(rootConfig);
     const csp = rootConfig.globalHeaders["Content-Security-Policy"];
     const imageSources = (csp.split(";").map((d) => d.trim()).find((d) => d.startsWith("img-src ")) ?? "").split(/\s+/);
-    expect(imageSources).toContain("https://bi-server-cse0apamgkheb9d5.canadacentral-01.azurewebsites.net");
+    expect(imageSources).toContain("https://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net"); // KS_PORTAL_v1_LICENSEE
   });
 
   it("renders the preview at 600px and scales it into its pane", async () => {

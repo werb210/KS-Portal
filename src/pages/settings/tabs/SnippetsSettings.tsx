@@ -150,7 +150,7 @@ export default function SnippetsSettings() {
             <textarea
               ref={bodyRef}
               value={editing.body_text ?? ""}
-              placeholder="Please fill in our personal net worth form in the client portal found here client.boreal.financial."
+              placeholder="Please fill in our personal net worth form in the client portal found in the client portal."
               onChange={(e) => setEditing({ ...editing, body_text: e.target.value })}
               rows={5}
               style={{ width: "100%", marginTop: 4, padding: 8, borderRadius: 6, border: "1px solid var(--ui-border)", fontSize: 14, fontFamily: "inherit" }}

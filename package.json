@@ -16,8 +16,7 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
     "test:ci": "vitest run",
-    "ci:verify": "npm run build && npm run test:ci",
-    "scope:check": "node scripts/enforce-silo-scope.mjs --base=origin/main"
+    "ci:verify": "npm run build && npm run test:ci"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",

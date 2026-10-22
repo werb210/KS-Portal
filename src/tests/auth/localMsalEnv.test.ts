@@ -11,13 +11,13 @@ describe("BF_PORTAL_LOCAL_MSAL_ENV_v1", () => {
   it("carries the MSAL settings a local build needs", () => {
     expect(env).toContain("VITE_MSAL_CLIENT_ID=c8890d6f-eb8f-4101-8336-5e8fca3303e0");
     expect(env).toContain("VITE_MSAL_TENANT_ID=b585ab8e-bd39-449d-9210-479a9c989bb2");
-    expect(env).toContain("VITE_MSAL_REDIRECT_URI=https://staff.boreal.financial");
+    expect(env).toContain("VITE_MSAL_REDIRECT_URI=https://thankful-wave-04964490f.2.azurestaticapps.net");
     expect(env).toContain("VITE_MSAL_SCOPES=User.Read,Mail.Send,Calendars.ReadWrite,Tasks.ReadWrite");
   });
 
   it("points a local build at the live API", () => {
-    expect(env).toContain("VITE_API_BASE_URL=https://server.boreal.financial");
-    expect(env).toContain("VITE_API_URL=https://server.boreal.financial");
+    expect(env).toContain("VITE_API_BASE_URL=https://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net");
+    expect(env).toContain("VITE_API_URL=https://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net");
   });
 
   it("leaves the deploy workflow as the source of truth for CI", () => {

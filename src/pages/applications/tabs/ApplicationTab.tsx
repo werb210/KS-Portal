@@ -30,6 +30,7 @@ import { placeCall } from "@/native/dialerLauncher";
 
 type AnyRecord = Record<string, any>;
 import { maskSin } from "@/lib/sensitive";
+import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 type Props = { application: AnyRecord | null };
 
 function asObject(v: unknown): AnyRecord {
@@ -349,7 +350,7 @@ export default function ApplicationTab({ application }: Props) {
     ? "Email the client their outstanding tasks"
     : "All client tasks complete";
   const v817_esc = (x: string) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const V817_CLIENT_PORTAL_URL = "https://client.boreal.financial";
+  const V817_CLIENT_PORTAL_URL = CLIENT_URL;
   function v817_buildBody() {
     const items = v817_incomplete.map((t) => `<li>${v817_esc(t.label)}</li>`).join("");
     return (

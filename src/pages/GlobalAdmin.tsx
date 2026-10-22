@@ -24,17 +24,6 @@ function countOf(res: unknown): number {
   return 0;
 }
 
-// BF_PORTAL_GLOBAL_ADMIN_SLF_STATS_v785 - /api/slf/deals caps at 100 rows, so
-// the SLF count is the sum of the per-stage counts from /api/slf/stats.
-function slfDealCount(res: unknown): number {
-  const byStage = ((res ?? {}) as { byStage?: unknown }).byStage;
-  if (!Array.isArray(byStage)) throw new Error("SLF stats missing byStage");
-  return byStage.reduce((sum: number, row) => {
-    const n = Number((row as { n?: unknown } | null)?.n);
-    return Number.isFinite(n) ? sum + n : sum;
-  }, 0);
-}
-
 function show(value: Count): string {
   if (value === null) return "Loading...";
   return String(value);
@@ -42,8 +31,6 @@ function show(value: Count): string {
 
 export default function GlobalAdmin() {
   const bfApi = useMemo(() => apiForSilo("BF"), []);
-  const biApi = useMemo(() => apiForSilo("BI"), []);
-  const slfApi = useMemo(() => apiForSilo("SLF"), []);
   const [counts, setCounts] = useState<CountState>({ bfApplications: null, biApplications: null, slfDeals: null });
 
   useEffect(() => {
@@ -58,20 +45,16 @@ export default function GlobalAdmin() {
         });
     };
     load("bfApplications", () => bfApi.get("/api/portal/applications"));
-    load("biApplications", () => biApi.get("/api/v1/bi/applications"));
-    load("slfDeals", () => slfApi.get("/api/slf/stats"), slfDealCount);
     return () => {
       alive = false;
     };
-  }, [bfApi, biApi, slfApi]);
+  }, [bfApi]);
 
   return (
     <div>
       <h2>Global Admin Dashboard</h2>
       <ul>
-        <li>BI applications count: {show(counts.biApplications)}</li>
-        <li>SLF deal count: {show(counts.slfDeals)}</li>
-        <li>BF applications count: {show(counts.bfApplications)}</li>
+        <li>Applications count: {show(counts.bfApplications)}</li>
       </ul>
     </div>
   );

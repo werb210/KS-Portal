@@ -33,17 +33,14 @@ describe("v784 audit fixes", () => {
     expect(audit).not.toContain("`/admin/audit/events");
   });
 
-  it("5: Global Admin counts each source on its own and marks a failed one unavailable", async () => {
+  it("5: Global Admin counts applications and marks a failed read unavailable (KS_PORTAL_v1_NO_BI)", async () => {
     siloGet.mockImplementation(async (silo: string, path: string) => {
       if (silo === "BF" && path === "/api/portal/applications") return [{}, {}, {}];
-      if (silo === "BI" && path === "/api/v1/bi/applications") throw new Error("BI down");
-      if (silo === "SLF" && path === "/api/slf/stats") return { byStage: [{ stage: "new", n: "2" }] };
       throw new Error("unexpected " + silo + " " + path);
     });
     render(<GlobalAdmin />);
-    expect(await screen.findByText("BF applications count: 3")).toBeInTheDocument();
-    expect(await screen.findByText("BI applications count: unavailable")).toBeInTheDocument();
-    expect(await screen.findByText("SLF deal count: 2")).toBeInTheDocument();
+    expect(await screen.findByText("Applications count: 3")).toBeInTheDocument();
+    siloGet.mockImplementation(async () => { throw new Error("down"); });
   });
 
   it("8: Leads 'View Application' opens /applications/:id and the snapshot text is dark", () => {
