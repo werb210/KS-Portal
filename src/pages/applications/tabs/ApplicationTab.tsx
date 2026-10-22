@@ -131,7 +131,7 @@ export default function ApplicationTab({ application }: Props) {
   const V_FORM_DOCTYPES: Record<string, string> = {
     debt: "debt_stack", networth: "net_worth_statement", equipment: "equipment_list",
     realestate: "real_estate_collateral_disclosure", cra: "cra_view_only_authorization",
-    advisors: "professional_advisors", flinks: "flinks_banking",
+    advisors: "professional_advisors",
   };
   // BF_PORTAL_BLOCK_v_FORM_LABELS_v1 — turn raw JSON key paths into readable labels:
   // "properties[1].mortgage_balance" -> "Properties #1 — Mortgage Balance".

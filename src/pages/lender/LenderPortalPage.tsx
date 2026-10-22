@@ -125,7 +125,6 @@ const DOC_CORE: Array<{ key: string; label: string; defaultStage: 1 | 2 }> = [
   { label: "Business plan / projections", defaultStage: 2 },
   { label: "Lease agreement (if applicable)", defaultStage: 2 },
   { label: "Debt stack", defaultStage: 2 },
-  { label: "Banking connection (Flinks view-only)", defaultStage: 2 },
   { label: "CRA view-only access", defaultStage: 2 },
   { label: "Real estate collateral", defaultStage: 2 },
   { label: "Equipment collateral", defaultStage: 2 },

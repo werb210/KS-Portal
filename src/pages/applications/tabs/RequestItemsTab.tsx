@@ -40,7 +40,6 @@ const CATALOG_DOCS: string[] = [
 const FORMS: Array<{ id: string; label: string }> = [
   { id: "networth", label: "Personal net worth" },
   { id: "debt", label: "Debt stack" },
-  { id: "flinks", label: "Banking connection (Flinks view-only)" },
   { id: "cra", label: "CRA view-only access" },
   { id: "realestate", label: "Real estate collateral" },
   { id: "equipment", label: "Equipment collateral" },
