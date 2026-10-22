@@ -1,5 +1,6 @@
 // BF_PORTAL_BLOCK_v539_CREDIT_SUMMARY_V2 - the new credit summary (server v535-v538).
 import { useCallback, useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { rawApiFetch } from "@/api";
 import { OVERVIEW_ROWS, ROW_LABELS, bulletsToText, cell, money, risksToText, textToBullets, textToRisks, type Section, type SummaryRow } from "./creditSummaryV2Helpers";
 
@@ -114,7 +115,7 @@ export default function CreditSummaryV2({ applicationId }: { applicationId: stri
       {doc.equipment && !!doc.equipment.items.length && <div style={card} data-testid="cs2-equipment"><h3>Equipment</h3><div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr>{["Year", "Make", "Model", "Hours", "Price"].map((heading) => <th key={heading} style={th}>{heading}</th>)}</tr></thead><tbody>{doc.equipment.items.map((item: any, index: number) => <tr key={index}><td style={td}>{item.year ?? ""}</td><td style={td}>{item.make ?? ""}</td><td style={td}>{item.model ?? item.description ?? ""}</td><td style={td}>{item.hours ?? "NA"}</td><td style={td}>{money(item.price)}</td></tr>)}<tr><th style={th} colSpan={4}>Total</th><th style={th}>{money(doc.equipment.total)}</th></tr></tbody></table></div></div>}
       <div style={card} data-testid="cs2-financials"><h3>Financial Summary</h3>{!doc.financials.periods.length ? <div>No financials read yet.</div> : <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse" }}><thead><tr><th style={th} />{doc.financials.periods.map((period) => <th key={period.label} style={th}>{period.label}</th>)}</tr></thead><tbody>{doc.financials.rows.map((financialRow) => <tr key={financialRow.item}><th style={th}>{ROW_LABELS[financialRow.item] ?? financialRow.item}</th>{financialRow.values.map((value, index) => <td key={index} style={td}>{cell(financialRow.item, value)}</td>)}</tr>)}</tbody></table></div>}</div>
       {doc.sections.filter(({ key }) => ["financial_commentary", "rationale", "risks"].includes(key)).map((section) => <SectionEditor key={section.key} sec={section} disabled={!!busy} onSave={saveSection(section.key)} />)}
-      <div style={card} data-testid="cs2-signature"><div>If you have any questions, please give me a call.</div><div>Thanks,</div><div><strong>{submitted ? row?.submitted_by_name : "(the staff member who submits)"}</strong></div><div>Boreal Financial</div></div>
+      <div style={card} data-testid="cs2-signature"><div>If you have any questions, please give me a call.</div><div>Thanks,</div><div><strong>{submitted ? row?.submitted_by_name : "(the staff member who submits)"}</strong></div><div>{brandName()}</div></div>
     </>}
   </div>;
 }

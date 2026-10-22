@@ -2,6 +2,7 @@
 // BF_PORTAL_v828_PARTNER_PORTAL_THEME - on the UI guide (dark surfaces, blue primary actions, styled upload, iPad
 // layout) with a stage tracker on every file.
 import { useCallback, useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { api, rawApiFetch } from "@/api";
 import ReferrerSignupPage from "@/pages/referrer/ReferrerSignupPage";
@@ -26,12 +27,12 @@ export function brokerTracker(f: Pick<BrokerFile, "stage" | "import_status">): T
 export function SplitBox({f,onDone}:{f:BrokerFile;onDone:()=>void}) {
   const [counter,setCounter]=useState(false), [pct,setPct]=useState(""), [note,setNote]=useState(""), [msg,setMsg]=useState<string|null>(null);
   const send=async(body:Record<string,unknown>)=>{setMsg(null);try{await api(`/api/broker/files/${f.application_id}/split`,{method:"POST",headers:auth(),body:JSON.stringify(body)});onDone();}catch{setMsg("That did not go through. Try again.");}};
-  if(!f.split_status) return <span className="pp-muted">Boreal will propose a split</span>;
-  if(f.split_status==="accepted") return <span><span className="pp-pill pp-pill--success">Agreed</span> You {f.broker_pct??"-"}% / Boreal {f.boreal_pct??"-"}%{f.terms?` (${f.terms})`:""}</span>;
-  if(f.split_status==="countered") return <span>You proposed {f.broker_counter_pct!==null?`${f.broker_counter_pct}%`:"a new split"}; waiting for Boreal</span>;
+  if(!f.split_status) return <span className="pp-muted">{brandName()} will propose a split</span>;
+  if(f.split_status==="accepted") return <span><span className="pp-pill pp-pill--success">Agreed</span> You {f.broker_pct??"-"}% / {brandName()} {f.boreal_pct??"-"}%{f.terms?` (${f.terms})`:""}</span>;
+  if(f.split_status==="countered") return <span>You proposed {f.broker_counter_pct!==null?`${f.broker_counter_pct}%`:"a new split"}; waiting for {brandName()}</span>;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }} data-testid={`split-${f.application_id}`}>
-      <div>Boreal proposes: you {f.broker_pct??"-"}% / Boreal {f.boreal_pct??"-"}%{f.terms?` (${f.terms})`:""}</div>
+      <div>{brandName()} proposes: you {f.broker_pct??"-"}% / {brandName()} {f.boreal_pct??"-"}%{f.terms?` (${f.terms})`:""}</div>
       {!counter ? (
         <div className="pp-row">
           <button type="button" className="pp-btn pp-btn--primary" onClick={()=>{if(window.confirm("Accept this split? It locks for this file."))void send({action:"accept"});}}>Accept</button>
@@ -55,7 +56,7 @@ export function BrokerHome(){
   const navigate=useNavigate(),[files,setFiles]=useState<BrokerFile[]|null>(null),[me,setMe]=useState<{company:string;name:string}|null>(null),[file,setFile]=useState<File|null>(null),[phone,setPhone]=useState(""),[busy,setBusy]=useState(false),[msg,setMsg]=useState<string|null>(null);
   const load=useCallback(async()=>{try{const m=await api<{broker:{company:string;name:string}}>("/api/broker/me",{headers:auth()});setMe(m?.broker??null);const r=await api<{files:BrokerFile[]}>("/api/broker/files",{headers:auth()});setFiles(Array.isArray(r?.files)?r.files:[]);}catch{setFiles([]);setMsg("Could not load your files. If you have not signed the broker agreement yet, finish signing first.");}},[]);
   useEffect(()=>{void load();},[load]);
-  const upload=async()=>{if(!file)return setMsg("Choose the client's zip file.");if(!/[.]zip$/i.test(file.name))return setMsg("Upload a .zip file (one per client).");const fd=new FormData();fd.append("file",file);if(phone.trim())fd.append("applicant_phone",phone.trim());setBusy(true);setMsg(null);try{const res=await rawApiFetch("/api/broker/files",{method:"POST",body:fd,headers:auth()});const j=await res.json().catch(()=>({})) as {message?:string;error?:string;businessName?:string};if(!res.ok){setMsg(j.message??j.error??`Upload failed (${res.status}).`);return;}setMsg(`Uploaded${j.businessName?` ${j.businessName}`:""}. Boreal will review it and contact the client for anything missing.`);setFile(null);setPhone("");void load();}catch{setMsg("Upload failed. Check your connection and try again.");}finally{setBusy(false);}};
+  const upload=async()=>{if(!file)return setMsg("Choose the client's zip file.");if(!/[.]zip$/i.test(file.name))return setMsg("Upload a .zip file (one per client).");const fd=new FormData();fd.append("file",file);if(phone.trim())fd.append("applicant_phone",phone.trim());setBusy(true);setMsg(null);try{const res=await rawApiFetch("/api/broker/files",{method:"POST",body:fd,headers:auth()});const j=await res.json().catch(()=>({})) as {message?:string;error?:string;businessName?:string};if(!res.ok){setMsg(j.message??j.error??`Upload failed (${res.status}).`);return;}setMsg(`Uploaded${j.businessName?` ${j.businessName}`:""}. ${brandName()} will review it and contact the client for anything missing.`);setFile(null);setPhone("");void load();}catch{setMsg("Upload failed. Check your connection and try again.");}finally{setBusy(false);}};
   const signOut=()=>{sessionStorage.removeItem("referrer_token");sessionStorage.removeItem("referrer_user");navigate("/broker/login");};
   return (
     <main className="partner-portal">

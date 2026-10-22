@@ -4,6 +4,7 @@
 // 30-day recycle bin, search, thumbnails and who changed what, sort and grid view, Recent, Starred, version history,
 // share links for people outside Boreal, Send to client, upload links (file requests), Activity, folder zip download.
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
+import { brandName } from "@/config/brand";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
 import { withO365Scopes } from "@/api/o365Interceptor"; // BF_PORTAL_v789_INCREMENTAL_CONSENT - Files.ReadWrite on use
@@ -280,7 +281,7 @@ export default function LibraryPage() {
         ["Rename", () => doRename(it)],
         ["Move to...", () => setMoving(it)],
         [starred.has(it.id) ? "Remove star" : "Star", () => void toggleStar(it)],
-        !it.isFolder && ["Share link (outside Boreal)...", () => setSharing(it)],
+        !it.isFolder && [`Share link (outside ${brandName()})...`, () => setSharing(it)],
         !it.isFolder && ["Send to client...", () => setSending(it)],
         !it.isFolder && ["Version history", () => setVersionsOf(it)],
         it.isFolder && ["Download as zip", () => zip(it.id, it.name)],
@@ -396,10 +397,10 @@ export default function LibraryPage() {
           <button type="button" style={{ ...small, border: 0, background: "none", color: "#1d4ed8" }} onClick={() => setSyncHelp(true)}>Sync to my Mac / iPad</button>
         </>}
       </div>
-      <p style={{ margin: "0 0 12px", color: "var(--ui-text-muted)", fontSize: 13 }}>Lender forms and anything staff should read. Everyone at Boreal can open these files. Drag files or folders here to upload them. To ask someone to read one, use Share in Team chat and tick Read this.</p>
+      <p style={{ margin: "0 0 12px", color: "var(--ui-text-muted)", fontSize: 13 }}>Lender forms and anything staff should read. Everyone at {brandName()} can open these files. Drag files or folders here to upload them. To ask someone to read one, use Share in Team chat and tick Read this.</p>
       {notice && <div role="status" style={{ marginBottom: 10, fontSize: 13, fontWeight: 600, color: notice.ok ? "#065f46" : "#991b1b" }}>{notice.text}</div>}
       {state === "loading" && <div style={{ color: "var(--ui-text-muted)" }}>Loading...</div>}
-      {state === "missing" && <div data-testid="library-missing">The Staff Library has not been created yet. It will be a OneDrive folder shared with everyone at Boreal, with Lender Forms and Read This folders inside.<div style={{ marginTop: 10 }}><button type="button" style={primary} disabled={busy} onClick={() => void create()}>Create the Staff Library</button></div></div>}
+      {state === "missing" && <div data-testid="library-missing">The Staff Library has not been created yet. It will be a OneDrive folder shared with everyone at {brandName()}, with Lender Forms and Read This folders inside.<div style={{ marginTop: 10 }}><button type="button" style={primary} disabled={busy} onClick={() => void create()}>Create the Staff Library</button></div></div>}
       {state === "not_connected" && <div role="alert">Connect Microsoft 365 first: Settings, then Profile, then Connect Microsoft 365.</div>}
       {state === "error" && <div role="alert">Could not load the Staff Library. <button type="button" style={small} onClick={() => void load()}>Try again</button></div>}
       {state === "ready" && <>

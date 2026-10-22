@@ -38,7 +38,7 @@ describe("server notifications show in the desktop app", () => {
     expect(shown).toHaveLength(0);
   });
   it("gives untitled server notifications a title", () => {
-    expect(desktopNotificationText({ title: "", message: "Body", type: "system_alert" })).toEqual({ title: "Boreal Staff Portal", body: "Body" });
+    expect(desktopNotificationText({ title: "", message: "Body", type: "system_alert" })).toEqual({ title: "Keystone Staff Portal", body: "Body" });
     expect(desktopNotificationText({ title: "New email", message: "Body" }).title).toBe("New email");
   });
 });

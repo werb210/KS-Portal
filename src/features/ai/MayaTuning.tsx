@@ -1,5 +1,6 @@
 // MAYA_TUNING — voice + persona tuning and a test panel (browser TTS preview + nova playback).
 import { useEffect, useState, type CSSProperties } from "react";
+import { assistantName, brandName } from "@/config/brand";
 import { api } from "@/api";
 import Button from "@/components/ui/Button";
 import { sendMayaMessage } from "@/api/maya";
@@ -17,7 +18,7 @@ export default function MayaTuning() {
   const [testText, setTestText] = useState("");
   const [reply, setReply] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
-  const [sampleText, setSampleText] = useState("Hi, I'm Maya from Boreal Financial. How can I help you today?");
+  const [sampleText, setSampleText] = useState(`Hi, I'm ${assistantName()} from ${brandName()}. How can I help you today?`);
 
   useEffect(() => {
     void (async () => {
@@ -25,7 +26,7 @@ export default function MayaTuning() {
         const r = await api<{ config?: Record<string, string> }>("/api/settings/maya-config");
         setCfg(r.config ?? {});
       } catch {
-        setErr("Could not load Maya config.");
+        setErr(`Could not load ${assistantName()} config.`);
       }
     })();
   }, []);
@@ -57,7 +58,7 @@ export default function MayaTuning() {
       const res = await sendMayaMessage(t);
       setReply(typeof res.reply === "string" ? res.reply : "(no reply)");
     } catch {
-      setReply("Maya is unreachable right now.");
+      setReply(`${assistantName()} is unreachable right now.`);
     } finally {
       setTesting(false);
     }
@@ -106,7 +107,7 @@ export default function MayaTuning() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <h2>Maya Voice &amp; Responses</h2>
+      <h2>{assistantName()} Voice &amp; Responses</h2>
       {err && <div style={{ color: "#dc2626" }}>{err}</div>}
 
       <section>
@@ -146,7 +147,7 @@ export default function MayaTuning() {
         <h3>Persona &amp; tone</h3>
         <label style={{ fontSize: 13 }}>
           Greeting
-          <input value={cfg["maya.greeting"] ?? ""} onChange={(e) => set("maya.greeting", e.target.value)} placeholder="Hi, I'm Maya from Boreal…" style={inputStyle} />
+          <input value={cfg["maya.greeting"] ?? ""} onChange={(e) => set("maya.greeting", e.target.value)} placeholder={`Hi, I'm ${assistantName()} from ${brandName()}…`} style={inputStyle} />
         </label>
         <label style={{ fontSize: 13, display: "block", marginTop: 8 }}>
           Tone
@@ -154,7 +155,7 @@ export default function MayaTuning() {
         </label>
         <label style={{ fontSize: 13, display: "block", marginTop: 8 }}>
           Persona / instructions
-          <textarea value={cfg["maya.persona"] ?? ""} onChange={(e) => set("maya.persona", e.target.value)} rows={4} placeholder="How Maya should present herself and what to emphasize for clients and staff…" style={{ ...inputStyle, fontFamily: "inherit" }} />
+          <textarea value={cfg["maya.persona"] ?? ""} onChange={(e) => set("maya.persona", e.target.value)} rows={4} placeholder={`How ${assistantName()} should present herself and what to emphasize for clients and staff…`} style={{ ...inputStyle, fontFamily: "inherit" }} />
         </label>
         <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
           <Button onClick={() => void save()} disabled={busy}>{busy ? "Saving…" : "Save"}</Button>
@@ -163,9 +164,9 @@ export default function MayaTuning() {
       </section>
 
       <section>
-        <h3>Test Maya</h3>
+        <h3>Test {assistantName()}</h3>
         <div style={{ display: "flex", gap: 8 }}>
-          <input value={testText} onChange={(e) => setTestText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void runTest(); }} placeholder="Ask Maya something a client or staff member might ask…" style={{ flex: 1, ...inputStyle, marginTop: 0 }} />
+          <input value={testText} onChange={(e) => setTestText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void runTest(); }} placeholder={`Ask ${assistantName()} something a client or staff member might ask…`} style={{ flex: 1, ...inputStyle, marginTop: 0 }} />
           <Button onClick={() => void runTest()} disabled={testing || !testText.trim()}>{testing ? "…" : "Ask"}</Button>
         </div>
         {reply && (

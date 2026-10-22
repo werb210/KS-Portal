@@ -14,6 +14,7 @@
 // Supersedes v618, v613 (which claimed a Merge button but never rendered
 // it), v612, v611, v606.
 import React, { useMemo, useState } from "react";
+import { brandName } from "@/config/brand";
 import { useDialer } from "../store";
 import { dialerApi } from "../api";
 import { startOutboundPstn, hangup, answerIncoming, declineIncoming } from "../actions";
@@ -150,13 +151,14 @@ function RecordingPill({ recording, paused, onToggle, disabled }: {
 
 type ScriptSection = { n: string; title: string; say?: string[]; capture?: string; note?: string };
 
-const INTAKE_SCRIPT: ScriptSection[] = [
+// KS_PORTAL_v2_BRANDING - built at render time so it carries the licensee's name.
+const intakeScript = (): ScriptSection[] => [
   { n: "0", title: "Recording consent (read first)",
     say: [`This call is recorded for quality and accuracy. Is that okay to continue?`],
     capture: `recording_consent (yes/no)`,
     note: `If no: stop recording, offer unrecorded or a secure link, log the refusal.` },
   { n: "1", title: "Greeting",
-    say: [`Thank you for calling Boreal Financial. My name is ___ - how can I help you today?`,
+    say: [`Thank you for calling ${brandName()}. My name is ___ - how can I help you today?`,
           `If financing: I will ask a few quick questions to match you with the lenders and products most likely to approve - about five minutes.`] },
   { n: "2", title: "Contact and business identity",
     say: [`Your full name? Company name? Your position with the company?`,
@@ -233,7 +235,7 @@ function IntakeScript() {
       </button>
       {open && (
         <div style={{ maxHeight: 260, overflowY: "auto", padding: "0 20px 14px" }}>
-          {INTAKE_SCRIPT.map((s) => (
+          {intakeScript().map((s) => (
             <div key={s.n} style={{ marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: T.accent, minWidth: 16 }}>{s.n}</span>
@@ -485,7 +487,7 @@ export default function DialerPanel() {
               <strong>Phone not ready.</strong>{" "}
               {st.error === "no_voice_token" ? "Could not get a voice token from the server."
                 : st.error === "device_not_registered" ? "The phone engine did not finish registering — reload the page."
-                : st.error === "mic_permission_denied" ? ((window as any).borealDesktop ? "Microphone is blocked for this app - turn on Boreal Staff Portal in System Settings > Privacy & Security > Microphone, then reopen the app." : "Microphone permission is blocked - allow it in the browser, then reload.")
+                : st.error === "mic_permission_denied" ? ((window as any).borealDesktop ? `Microphone is blocked for this app - turn on ${brandName()} Staff Portal in System Settings > Privacy & Security > Microphone, then reopen the app.` : "Microphone permission is blocked - allow it in the browser, then reload.")
                 : st.error === "invalid_phone" ? "That phone number can't be dialled - check the number on the contact or application." /* BF_PORTAL_CALL_FAILS_VISIBLY_v752 */
                 : st.error === "bootstrap_failed" ? "The dialer failed to start. Reload the page; if it persists, the voice service is down."
                 : st.error ? `Reason: ${st.error}`

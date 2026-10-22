@@ -1,5 +1,6 @@
 // BF_PORTAL_FACE_ID_v243
 import { useCallback, useEffect, useRef, useState } from "react";
+import { brandName } from "@/config/brand";
 import { App } from "@capacitor/app";
 import { getAuthToken } from "@/lib/authToken";
 import { clearAuth } from "@/lib/authStorage";
@@ -17,7 +18,7 @@ export default function BiometricLock() {
     setBusy(true);
     setError(null);
     try {
-      const r = await BiometricUnlock.authenticate({ reason: "Unlock Boreal Portal" });
+      const r = await BiometricUnlock.authenticate({ reason: `Unlock ${brandName()} Portal` });
       if (r?.ok) setLocked(false);
       else setError("Not recognised. Try again.");
     } catch {
@@ -75,7 +76,7 @@ export default function BiometricLock() {
       data-testid="biometric-lock"
       style={{ position: "fixed", inset: 0, zIndex: 100000, background: "#0B1F3A", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, padding: 24 }}
     >
-      <div style={{ fontSize: 20, fontWeight: 600 }}>Boreal Portal is locked</div>
+      <div style={{ fontSize: 20, fontWeight: 600 }}>{brandName()} Portal is locked</div>
       <button
         type="button"
         disabled={busy}

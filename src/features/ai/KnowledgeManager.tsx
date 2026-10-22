@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { assistantName } from "@/config/brand";
 import { api } from "@/api";
 import Button from "@/components/ui/Button";
 
@@ -45,7 +46,7 @@ export default function KnowledgeManager() {
         setStatus("warn");
         setStatusMessage(
           (resp as any).message ??
-            "Saved, but Maya search is degraded — set OPENAI_API_KEY on the server to enable embeddings.",
+            `Saved, but ${assistantName()} search is degraded — set OPENAI_API_KEY on the server to enable embeddings.`,
         );
       } else {
         setStatus("ok");
@@ -75,7 +76,7 @@ export default function KnowledgeManager() {
         setStatus("warn");
         setStatusMessage(
           (resp as any).message ??
-            "Saved, but Maya search is degraded — set OPENAI_API_KEY on the server to enable embeddings.",
+            `Saved, but ${assistantName()} search is degraded — set OPENAI_API_KEY on the server to enable embeddings.`,
         );
       } else {
         setStatus("ok");
@@ -102,7 +103,7 @@ export default function KnowledgeManager() {
       setUrl("");
       if (resp && (resp as any).savedWithoutIndex) {
         setStatus("warn");
-        setStatusMessage((resp as any).message ?? "Saved, but Maya search is degraded.");
+        setStatusMessage((resp as any).message ?? `Saved, but ${assistantName()} search is degraded.`);
       } else {
         setStatus("ok");
         setStatusMessage(`Indexed ${(resp as any)?.chars ?? ""} characters from the page.`);
@@ -200,7 +201,7 @@ export default function KnowledgeManager() {
           </Button>
         </div>
         <p style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>
-          Maya fetches the page, extracts the text, and indexes it. First ~200 KB indexed.
+          {assistantName()} fetches the page, extracts the text, and indexes it. First ~200 KB indexed.
         </p>
       </section>
 
@@ -221,7 +222,7 @@ export default function KnowledgeManager() {
           }}
         />
         <textarea
-          placeholder="Paste reference content Maya should know about…"
+          placeholder={`Paste reference content ${assistantName()} should know about…`}
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={5}

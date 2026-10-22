@@ -23,9 +23,9 @@ describe("MayaChat", () => {
     render(<MayaChat />);
 
     expect(
-      screen.getByText(/Hi, I'm Maya\. How can I help/i),
+      screen.getByText(/Hi, I'm Assistant\. How can I help/i),
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Ask Maya anything/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Ask Assistant anything/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument();
   });
 
@@ -45,7 +45,7 @@ describe("MayaChat", () => {
     render(<MayaChat />);
 
     await user.type(
-      screen.getByPlaceholderText(/Ask Maya anything/i),
+      screen.getByPlaceholderText(/Ask Assistant anything/i),
       "Need pipeline status",
     );
     await user.click(screen.getByRole("button", { name: /send/i }));

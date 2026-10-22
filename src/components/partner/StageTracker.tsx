@@ -3,6 +3,7 @@
 // accepted. Stage names only: never which lenders, never the offers.
 import "./partnerPortal.css";
 
+import { brandName } from "@/config/brand";
 export const TRACKER_STEPS = ["Received", "In Review", "Documents", "Submitted to lenders", "Offer", "Funded"] as const;
 
 export type TrackerInput = {
@@ -26,9 +27,9 @@ const CLOSED = new Set(["rejected", "declined", "closed", "withdrawn", "lost", "
 
 /** Where a file sits on the tracker, and the one-line status under it. */
 export function trackerPosition(input: TrackerInput): TrackerPosition {
-  if (input.hold === "not_accepted") return { index: -1, closed: true, status: "Not accepted - Boreal could not take this file" };
-  if (input.hold === "unreadable") return { index: 0, closed: false, status: "Received - Boreal is checking the upload" };
-  if (input.hold === "under_review") return { index: 0, closed: false, status: "Received - Boreal is reviewing the file" };
+  if (input.hold === "not_accepted") return { index: -1, closed: true, status: `Not accepted - ${brandName()} could not take this file` };
+  if (input.hold === "unreadable") return { index: 0, closed: false, status: `Received - ${brandName()} is checking the upload` };
+  if (input.hold === "under_review") return { index: 0, closed: false, status: `Received - ${brandName()} is reviewing the file` };
   const key = String(input.stage ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
   if (CLOSED.has(key)) return { index: -1, closed: true, status: "Closed" };
   const index = STEP_OF[key] ?? 0;

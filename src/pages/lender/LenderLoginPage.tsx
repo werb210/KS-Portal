@@ -7,10 +7,11 @@
 // (phone-OTP, userType:"lender", sessionStorage tokens, navigate to
 // /lender-portal) is unchanged.
 import { usePageMeta } from "@/lib/usePageMeta"; // BF_PORTAL_BRAND_v38
+import { brandName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg";
 
 function normalizeNAPhone(value: string): string | null {
   const digits = (value || "").replace(/\D/g, "");
@@ -21,8 +22,8 @@ function normalizeNAPhone(value: string): string | null {
 
 export default function LenderLoginPage() {
   usePageMeta(
-    "Lender Portal Login | Boreal Financial",
-    "Sign in to the Boreal Financial lender portal to review files, update your products and manage your credit box.",
+    `Lender Portal Login | ${brandName()}`,
+    `Sign in to the ${brandName()} lender portal to review files, update your products and manage your credit box.`,
   );
   const [step, setStep] = useState<"enter" | "verify">("enter");
   const [phone, setPhone] = useState("");
@@ -76,7 +77,7 @@ export default function LenderLoginPage() {
       setCode("");
       const msg = e instanceof Error ? e.message : "Invalid code";
       setErr(/no_lender_for_phone/.test(msg)
-        ? "This number isn't registered as a lender. Contact Boreal to get set up."
+        ? `This number isn't registered as a lender. Contact ${brandName()} to get set up.`
         : "Invalid or expired code. Please try again.");
     } finally {
       setLoading(false);
@@ -104,8 +105,8 @@ export default function LenderLoginPage() {
     <main data-testid="lender-login-screen" className="min-h-screen w-screen flex items-center justify-center bg-[#0B1F3A] px-4 py-12">
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <div className="text-center">
-          <img src={logoUrl} alt="Boreal" style={{ display: "block", margin: "0 auto 16px", height: 56, width: "auto" }} />
-          <h1 className="text-2xl font-semibold text-white">Boreal Financial</h1>
+          <BrandLogo height={56} style={{ margin: "0 auto 16px" }} />
+          <h1 className="text-2xl font-semibold text-white">{brandName()}</h1>
           <p className="mt-1 text-sm font-medium text-white/70">Lender Portal</p>
           <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/60">
             Review the files we send you, update your products, and manage your

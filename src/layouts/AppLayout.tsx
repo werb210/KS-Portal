@@ -6,6 +6,8 @@
 // insurers they place with. Communications + Calendar removed; Pipeline
 // + Lenders added. BF and SLF nav definitions are unchanged.
 import { useState } from "react";
+import { brandName, useBrand } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { useSilo } from "@/hooks/useSilo";
@@ -64,13 +66,14 @@ const SILO_NAV: Record<string, NavItem[]> = { BF: BF_NAV, BI: BI_NAV, SLF: SLF_N
 
 // BF_PORTAL_BLOCK_v_RESKIN_1_ACCENT_FOUNDATION_v1 — accent from the silo-driven
 // --accent token (set via data-silo on <html>); BI purple retired.
-const SILO_BRAND: Record<string, { label: string; accent: string }> = {
-  BF:  { label: "Boreal Financial",    accent: "var(--accent)" },
-  BI:  { label: "Boreal Insurance",    accent: "var(--accent)" },
-  SLF: { label: "Site Level Finance",  accent: "var(--accent)" },
+const SILO_BRAND: Record<string, { label: () => string; accent: string }> = {
+  BF:  { label: () => brandName(),                 accent: "var(--accent)" },
+  BI:  { label: () => `${brandName()} Insurance`,  accent: "var(--accent)" },
+  SLF: { label: () => "Site Level Finance",        accent: "var(--accent)" },
 };
 
 export default function AppLayout({ children }: { children?: React.ReactNode }) {
+  const { company_name: companyName } = useBrand();
   // BF_PORTAL_v823_KEYBOARD - the shortcuts and their help panel are mounted once, in App.tsx (AppRoutes). Mounting
   // them here too ran every shortcut twice and opened two help panels.
   const [mayaOpen, setMayaOpen] = useState(true);
@@ -176,12 +179,10 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           data-testid="sidebar-logo"
           style={{ marginBottom: 24, padding: "0 4px", width: "100%", boxSizing: "border-box" }}
         >
-          <div style={{ position: "relative", width: "100%", aspectRatio: "855 / 250", overflow: "hidden" }}>
-            <img
-              src="/images/Header.png"
-              alt="Boreal Financial"
-              style={{ position: "absolute", width: "179.65%", maxWidth: "none", left: "-30.41%", top: "-144%" }}
-            />
+          {/* KS_PORTAL_v2_BRANDING - the licensee's logo (or initial) and name instead of Boreal's header image. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <BrandLogo height={36} />
+            <span style={{ color: "var(--ui-text)", fontWeight: 700, fontSize: 15, lineHeight: 1.2, overflowWrap: "anywhere" }}>{companyName}</span>
           </div>
         </div>
 

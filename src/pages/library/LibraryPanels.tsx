@@ -1,6 +1,7 @@
 // BF_PORTAL_v810_LIBRARY_PLUS - the Staff Library's preview panel and dialogs: share link, send to client, version
 // history, move to a folder, and file requests (upload links).
 import { useEffect, useState, type ReactNode } from "react";
+import { brandName } from "@/config/brand";
 import * as L from "./libraryApi";
 import type { Client, Item, Preview } from "./libraryApi";
 
@@ -93,7 +94,7 @@ export function ShareDialog({ item, onClose }: { item: Item; onClose: () => void
   };
   return (
     <Modal title={"Share " + item.name} onClose={onClose} testId="library-share-dialog">
-      <p style={{ fontSize: 13, color: "var(--ui-text-muted)", margin: 0 }}>A link for someone outside Boreal, like a client or a lender. They don't need an account.</p>
+      <p style={{ fontSize: 13, color: "var(--ui-text-muted)", margin: 0 }}>A link for someone outside {brandName()}, like a client or a lender. They don't need an account.</p>
       <label style={label} htmlFor="ls-days">Link works for</label>
       <select id="ls-days" value={days} onChange={(e) => setDays(Number(e.target.value))} style={input} disabled={!!url}>
         {[1, 7, 14, 30, 90].map((d) => <option key={d} value={d}>{d === 1 ? "1 day" : d + " days"}</option>)}
@@ -158,7 +159,7 @@ export function SendDialog({ item, onClose, onSent }: { item: Item; onClose: () 
         {how === "portal" ? " It appears in their client portal chat and documents." : ""}
       </p>
       <label style={label} htmlFor="sd-note">Message</label>
-      <textarea id="sd-note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} style={{ ...input, resize: "vertical" }} placeholder={"Here is " + item.name + " from Boreal Financial."} />
+      <textarea id="sd-note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} style={{ ...input, resize: "vertical" }} placeholder={"Here is " + item.name + " from " + brandName() + "."} />
       {err && <p role="alert" style={{ color: "#991b1b", fontWeight: 600 }}>{err}</p>}
       <div style={{ marginTop: 14 }}><button type="button" style={primary} disabled={!client || busy} onClick={() => void send()} data-testid="sd-send">{busy ? "Sending..." : "Send"}</button></div>
     </Modal>
@@ -254,7 +255,7 @@ export function SyncHelp({ libUrl, onClose }: { libUrl: string | null; onClose: 
     <Modal title="Use the library like Dropbox" onClose={onClose} testId="library-sync-help">
       <p style={{ marginTop: 0 }}>The Staff Library is a OneDrive folder, so the OneDrive app can keep a copy on your Mac or iPad.</p>
       <ol style={{ paddingLeft: 20, lineHeight: 1.6 }}>
-        <li>Install OneDrive on your Mac (App Store) or iPad, and sign in with your Boreal Microsoft account.</li>
+        <li>Install OneDrive on your Mac (App Store) or iPad, and sign in with your {brandName()} Microsoft account.</li>
         <li>{libUrl ? <a href={libUrl} target="_blank" rel="noreferrer">Open the library in OneDrive</a> : "Open the library in OneDrive"} in a browser.</li>
         <li>Click <strong>Add shortcut to My files</strong> at the top.</li>
         <li>On a Mac it now appears in Finder under OneDrive, and changes sync both ways. On iPad it's in the Files app under OneDrive.</li>

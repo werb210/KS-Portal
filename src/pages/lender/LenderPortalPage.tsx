@@ -7,9 +7,10 @@
 // opens the same Edit Product form (shared ProductCoreFields). Uploads section
 // below (product sheets + marketing -> lender_documents -> Maya training).
 import { useCallback, useEffect, useRef, useState } from "react";
+import { brandName, assistantName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
-import logoWhite from "@/assets/logo-boreal-mountains-white.svg"; // BF_PORTAL_LENDER_HEADER_v1
 import { formatDollar, unformatDollar } from "@/utils/format";
 import { Field, inputStyle } from "@/pages/lenders/components/lenderFieldShared";
 import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "@/pages/lenders/components/SbaIvesFields"; // BF_PORTAL_LENDER_SBA_IVES_v747
@@ -391,8 +392,8 @@ export default function LenderPortalPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flexWrap: "wrap" }}>
-          <img src={logoWhite} alt="Boreal Financial" style={{ height: 34, width: "auto", display: "block", filter: "brightness(0) invert(1)" }} /> {/* LENDER_HEADER_WHITE_v2 */}
-          <span style={{ fontSize: 20, fontWeight: 700, color: "#ffffff" }}>Boreal Financial Group</span>
+          <BrandLogo height={34} /> {/* LENDER_HEADER_WHITE_v2 */}
+          <span style={{ fontSize: 20, fontWeight: 700, color: "#ffffff" }}>{brandName()}</span>
           <span style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", marginLeft: 8 }}>
             {(() => {
               const first = (profile.contact_name || "").trim().split(/\s+/)[0];
@@ -522,7 +523,7 @@ export default function LenderPortalPage() {
           Please provide any marketing or product information sheets so we can promote your products to our clients.
         </p>
         <p style={{ fontSize: 13, color: "var(--ui-text-muted)", margin: "0 0 12px" }}>
-          Upload product PDFs and marketing material. Boreal uses these to train Maya, our AI
+          Upload product PDFs and marketing material. {brandName()} uses these to train {assistantName()}, our AI
           assistant, so it can represent your products accurately.
         </p>
         <FileDrop
@@ -578,7 +579,7 @@ export default function LenderPortalPage() {
                 readOnly
                 disabled
                 aria-readonly="true"
-                title="Managed by Boreal Financial"
+                title={`Managed by ${brandName()}`}
                 style={{ ...inputStyle, opacity: 0.6, cursor: "not-allowed" }}
               />
             </Field>

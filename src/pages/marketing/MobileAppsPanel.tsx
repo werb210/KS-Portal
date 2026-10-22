@@ -2,6 +2,7 @@
 // iPad, Android and the web, and what they do in it (BF-Server v811 GET /api/reports/mobile-apps). Store downloads
 // show as "not connected" until App Store Connect and Google Play reporting are linked.
 import { useEffect, useMemo, useState } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 
 type Counts = { count: number; users: number };
@@ -166,7 +167,7 @@ export default function MobileAppsPanel() {
         ))}
       </div>
       <p style={{ margin: 0, fontSize: 13, color: "var(--ui-text-muted)" }}>
-        Usage of the Boreal Financial client app. People are counted by device, without names or phone numbers. Counting starts with app version 1.0 (Oct 2026).
+        Usage of the {brandName()} client app. People are counted by device, without names or phone numbers. Counting starts with app version 1.0 (Oct 2026).
       </p>
       {err && <div role="alert" style={{ color: "#991b1b", fontWeight: 600 }}>{err}</div>}
       {!data && !err && <div style={{ color: "var(--ui-text-muted)" }}>Loading...</div>}

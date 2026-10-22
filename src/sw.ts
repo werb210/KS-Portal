@@ -75,11 +75,14 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === WB_MANIFEST_MARKER) return;
 });
 
+// KS_PORTAL_v2_BRANDING - the service worker has no page or storage to read the licensee from; use the build-time name.
+const SW_PORTAL_TITLE = `${String(import.meta.env.VITE_COMPANY_NAME ?? "").trim() || "Keystone"} Portal`;
+
 self.addEventListener("push", (event) => {
   let payload: { title?: string; body?: string; url?: string; icon?: string; tag?: string } = {};
   try { payload = event.data ? event.data.json() : {}; }
-  catch { payload = { title: "Boreal Portal", body: event.data ? event.data.text() : "" }; }
-  const title = payload.title || "Boreal Portal";
+  catch { payload = { title: SW_PORTAL_TITLE, body: event.data ? event.data.text() : "" }; }
+  const title = payload.title || SW_PORTAL_TITLE;
   const options: NotificationOptions = {
     body: payload.body || "",
     icon: payload.icon || "/icons/icon-192x192.png",

@@ -7,11 +7,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 const src = readFileSync(join(process.cwd(), "src", "pages", "lender", "LenderLoginPage.tsx"), "utf-8");
 describe("lender portal login restyle (real page)", () => {
-  it("is staff-styled with the Boreal Financial / Lender Portal header", () => {
+  it("is staff-styled with the licensee name / Lender Portal header", () => {
     expect(src).toContain("bg-[#0B1F3A]");
-    expect(src).toContain("Boreal Financial");
+    expect(src).toContain(">{brandName()}</h1>"); // KS_PORTAL_v2_BRANDING
     expect(src).toContain("Lender Portal");
-    expect(src).toContain("logo-boreal-mountains-white");
+    expect(src).toContain("<BrandLogo");
   });
   it("auto-forwards phone and code", () => {
     expect(src).toContain("autoSentFor");

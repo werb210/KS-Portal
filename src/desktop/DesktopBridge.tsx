@@ -4,6 +4,7 @@
 // number of unread notifications. In a normal browser window.borealDesktop does not
 // exist and this does nothing.
 import { useEffect, useRef } from "react";
+import { brandName } from "@/config/brand";
 import { useDialer } from "@/dialer/store";
 import { useNotificationsStore } from "@/state/notifications.store";
 
@@ -22,7 +23,7 @@ export function callerLabel(incoming: { fromDisplay?: string | null; companyName
 // (from before the app opened) are not replayed. Clicking it brings the window forward and opens the item's page.
 export const DESKTOP_NOTIFY_LOOKBACK_MS = 2 * 60_000;
 export function desktopNotificationText(n: { title?: string; message?: string; type?: string }): { title: string; body: string } {
-  const title = String(n.title || "").trim() || (n.type === "new_message" ? "New message" : "Boreal Staff Portal");
+  const title = String(n.title || "").trim() || (n.type === "new_message" ? "New message" : `${brandName()} Staff Portal`);
   return { title, body: String(n.message || "").trim() };
 }
 function raiseDesktopNotification(n: { id: string; title?: string; message?: string; type?: string; url?: string }) {

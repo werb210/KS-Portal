@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { brandName, assistantName } from "@/config/brand";
 import { BrowserAuthError } from "@azure/msal-browser";
 import api from "@/api";
 import Button from "@/components/ui/Button";
@@ -587,7 +588,7 @@ const ProfileSettings = () => {
       <section style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #eaf0f6" }}>
         <h3 style={{ marginTop: 0 }}>Push notifications</h3>
         <p style={{ color: "#516f90", fontSize: 13, marginBottom: 12 }}>
-          Get notified about new SMS, application updates, and Maya escalations.
+          Get notified about new SMS, application updates, and {assistantName()} escalations.
         </p>
         <button
           type="button"
@@ -602,7 +603,7 @@ const ProfileSettings = () => {
             const isIOS = /iP(ad|hone|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
             const isStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true || window.matchMedia("(display-mode: standalone)").matches;
             if (isIOS && !isStandalone) {
-              alert("On iPhone/iPad, add Boreal Portal to your Home Screen first (Share button, then Add to Home Screen), open it from there, and then tap Enable notifications.");
+              alert(`On iPhone/iPad, add ${brandName()} Portal to your Home Screen first (Share button, then Add to Home Screen), open it from there, and then tap Enable notifications.`);
               return;
             }
             const result = await Notification.requestPermission();
@@ -692,7 +693,7 @@ function EmailSignaturePanel() {
       <div style={{ width: "100%" }}>
         <h3 style={{ margin: "0 0 8px 0" }}>Email signature</h3>
         <p style={{ margin: "0 0 8px 0", fontSize: 13, color: "#6b7280" }}>
-          Paste HTML or plain text. Appended to outbound emails sent via Boreal.
+          Paste HTML or plain text. Appended to outbound emails sent via {brandName()}.
         </p>
         <textarea
           value={html}
@@ -700,7 +701,7 @@ function EmailSignaturePanel() {
           rows={8}
           disabled={!loaded}
           aria-label="Email signature HTML"
-          placeholder={loaded ? "<p>Best,<br>Your Name<br>Boreal Financial</p>" : "Loading…"}
+          placeholder={loaded ? `<p>Best,<br>Your Name<br>${brandName()}</p>` : "Loading…"}
           style={{ width: "100%", padding: 8, fontFamily: "monospace", fontSize: 12, borderRadius: 6, border: "1px solid var(--ui-border)" }}
         />
         <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}>

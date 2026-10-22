@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core"; // BF_PORTAL_ONEDRIVE_ATTACHMENTS_v648
+import { assistantName } from "@/config/brand";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/api";
 import { contactDisplayName } from "@/utils/contactName";
@@ -72,7 +73,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "team", label: "Team" }, // BF_PORTAL_BLOCK_v752_TEAM_TAB
   { id: "phone", label: "Phone" }, // BF_PORTAL_PHONE_TAB_v1 (was Voicemail + Recents)
   { id: "issues", label: "Issues" },
-  { id: "maya", label: "Maya" }, // BF_PORTAL_BLOCK_v763_MAYA_TAB
+  { id: "maya", label: "Assistant" }, // BF_PORTAL_BLOCK_v763_MAYA_TAB (label replaced by assistantName() at render)
 ];
 
 type Contact = {
@@ -2728,7 +2729,7 @@ export default function CommunicationsPage({ initialTab }: { initialTab?: Tab } 
               gap: 6,
             }}
           >
-            {t.label}
+            {t.id === "maya" ? assistantName() : t.label}
             {tabCounts[t.id] > 0 && (
               <span
                 style={{
@@ -2813,9 +2814,9 @@ function MayaTab() {
     <div style={{ display: "flex", height: "100%" }}>
       <div style={{ width: 340, borderRight: "1px solid var(--ui-border)", overflowY: "auto" }}>
         {loading ? (
-          <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>Loading Maya conversations…</div>
+          <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>Loading {assistantName()} conversations…</div>
         ) : sessions.length === 0 ? (
-          <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>No Maya conversations yet.</div>
+          <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>No {assistantName()} conversations yet.</div>
         ) : sessions.map((s) => (
           <button
             key={s.id}
@@ -2823,7 +2824,7 @@ function MayaTab() {
             style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 14px", border: 0, borderBottom: "1px solid var(--ui-surface-muted)", background: selected === s.id ? "rgba(47, 168, 106, 0.12)" : "var(--ui-surface-strong)", cursor: "pointer" }}
           >
             <div style={{ fontWeight: 600, fontSize: 13, color: "var(--ui-text)" }}>
-              {s.source || "Maya chat"}{s.status ? ` · ${s.status}` : ""}
+              {s.source || `${assistantName()} chat`}{s.status ? ` · ${s.status}` : ""}
             </div>
             <div style={{ fontSize: 12, color: "var(--ui-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {s.last_message || `${s.message_count} messages`}
@@ -2836,7 +2837,7 @@ function MayaTab() {
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
         {!selected ? (
-          <div style={{ color: "var(--ui-text-muted)" }}>Select a Maya conversation to review it.</div>
+          <div style={{ color: "var(--ui-text-muted)" }}>Select a {assistantName()} conversation to review it.</div>
         ) : loadingMsgs ? (
           <div style={{ color: "var(--ui-text-muted)" }}>Loading…</div>
         ) : messages.length === 0 ? (
@@ -2848,7 +2849,7 @@ function MayaTab() {
               return (
                 <div key={m.id} style={{ alignSelf: isUser ? "flex-end" : "flex-start", maxWidth: "75%" }}>
                   <div style={{ fontSize: 11, color: "var(--ui-text-muted)", marginBottom: 2, textAlign: isUser ? "right" : "left" }}>
-                    {isUser ? "Visitor" : m.role === "ai" ? "Maya" : m.role}
+                    {isUser ? "Visitor" : m.role === "ai" ? assistantName() : m.role}
                   </div>
                   <div style={{ background: isUser ? "var(--ui-accent-blue)" : "var(--ui-border-soft)", color: isUser ? "#fff" : "var(--ui-text)", padding: "8px 12px", borderRadius: 12, fontSize: 14, whiteSpace: "pre-wrap" }}>
                     {m.message}
@@ -3622,7 +3623,7 @@ function TeamTab({ onUnreadChange }: { onUnreadChange?: (n: number) => void }) {
                 <button onClick={() => fileRef.current?.click()} title="Attach file" style={{ padding: "10px 12px", background: "var(--ui-surface-muted)", color: "var(--ui-text)", border: "1px solid var(--ui-border)", borderRadius: 8, cursor: "pointer", fontSize: 16 }}>{"\u{1F4CE}"}</button>
                 <button onClick={() => void toggleRecord()} title={recording ? "Stop recording" : "Record voice note"} style={{ padding: "10px 12px", background: recording ? "#ff3b30" : "var(--ui-surface-muted)", color: recording ? "#fff" : "var(--ui-text)", border: "1px solid var(--ui-border)", borderRadius: 8, cursor: "pointer", fontSize: 16 }}>{recording ? "\u{23F9}\uFE0F" : "\u{1F3A4}"}</button>
                 <FullEmojiPicker onPick={(emoji) => onDraftChange(draft + emoji)} buttonStyle={{ width: 42, height: 42, borderRadius: 8 }} />{/* BF_PORTAL_BLOCK_v502 */}
-                <textarea ref={draftRef} value={draft} rows={Math.min(8, Math.max(1, draft.split("\n").length))} disabled={Boolean(active?.archived_at)} data-testid="team-draft" onChange={(e) => onDraftChange(e.target.value)} onKeyDown={(e) => { /* BF_PORTAL_SNIPPET_TRIGGER_v45 */ expandTeam(e); if (e.defaultPrevented) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder={active?.archived_at ? "This channel is archived" : "Message, or @Maya to ask Maya (Shift+Enter for a new line)"} style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--ui-border)", borderRadius: 8, fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.35 }} />
+                <textarea ref={draftRef} value={draft} rows={Math.min(8, Math.max(1, draft.split("\n").length))} disabled={Boolean(active?.archived_at)} data-testid="team-draft" onChange={(e) => onDraftChange(e.target.value)} onKeyDown={(e) => { /* BF_PORTAL_SNIPPET_TRIGGER_v45 */ expandTeam(e); if (e.defaultPrevented) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} placeholder={active?.archived_at ? "This channel is archived" : `Message, or @Maya to ask ${assistantName()} (Shift+Enter for a new line)`} style={{ flex: 1, padding: "10px 12px", border: "1px solid var(--ui-border)", borderRadius: 8, fontSize: 14, resize: "none", fontFamily: "inherit", lineHeight: 1.35 }} />
                 <button onClick={() => void send()} disabled={editing ? !draft.trim() : (!draft.trim() && atts.length === 0)} style={{ padding: "10px 18px", background: "var(--ui-accent-blue)", color: "#fff", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}>{editing ? "Save" : "Send"}</button>
               </div>
             </div>

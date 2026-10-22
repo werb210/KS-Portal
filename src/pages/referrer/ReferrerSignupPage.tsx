@@ -7,10 +7,11 @@
 // token, and drop them into the portal. Until the agreement is signed they
 // cannot OTP-log-in, so signup is the first thing they see.
 import { usePageMeta } from "@/lib/usePageMeta"; // BF_PORTAL_BRAND_v38
+import { brandName, legalName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/api";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg"; // BF_PORTAL_REFERRER_BRAND_v1
 
 type SignupResp = {
   referrerId: string;
@@ -38,10 +39,10 @@ export default function ReferrerSignupPage({ kind = "referrer" }: { kind?: "refe
   const base = isBroker ? "/broker" : "/referrer";
   // BF_PORTAL_BROKER_SIGNUP_TEXT_v725 - the broker link had the referrer's wording.
   usePageMeta(
-    isBroker ? "Broker Portal | Boreal Financial" : "Become a Referral Partner | Boreal Financial",
+    isBroker ? `Broker Portal | ${brandName()}` : `Become a Referral Partner | ${brandName()}`,
     isBroker
-      ? "Place your clients' files with Boreal's lenders. Upload a file, agree the split for that file, and follow it to funding."
-      : "Refer your clients to Boreal Financial. One application across 80+ lenders, no cost to them and no credit pull. Sign up and get paid when a deal funds.",
+      ? `Place your clients' files with ${brandName()}'s lenders. Upload a file, agree the split for that file, and follow it to funding.`
+      : `Refer your clients to ${brandName()}. One application across 80+ lenders, no cost to them and no credit pull. Sign up and get paid when a deal funds.`,
   );
   const [form, setForm] = useState({ ...EMPTY });
   const [stage, setStage] = useState<"form" | "sign">("form");
@@ -144,16 +145,16 @@ export default function ReferrerSignupPage({ kind = "referrer" }: { kind?: "refe
     <main data-testid="referrer-signup-screen" style={{ colorScheme: "light" }} className="min-h-screen w-screen flex items-center justify-center bg-[#0B1F3A] px-4 py-12"> {/* BF_PORTAL_REFERRER_SIGNUP_LIGHT_v1 */}
       <div className="w-full max-w-lg flex flex-col items-center gap-6">
         <div className="text-center">
-          <img src={logoUrl} alt="Boreal" style={{ display: "block", margin: "0 auto 18px", height: 88, width: "auto" }} />
-          <h1 className="text-2xl font-semibold text-white">Boreal Financial</h1>
+          <BrandLogo height={88} style={{ margin: "0 auto 18px" }} />
+          <h1 className="text-2xl font-semibold text-white">{brandName()}</h1>
           <p className="mt-1 text-sm font-medium text-white/70">{isBroker ? "Broker Portal" : "Referral Portal"}</p>
         </div>
       <div className="w-full bg-white border border-slate-200 rounded-xl p-6 shadow-md space-y-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">{isBroker ? "Send your files to Boreal" : "Become a Boreal referral partner"}</h2>
+          <h2 className="text-lg font-semibold text-slate-900">{isBroker ? `Send your files to ${brandName()}` : `Become a ${brandName()} referral partner`}</h2>
           {isBroker ? (
             <p className="text-sm leading-relaxed text-slate-600">
-              Place your clients' files with Boreal's lenders. Upload a file, agree the commission split for that file,
+              Place your clients' files with {brandName()}'s lenders. Upload a file, agree the commission split for that file,
               and follow it through to funding. Sign the broker agreement below to get started - it takes a few minutes.
             </p>
           ) : (
@@ -208,7 +209,7 @@ export default function ReferrerSignupPage({ kind = "referrer" }: { kind?: "refe
         </p>
       </div>
         <p className="text-xs text-white/50 text-center">
-          Boreal Financial Group &middot; 450 Sparling Crt SW, Edmonton, AB T6X 1G9
+          {legalName()}
         </p>
       </div>
     </main>

@@ -12,9 +12,10 @@ const lendersPage = readFileSync(path.join(process.cwd(), "src", "pages", "lende
 
 describe("lender portal header contrast", () => {
   it("group name, welcome line and logo are white", () => {
-    expect(page).toContain('color: "#ffffff" }}>Boreal Financial Group');
+    expect(page).toContain('color: "#ffffff" }}>{brandName()}');
     expect(page).toContain('color: "rgba(255,255,255,0.85)"');
-    expect(page).toContain('filter: "brightness(0) invert(1)"');
+    // KS_PORTAL_v2_BRANDING - the licensee's logo (or initial tile) replaces the white-filtered Boreal mark.
+    expect(page).toContain("<BrandLogo height={34} />");
   });
 });
 

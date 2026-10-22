@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import { brandName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { Navigate } from "react-router-dom";
 import { getOtpFlowState, hasPendingOtpVerification } from "@/auth/otpFlow";
 import { verifyOtp } from "@/auth/verify";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg";
 
 export default function Verify() {
   const [code, setCode] = useState("");
@@ -59,12 +60,8 @@ export default function Verify() {
     <div data-testid="verify-screen" className="min-h-screen w-screen flex items-center justify-center bg-[#020817] px-4 py-12">
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <div className="text-center">
-          <img
-            src={logoUrl}
-            alt="Boreal"
-            style={{ display: "block", margin: "0 auto 16px", height: 56, width: "auto" }}
-          />
-          <h1 className="text-2xl font-semibold text-white">Boreal Group of Companies</h1>
+          <BrandLogo height={56} style={{ margin: "0 auto 16px" }} />
+          <h1 className="text-2xl font-semibold text-white">{brandName()}</h1>
           <p className="mt-1 text-sm font-medium text-white/70">Staff Portal</p>
         </div>
         <div className="w-full bg-white border border-slate-200 rounded-xl p-6 shadow-md">

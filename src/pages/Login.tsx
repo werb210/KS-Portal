@@ -1,10 +1,11 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { brandName } from "@/config/brand";
+import BrandLogo from "@/components/brand/BrandLogo";
 import { useNavigate } from "react-router-dom";
 import { normalizePhone } from "@/utils/normalizePhone";
 import { clearOtpFlowState, setOtpStartRequested, setOtpStartSucceeded } from "@/auth/otpFlow";
 import { API_BASE } from "@/config/api";
 import { writeSessionItem } from "@/lib/secureStore";
-import logoUrl from "@/assets/logo-boreal-mountains-white.svg";
 import { loginWithPasskey, passkeysSupported } from "@/auth/passkey"; // BF_PORTAL_WEBAUTHN_v1
 
 type StartError = string | null;
@@ -128,13 +129,9 @@ export default function Login() {
     >
       <div className="w-full max-w-md flex flex-col items-center gap-6">
         <div className="text-center">
-          <img
-            src={logoUrl}
-            alt="Boreal"
-            style={{ display: "block", margin: "0 auto 16px", height: 56, width: "auto" }}
-          />
+          <BrandLogo height={56} style={{ margin: "0 auto 16px" }} />
           {/* BF_PORTAL_BLOCK_v828_OTP_PAGE_PARITY — header identical to Verify.tsx */}
-          <h1 className="text-2xl font-semibold text-white">Boreal Group of Companies</h1>
+          <h1 className="text-2xl font-semibold text-white">{brandName()}</h1>
           <p className="mt-1 text-sm font-medium text-white/70">Staff Portal</p>
         </div>
 

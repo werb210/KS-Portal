@@ -4,6 +4,7 @@
 // read-only transcript, and offers a staff AI chat backed by
 // /api/ai/ai/start, /api/ai/ai/message and /api/ai/ai/close.
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import { assistantName } from "@/config/brand";
 import { api } from "@/api";
 
 type MayaSession = {
@@ -54,7 +55,7 @@ function readReply(res: any): string | null {
 
 function roleLabel(role: string): string {
   if (role === "user") return "Visitor";
-  if (role === "ai" || role === "assistant") return "Maya";
+  if (role === "ai" || role === "assistant") return assistantName();
   return role;
 }
 
@@ -83,7 +84,7 @@ export default function AiLiveChat() {
         setSessionsError(null);
       })
       .catch((error) => {
-        if (alive) setSessionsError(errorText(error, "Could not load Maya conversations"));
+        if (alive) setSessionsError(errorText(error, `Could not load ${assistantName()} conversations`));
       })
       .finally(() => {
         if (alive) setSessionsLoading(false);
@@ -141,7 +142,7 @@ export default function AiLiveChat() {
       const reply = readReply(res);
       if (reply) setChat((prev) => [...prev, { role: "ai", content: reply }]);
     } catch (error) {
-      setChatError(errorText(error, "Maya could not reply"));
+      setChatError(errorText(error, `${assistantName()} could not reply`));
     } finally {
       setBusy(false);
     }
@@ -177,15 +178,15 @@ export default function AiLiveChat() {
 
   return (
     <div style={{ padding: 24, display: "grid", gap: 16, gridTemplateColumns: "minmax(260px, 320px) 1fr", height: "80vh", color: "var(--ui-text)" }}>
-      <section style={panel} aria-label="Recent Maya conversations">
-        <h2 style={{ margin: 0, padding: "12px 14px", fontSize: 16, borderBottom: "1px solid var(--ui-border)" }}>Recent Maya conversations</h2>
+      <section style={panel} aria-label={`Recent ${assistantName()} conversations`}>
+        <h2 style={{ margin: 0, padding: "12px 14px", fontSize: 16, borderBottom: "1px solid var(--ui-border)" }}>Recent {assistantName()} conversations</h2>
         <div style={{ overflowY: "auto", flex: 1 }}>
           {sessionsLoading ? (
             <p style={{ padding: 14, margin: 0, color: "var(--ui-text-muted)" }}>Loading...</p>
           ) : sessionsError ? (
             <p role="alert" style={{ padding: 14, margin: 0, color: ERROR_COLOR, background: "#FEF2F2" }}>{sessionsError}</p>
           ) : sessions.length === 0 ? (
-            <p style={{ padding: 14, margin: 0, color: "var(--ui-text-muted)" }}>No Maya conversations yet.</p>
+            <p style={{ padding: 14, margin: 0, color: "var(--ui-text-muted)" }}>No {assistantName()} conversations yet.</p>
           ) : (
             sessions.map((s) => (
               <button
@@ -206,7 +207,7 @@ export default function AiLiveChat() {
                 }}
               >
                 <div style={{ fontWeight: 600, fontSize: 13 }}>
-                  {s.source || "Maya chat"}
+                  {s.source || `${assistantName()} chat`}
                   {s.status ? ` - ${s.status}` : ""}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--ui-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -244,15 +245,15 @@ export default function AiLiveChat() {
           </div>
         </section>
 
-        <section style={panel} aria-label="Ask Maya">
-          <h2 style={{ margin: 0, padding: "12px 14px", fontSize: 16, borderBottom: "1px solid var(--ui-border)" }}>Ask Maya</h2>
+        <section style={panel} aria-label={`Ask ${assistantName()}`}>
+          <h2 style={{ margin: 0, padding: "12px 14px", fontSize: 16, borderBottom: "1px solid var(--ui-border)" }}>Ask {assistantName()}</h2>
           <div style={{ overflowY: "auto", flex: 1, padding: 14, display: "flex", flexDirection: "column", gap: 8 }}>
             {chat.length === 0 ? (
-              <p style={{ margin: 0, color: "var(--ui-text-muted)" }}>Start a conversation with Maya.</p>
+              <p style={{ margin: 0, color: "var(--ui-text-muted)" }}>Start a conversation with {assistantName()}.</p>
             ) : (
               chat.map((line, i) => (
                 <div key={`${line.role}-${i}`} style={{ textAlign: line.role === "user" ? "right" : "left" }}>
-                  <div style={{ fontSize: 11, color: "var(--ui-text-muted)" }}>{line.role === "user" ? "You" : "Maya"}</div>
+                  <div style={{ fontSize: 11, color: "var(--ui-text-muted)" }}>{line.role === "user" ? "You" : assistantName()}</div>
                   <div style={{ whiteSpace: "pre-wrap" }}>{line.content}</div>
                 </div>
               ))
@@ -269,10 +270,10 @@ export default function AiLiveChat() {
             style={{ display: "flex", gap: 8, padding: 12, borderTop: "1px solid var(--ui-border)" }}
           >
             <input
-              aria-label="Message Maya"
+              aria-label={`Message ${assistantName()}`}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Maya..."
+              placeholder={`Ask ${assistantName()}...`}
               style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid var(--ui-border)", background: "var(--ui-surface-input)", color: "var(--ui-text)" }}
             />
             <button type="submit" disabled={busy || !input.trim()} style={{ borderRadius: 8, padding: "0 16px", background: "#1D4ED8", color: "#fff", border: 0 }}>

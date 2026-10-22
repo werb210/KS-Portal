@@ -43,9 +43,9 @@ describe("stage tracker", () => {
   });
 
   it("covers files that are not working applications yet", () => {
-    expect(trackerPosition({ hold: "under_review" }).status).toBe("Received - Boreal is reviewing the file");
-    expect(trackerPosition({ hold: "not_accepted" })).toMatchObject({ closed: true, status: "Not accepted - Boreal could not take this file" });
-    expect(trackerPosition({ hold: "unreadable" }).status).toBe("Received - Boreal is checking the upload");
+    expect(trackerPosition({ hold: "under_review" }).status).toBe("Received - Keystone is reviewing the file");
+    expect(trackerPosition({ hold: "not_accepted" })).toMatchObject({ closed: true, status: "Not accepted - Keystone could not take this file" });
+    expect(trackerPosition({ hold: "unreadable" }).status).toBe("Received - Keystone is checking the upload");
   });
 
   it("marks the current step for screen readers", () => {
@@ -110,7 +110,7 @@ describe("partner portals follow the UI guide", () => {
 describe("staff: where an application came from", () => {
   it("describes the broker split", () => {
     expect(splitText(null)).toBe("No split agreed yet - set it on the Lenders tab.");
-    expect(splitText({ borealPct: 60, partnerPct: 40, terms: null, status: "accepted", payoutAmount: null, payoutPaidOn: null })).toBe("Agreed: Boreal 60% / broker 40%");
+    expect(splitText({ borealPct: 60, partnerPct: 40, terms: null, status: "accepted", payoutAmount: null, payoutPaidOn: null })).toBe("Agreed: Keystone 60% / broker 40%");
   });
 
   it("shows a broker file's origin", async () => {
@@ -120,7 +120,7 @@ describe("staff: where an application came from", () => {
     expect(await screen.findByText("Broker file from Avance")).toBeTruthy();
     expect(h.get).toHaveBeenCalledWith("/api/application-origin/app2");
     expect(screen.getByText("Where this came from")).toBeTruthy();
-    expect(screen.getByText("Agreed: Boreal 60% / broker 40% (On funding)")).toBeTruthy();
+    expect(screen.getByText("Agreed: Keystone 60% / broker 40% (On funding)")).toBeTruthy();
   });
 
   it("shows a referred client's origin", async () => {

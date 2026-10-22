@@ -2,6 +2,7 @@
 // Send a Read this in Team chat for everyone, or in a direct message for one person. Each reader
 // gets "Mark as read"; the sender sees who has read it and who has not (BF-Server v776).
 import { useEffect, useState } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 import { withO365Scopes } from "@/api/o365Interceptor"; // BF_PORTAL_v789_INCREMENTAL_CONSENT - Files.ReadWrite on use
 import { FILES_READWRITE_SCOPES } from "@/auth/o365Scopes";
@@ -112,7 +113,7 @@ export function ShareFileModal({ open, onClose, onPick }: { open: boolean; onClo
         </div>}
         {tab === "mine" && <input aria-label="Search my OneDrive" placeholder="Search my OneDrive" value={query} onChange={(e) => setQuery(e.target.value)} style={{ padding: "6px 8px", border: "1px solid #cbd5e1", borderRadius: 6 }} />}
         {tab === "library" && !configured && <div data-testid="library-missing" style={{ fontSize: 13 }}>
-          The Staff Library has not been created yet. It is a OneDrive folder shared with everyone at Boreal, with "Lender Forms" and "Read This" folders.
+          The Staff Library has not been created yet. It is a OneDrive folder shared with everyone at {brandName()}, with "Lender Forms" and "Read This" folders.
           <div style={{ marginTop: 8 }}><button type="button" style={btn(true)} disabled={busy} onClick={() => void createLibrary()}>Create the Staff Library</button></div>
         </div>}
         {error && <div role="alert" style={{ color: "#991b1b", fontSize: 13, fontWeight: 600 }}>{error}</div>}

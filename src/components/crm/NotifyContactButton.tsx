@@ -3,15 +3,16 @@
 // be reached, otherwise by text message. BF-Server v626 decides the channel and
 // records it on the contact's timeline.
 import { useState, type CSSProperties } from "react";
+import { brandName } from "@/config/brand";
 import { api } from "@/api";
 
 type NotifyResult = { ok?: boolean; channel?: string; error?: string };
 
 export function notifyOutcome(r: NotifyResult | null | undefined): string {
   if (!r) return "Not sent.";
-  if (r.ok && r.channel === "app") return "Sent to the client's Boreal app.";
+  if (r.ok && r.channel === "app") return `Sent to the client's ${brandName()} app.`;
   if (r.ok && r.channel === "sms") return "The app couldn't be reached, so it went by text message.";
-  if (r.ok && r.channel === "bi") return "Sent to the Boreal Risk app (text message if they don't have it).";
+  if (r.ok && r.channel === "bi") return `Sent to the client's ${brandName()} app (text message if they don't have it).`;
   if (r.error === "no_phone") return "Not sent - this contact has no mobile number.";
   return "Not sent - " + String(r.error ?? "unknown error") + ".";
 }
@@ -48,7 +49,7 @@ export function NotifyContactButton({ contactId, contactName, buttonStyle, onSen
           <div style={panel} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0, marginBottom: 4 }}>Notify {contactName || "contact"}</h3>
             <div style={{ fontSize: 13, color: "var(--ui-text-muted)", marginBottom: 12 }}>
-              Goes to their Boreal app if they have it. If the app can't be reached, it goes by text message instead. It's added to the timeline either way.
+              Goes to their {brandName()} app if they have it. If the app can't be reached, it goes by text message instead. It's added to the timeline either way.
             </div>
             <label style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>Title (optional)
               <input value={title} maxLength={60} onChange={(e) => setTitle(e.target.value)} placeholder="Update on your application" style={input} data-testid="contact-notify-title" />

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { assistantName } from "@/config/brand";
 import { MayaMessage } from "./mayaMarkdown";
 import { sendMayaMessage } from "@/api/maya";
 import MayaPendingActions from "./MayaPendingActions"; // BF_PORTAL_MAYA_PENDING_ACTIONS_v784
 
 type Msg = { role: "user" | "maya"; text: string; ts: number };
 
-const GREETING = "👋 Hi, I'm Maya. How can I help you today?";
+const greeting = () => `👋 Hi, I'm ${assistantName()}. How can I help you today?`;
 
 export default function MayaChat() {
-  const [msgs, setMsgs] = useState<Msg[]>([{ role: "maya", text: GREETING, ts: Date.now() }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ role: "maya", text: greeting(), ts: Date.now() }]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [pendingKey, setPendingKey] = useState(0);
@@ -56,9 +57,9 @@ export default function MayaChat() {
   }
 
   return (
-    <div style={panelStyle} role="dialog" aria-label="Maya assistant">
+    <div style={panelStyle} role="dialog" aria-label={`${assistantName()} assistant`}>
       <div style={headerStyle}>
-        <span style={{ fontWeight: 600 }}>Maya</span>
+        <span style={{ fontWeight: 600 }}>{assistantName()}</span>
       </div>
 
       <div ref={scrollRef} style={listStyle}>
@@ -81,7 +82,7 @@ export default function MayaChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !sending) void send(); }}
-            placeholder="Ask Maya anything…"
+            placeholder={`Ask ${assistantName()} anything…`}
             disabled={sending}
             style={inputStyle}
           />
