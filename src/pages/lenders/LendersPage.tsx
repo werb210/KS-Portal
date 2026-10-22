@@ -471,7 +471,6 @@ function CreateProductModal({
     { label: "Lease agreement (if applicable)", defaultStage: 2 as 1 | 2 },
     { label: "Debt stack", defaultStage: 2 as 1 | 2, hasForm: true },
     // BF_PORTAL_BLOCK_v306_STAGE2_DOCS_v1 — new Accord stage-2 docs (CMP forms)
-    { label: "Banking connection (Flinks view-only)", defaultStage: 2 as 1 | 2, hasForm: true },
     { label: "CRA view-only access", defaultStage: 2 as 1 | 2, hasForm: true },
     { label: "Real estate collateral", defaultStage: 2 as 1 | 2, hasForm: true },
     // BF_PORTAL_BLOCK_v307_EQUIPMENT_DOC_v1 — Equipment collateral now a real CMP form

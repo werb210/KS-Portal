@@ -15,7 +15,7 @@ import { __setPlanForTests, normalizePlan } from "@/plans/planStore";
 import { FEATURES } from "@/plans/catalogue";
 import type { FraudCheck, FraudOverview, Network } from "@/fraud/fraudApi";
 
-const ALL = Array.from({ length: 16 }, (_, i) => `fraud_${i + 1}`);
+const ALL = Array.from({ length: 16 }, (_, i) => `fraud_${i + 1}`).filter((k) => k !== "fraud_3"); // KS_PORTAL_NO_BANK_CONNECT - fraud_3 retired
 const STARTER = ["fraud_1", "fraud_2", "fraud_4", "fraud_5"];
 
 function overview(allowed: string[], over: Partial<FraudOverview> = {}): FraudOverview {
@@ -88,14 +88,14 @@ describe("Fraud check tab", () => {
     await screen.findByTestId("fraud-tab");
     expect(screen.queryByTestId("fraud-score")).toBeNull();
     expect(screen.getByTestId("feature-locked-fraud_16")).toBeInTheDocument();
-    for (const k of ["fraud_3", "fraud_6", "fraud_9", "fraud_12", "fraud_15"]) {
+    for (const k of ["fraud_6", "fraud_9", "fraud_12", "fraud_15"]) {
       expect(within(screen.getByTestId(`fraud-check-${k}`)).getByTestId(`feature-locked-${k}`)).toBeInTheDocument();
     }
     expect(within(screen.getByTestId("fraud-check-fraud_6")).getByText(/Included in Growth and Pro/)).toBeInTheDocument();
     expect(within(screen.getByTestId("fraud-check-fraud_12")).getByText(/Included in Pro/)).toBeInTheDocument();
     expect(screen.queryByTestId("fraud-network")).toBeNull();
     expect(screen.queryByTestId("fraud-prescreen")).toBeNull();
-    expect(screen.queryByTestId("fraud-bank-link")).toBeNull();
+    expect(screen.queryByTestId("fraud-check-fraud_3")).toBeNull(); // KS_PORTAL_NO_BANK_CONNECT
   });
 
   it("run again asks the server to queue the checks", async () => {
@@ -182,10 +182,10 @@ describe("readability and catalogue", () => {
   it("every chip has at least 4.5:1 contrast", () => {
     for (const s of [...Object.values(STATUS_STYLE), ...Object.values(BAND_STYLE)]) expect(contrast(s.fg, s.bg)).toBeGreaterThanOrEqual(4.5);
   });
-  it("lists the 16 checks with the plans Todd chose", () => {
+  it("lists the 15 checks with the plans Todd chose (no fraud_3)", () => {
     const by = (p: string) => FEATURES.filter((f) => f.key.startsWith("fraud_") && f.plan === p).map((f) => Number(f.key.slice(6))).sort((a, b) => a - b);
     expect(by("starter")).toEqual([1, 2, 4, 5]);
     expect(by("growth")).toEqual([6, 7, 8]);
-    expect(by("pro")).toEqual([3, 9, 10, 11, 12, 13, 14, 15, 16]);
+    expect(by("pro")).toEqual([9, 10, 11, 12, 13, 14, 15, 16]);
   });
 });

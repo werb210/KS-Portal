@@ -5,7 +5,7 @@ export function planBody(over: Record<string, unknown> = {}): Record<string, unk
     plan: "starter",
     effective_plan: "starter",
     trial: { status: "available", started_at: null, ends_at: null, days_left: null },
-    features: { call_recording: false, call_summaries: false, templates: false, referrer_portal: false, full_reports: false, visitor_tracking: false, ad_attribution: false, bank_connect: false, multiple_lines: false },
+    features: { call_recording: false, call_summaries: false, templates: false, referrer_portal: false, full_reports: false, visitor_tracking: false, ad_attribution: false, multiple_lines: false },
     catalogue: [
       { key: "call_summaries", label: "Call summaries", plan: "growth" },
       { key: "templates", label: "Templates", plan: "growth" },

@@ -8,7 +8,7 @@ import { fraudApi, type FraudCheck, type FraudDocument, type FraudOverview, type
 import { BAND_STYLE, chipStyle } from "@/fraud/status";
 import NetworkGraph from "@/fraud/NetworkGraph";
 import { LockedFeature, LockedBadge } from "@/plans/FeatureGate";
-import { primaryButton, secondaryButton } from "@/plans/ui";
+import { secondaryButton } from "@/plans/ui";
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 8px", fontSize: 16, color: "var(--ui-text)" };
@@ -121,7 +121,6 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
   const [network, setNetwork] = useState<Network | null>(null);
   const [netError, setNetError] = useState<string | null>(null);
   const [prescreen, setPrescreen] = useState<string[] | null>(null);
-  const [loginId, setLoginId] = useState("");
 
   const load = useCallback(async () => {
     if (!applicationId) return;
@@ -165,15 +164,6 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
   };
   const previewPrescreen = async () => {
     try { setPrescreen((await fraudApi.prescreen(applicationId)).lines); } catch (e) { try { toast.error((e as Error)?.message || "Could not load the pre-screen."); } catch { /* no toaster */ } }
-  };
-  const saveBankLink = async () => {
-    try {
-      await fraudApi.setBankLink(applicationId, loginId.trim());
-      setLoginId("");
-      try { toast.success("Bank link saved. The comparison runs with the next check."); } catch { /* no toaster */ }
-    } catch (e) {
-      try { toast.error((e as Error)?.message || "Could not save the bank link."); } catch { /* no toaster */ }
-    }
   };
   const lastChecked = data.queue.done_at ? new Date(data.queue.done_at).toLocaleString() : null;
 
@@ -220,15 +210,6 @@ export default function FraudTab({ applicationId }: { applicationId: string }) {
         </Section>
       )}
 
-      {allowed("fraud_3") && (
-        <Section title="Connected bank account" testId="fraud-bank-link">
-          <p style={{ ...muted, margin: "0 0 8px" }}>Paste the client's Flinks LoginId to compare their uploaded statements with the bank's own records.</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input aria-label="Flinks LoginId" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="LoginId" style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--ui-border)", background: "var(--ui-surface-input, var(--ui-surface))", color: "var(--ui-text)", fontSize: 14, minWidth: 240 }} />
-            <button type="button" style={primaryButton} disabled={loginId.trim().length < 8} onClick={() => void saveBankLink()}>Save</button>
-          </div>
-        </Section>
-      )}
     </div>
   );
 }

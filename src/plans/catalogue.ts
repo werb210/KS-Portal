@@ -23,11 +23,11 @@ export const FEATURES: FeatureInfo[] = [
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   { key: "multiple_lines", plan: "pro", label: "Multiple phone lines", description: "Give each person on your team their own direct phone number." },
-  { key: "bank_connect", plan: "pro", label: "Bank connect", description: "Ask clients to connect their bank account (view-only) instead of uploading statements." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
-  // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all 16.
+  // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has all 15
+  // (fraud_3 "statement vs live bank data" retired with bank connect - KS_PORTAL_NO_BANK_CONNECT; keys not renumbered).
   { key: "fraud_1", plan: "starter", label: "Document tamper scan", description: "Every upload is checked for signs of editing: editing software, re-saves, mixed fonts, text pasted over a scan, re-compressed pages." },
   { key: "fraud_2", plan: "starter", label: "Bank statement math check", description: "Every transaction on each bank statement is re-added and the running and closing balances checked." },
   { key: "fraud_4", plan: "starter", label: "Duplicate document check", description: "Spots the same file, ID or void cheque (exact copy or near-identical picture) on another application." },
@@ -35,7 +35,6 @@ export const FEATURES: FeatureInfo[] = [
   { key: "fraud_6", plan: "growth", label: "Business reality check", description: "Checks the business is registered, the applicant is a director, the address is not a mail drop, and the website and phone look established." },
   { key: "fraud_7", plan: "growth", label: "Phone and email risk", description: "Flags internet (VoIP) phone lines, throwaway email addresses, brand-new email domains and names that do not match the email." },
   { key: "fraud_8", plan: "growth", label: "ID checks", description: "Matches the name and date of birth on the ID to the applicant, and spots screenshots and ID pictures used before." },
-  { key: "fraud_3", plan: "pro", label: "Statement vs live bank data", description: "Compares uploaded statements with the bank's own data from the client's connected account." },
   { key: "fraud_9", plan: "pro", label: "Device and location check", description: "Notices VPNs, several businesses applying from one device or connection, and applications from outside your region." },
   { key: "fraud_10", plan: "pro", label: "Application behaviour signals", description: "Notices pasted bank and ID numbers, impossibly fast applications and answers identical to another application. No keystrokes are kept." },
   { key: "fraud_11", plan: "pro", label: "Loan stacking detector", description: "Finds recent advances and daily or weekly debits from other lenders that the applicant did not mention." },
