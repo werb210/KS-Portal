@@ -104,6 +104,7 @@ export const STATUS_STYLE: Record<string, { label: string; bg: string; fg: strin
   error: { label: "Not sent yet", bg: "#ffedd5", fg: "#7c2d12", border: "#fdba74" },
   not_eligible: { label: "Not eligible", bg: "#f1f5f9", fg: "#334155", border: "#cbd5e1" },
   awaiting_client: { label: "Waiting for client", bg: "#fef3c7", fg: "#78350f", border: "#fcd34d" },
+  awaiting_documents: { label: "Waiting for documents", bg: "#fef3c7", fg: "#78350f", border: "#fcd34d" },
   in_review: { label: "In review", bg: "#e0f2fe", fg: "#0c4a6e", border: "#7dd3fc" },
   documents_rejected: { label: "Documents rejected", bg: "#fee2e2", fg: "#7f1d1d", border: "#fca5a5" },
   submitted: { label: "Submitted to insurer", bg: "#e0e7ff", fg: "#312e81", border: "#a5b4fc" },
