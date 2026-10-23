@@ -5,7 +5,7 @@
 // nothing here waits for it.
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { clientTourUrl, demoClientOrigin, demoWebsiteUrl } from "./config";
-import { parseClientMessage } from "./clientMessages";
+import { parseClientMessage, sendClientCommand, type ClientCommand, type ClientMessage } from "./clientMessages";
 import { ensureSession, getKeeper, initKeeper, subscribeKeeper } from "./demoApi";
 import { requestBrokerMode } from "./broker/session";
 import StatusBar from "./StatusBar";
@@ -45,11 +45,15 @@ export function NoDemoLink({ website }: { website: string }) {
 export default function DemoShell() {
   const keeper = useSyncExternalStore(subscribeKeeper, getKeeper, getKeeper);
   const [ready, setReady] = useState(false);
-  const [step, setStep] = useState<{ title: string; text: string } | null>(null);
+  const [step, setStep] = useState<Extract<ClientMessage, { event: "step" }> | null>(null);
+  // Decided once when the page opens: a computer shows the phone frame with the pop-up text and buttons beside it; a
+  // phone shows the client app full screen with its own pop-ups.
+  const [sidePanel] = useState(() => window.innerWidth >= 700);
   const [viewport, setViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const clientOrigin = useMemo(() => demoClientOrigin(), []);
-  const src = useMemo(() => clientTourUrl(window.location.origin), []);
+  const src = useMemo(() => clientTourUrl(window.location.origin, sidePanel), [sidePanel]);
+  const send = (command: ClientCommand) => sendClientCommand(iframeRef.current?.contentWindow, clientOrigin, command);
   const website = demoWebsiteUrl();
 
   useEffect(() => {
@@ -67,7 +71,7 @@ export default function DemoShell() {
     const m = parseClientMessage(e, clientOrigin, iframeRef.current?.contentWindow ?? null);
     if (!m) return;
     if (m.event === "client-done") goBroker();
-    else setStep({ title: m.title, text: m.text });
+    else setStep(m);
   }, [clientOrigin]);
 
   useEffect(() => {
@@ -87,7 +91,7 @@ export default function DemoShell() {
   if (!ready) return null;
   if (!keeper.link && !keeper.session) return <NoDemoLink website={website} />;
 
-  const narrow = viewport.w < 700;
+  const narrow = !sidePanel;
   const iframe = (
     <iframe
       ref={iframeRef}
@@ -133,13 +137,27 @@ export default function DemoShell() {
         <aside className="ksld-side" aria-live="polite">
           <div className="ksld-eyebrow">You are the client</div>
           <h1 className="ksld-side-title">Sam Carter applies from his phone</h1>
-          <p className="ksld-side-text">Sam owns Juniper Hollow Millwork and needs $250,000 for a new CNC router. Everything is filled in - just press Next on the phone.</p>
+          <p className="ksld-side-text">Sam owns Juniper Hollow Millwork and needs $250,000 for a new CNC router. Everything is filled in - just press Next.</p>
           <div className="ksld-side-step" data-testid="live-demo-step">
-            <div className="ksld-side-step-title">{step?.title ?? "Press Next on the phone to start"}</div>
+            {step?.number && step.total && !step.final ? <div className="ksld-side-step-count">Step {step.number} of {step.total}</div> : null}
+            <div className="ksld-side-step-title">{step?.title ?? "Opening the client app…"}</div>
             {step?.text ? <div className="ksld-side-step-text">{step.text}</div> : null}
+            {step ? (
+              <div className="ksld-side-actions">
+                {step.canBack ? (
+                  <button type="button" className="ksld-btn ksld-btn--ghost" onClick={() => send("back")} disabled={step.busy} data-testid="live-demo-side-back">Back</button>
+                ) : null}
+                {step.final ? (
+                  <button type="button" className="ksld-btn ksld-btn--primary" onClick={goBroker} data-testid="live-demo-side-broker">Show me the broker side</button>
+                ) : (
+                  <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => send("next")} disabled={step.busy} data-testid="live-demo-side-next">
+                    {step.busy ? "One moment…" : "Next"}
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
           <p className="ksld-side-text ksld-side-muted">After the application, you switch sides: the file lands in your broker portal.</p>
-          <button type="button" className="ksld-link" onClick={goBroker}>Skip to the broker side</button>
         </aside>
       </main>
     </div>

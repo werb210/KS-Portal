@@ -117,8 +117,9 @@ describe("the /demo shell", () => {
     const assign = vi.spyOn(shellNav, "assign").mockImplementation(() => undefined);
     render(<DemoShell />);
     const frame = screen.getByTestId("live-demo-client-frame") as HTMLIFrameElement;
-    expect(frame.getAttribute("src")).toBe(clientTourUrl(window.location.origin));
-    expect(frame.getAttribute("src")).toContain("/tour?embed=1&parent=");
+    expect(frame.getAttribute("src")).toBe(clientTourUrl(window.location.origin, true));
+    expect(frame.getAttribute("src")).toContain("/tour?embed=1&panel=1&parent=");
+    expect(screen.queryByText("Skip to the broker side")).toBeNull();
 
     const send = (origin: string, data: unknown) => act(() => { window.dispatchEvent(new MessageEvent("message", { origin, data })); });
     send("https://evil.example", { type: "ks-live-demo", event: "step", step: "s1", title: "Hijacked", text: "x" });
@@ -126,8 +127,19 @@ describe("the /demo shell", () => {
     expect(screen.getByTestId("live-demo-step").textContent).not.toContain("Hijacked");
     expect(assign).not.toHaveBeenCalled();
 
-    send(demoClientOrigin(), { type: "ks-live-demo", event: "step", step: "step-2", title: "Your business", text: "Everything is filled in." });
+    send(demoClientOrigin(), { type: "ks-live-demo", event: "step", step: "step-2", title: "Your business", text: "Everything is filled in.", number: 2, total: 10, canBack: true, final: false, busy: false });
     await waitFor(() => expect(screen.getByTestId("live-demo-step").textContent).toContain("Your business"));
+    expect(screen.getByTestId("live-demo-step").textContent).toContain("Step 2 of 10");
+    // The side panel's buttons drive the phone: commands go into the frame, to the client app's origin only.
+    const post = vi.spyOn(frame.contentWindow as Window, "postMessage").mockImplementation(() => undefined);
+    fireEvent.click(screen.getByTestId("live-demo-side-next"));
+    expect(post).toHaveBeenCalledWith({ type: "ks-live-demo", command: "next" }, demoClientOrigin());
+    fireEvent.click(screen.getByTestId("live-demo-side-back"));
+    expect(post).toHaveBeenCalledWith({ type: "ks-live-demo", command: "back" }, demoClientOrigin());
+    send(demoClientOrigin(), { type: "ks-live-demo", event: "step", step: "step-2", title: "Your business", text: "x", canBack: true, final: false, busy: true });
+    await waitFor(() => expect((screen.getByTestId("live-demo-side-next") as HTMLButtonElement).disabled).toBe(true));
+    send(demoClientOrigin(), { type: "ks-live-demo", event: "step", step: "handoff", title: "Now the broker", text: "x", canBack: true, final: true, busy: false });
+    await waitFor(() => expect(screen.getByTestId("live-demo-side-broker")).toBeTruthy());
 
     send(demoClientOrigin(), { type: "ks-live-demo", event: "client-done" });
     expect(assign).toHaveBeenCalledWith("/pipeline");
