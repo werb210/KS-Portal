@@ -37,6 +37,8 @@ jobs:
           # KS_PORTAL_v8_DEMO - the self-serve demo at /demo (repo variables; empty leaves the demo off)
           echo "VITE_KS_OPS_URL=${{ vars.VITE_KS_OPS_URL || 'https://ks-ops-dev.azurewebsites.net' }}" >> .env
           echo "VITE_DEMO_SERVER_URL=${{ vars.VITE_DEMO_SERVER_URL || 'https://ks-demo-server.azurewebsites.net' }}" >> .env
+          # KS_PORTAL_v11_LIVE_DEMO - the client app whose /tour the /demo page shows in its phone frame (also frame-src)
+          echo "VITE_CLIENT_URL=${{ vars.VITE_CLIENT_URL || 'https://wonderful-island-0b68ae310.5.azurestaticapps.net' }}" >> .env
 
       # ❌ REMOVE ALL previous "verify env" steps — they are wrong
 

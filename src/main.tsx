@@ -26,6 +26,8 @@ import "./styles/bi-theme.css"; // BF_PORTAL_BLOCK_v_BI_THEME_AWARE_v1
 import { initTheme } from "@/theme/theme";
 import { installDocumentPreview } from "./native/documentPreviewDelegate";
 import { loadBrand } from "@/config/brand"; // KS_PORTAL_v2_BRANDING
+import { brokerModeRequested, hasStoredDemo, isDemoPath } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
+import { clearLeftoverDemoAuth } from "@/demo/broker/session"; // KS_PORTAL_v11_LIVE_DEMO
 
 initTheme();
 // v115-doc-preview: use native Quick Look for document links on iPad.
@@ -120,8 +122,13 @@ async function bootstrap() {
 }
 
 // KS_PORTAL_v8_DEMO - /demo is the self-serve sales demo: it boots on its own, without the portal's sign-in.
-if (window.location.pathname === "/demo" || window.location.pathname.startsWith("/demo/")) {
+// KS_PORTAL_v11_LIVE_DEMO - /demo is phase 1 (the client app in a phone frame). When the client tour finishes, this tab
+// asks for the broker side: the real portal on the sample file, with an in-browser shim instead of the server.
+if (isDemoPath(window.location.pathname)) {
   void import("./demo/bootDemo").then((m) => m.bootDemo());
+} else if (brokerModeRequested() && hasStoredDemo()) {
+  void import("./demo/broker/bootBroker").then((m) => m.bootBroker());
 } else {
+  clearLeftoverDemoAuth();
   void bootstrap();
 }

@@ -1,49 +1,33 @@
-// KS_PORTAL_v8_DEMO - the demo's colours. The demo page always uses this light palette (it does not follow the portal
-// theme) so every text/background pair can be checked: src/demo/__tests__/demo.v8.test.tsx keeps each at 4.5:1 or more.
-export const C = {
-  page: "#f1f5f9",
-  surface: "#ffffff",
-  border: "#cbd5e1",
-  text: "#0f172a",
-  muted: "#475569",
-  primary: "#1d4ed8",
-  primaryText: "#ffffff",
-  header: "#0f172a",
-  headerText: "#ffffff",
-  headerMuted: "#cbd5e1",
-  tour: "#eff6ff",
-  tourText: "#0f172a",
-  tourAccent: "#1e3a8a",
-  track: "#dbeafe",
-  success: "#15803d",
-  successText: "#ffffff",
-  danger: "#b91c1c",
-  dangerText: "#ffffff",
-  phone: "#111827",
-  phoneText: "#f9fafb",
-  phoneMuted: "#d1d5db",
-  chipNeutralBg: "#e2e8f0",
-  chipNeutralText: "#1e293b",
-  liveBg: "#fee2e2",
-  liveText: "#7f1d1d",
-} as const;
-
-/** Text-on-background pairs used on the page (checked by the contrast test). */
-export const TEXT_PAIRS: Array<[string, string, string]> = [
-  ["body text", C.text, C.surface],
-  ["body text on page", C.text, C.page],
-  ["muted text", C.muted, C.surface],
-  ["muted text on page", C.muted, C.page],
-  ["primary button", C.primaryText, C.primary],
-  ["header", C.headerText, C.header],
-  ["header muted", C.headerMuted, C.header],
-  ["tour text", C.tourText, C.tour],
-  ["tour accent", C.tourAccent, C.tour],
-  ["success button", C.successText, C.success],
-  ["danger button", C.dangerText, C.danger],
-  ["phone text", C.phoneText, C.phone],
-  ["phone muted", C.phoneMuted, C.phone],
-  ["neutral chip", C.chipNeutralText, C.chipNeutralBg],
-  ["live badge", C.liveText, C.liveBg],
-  ["link on surface", C.primary, C.surface],
+// KS_PORTAL_v8_DEMO / KS_PORTAL_v11_LIVE_DEMO - every text/background pair the live demo draws itself (src/demo/
+// liveDemo.css). The pop-ups and the shell never follow the portal theme, so each pair can be checked: the tests keep
+// every one at 4.5:1 or more.
+export const TEXT_PAIRS: Array<[name: string, fg: string, bg: string]> = [
+  // the /demo shell
+  ["shell text", "#e2e8f0", "#0b1220"],
+  ["shell greeting on the top of the gradient", "#e2e8f0", "#1e293b"],
+  ["side panel text", "#cbd5e1", "#0b1220"],
+  ["side panel muted", "#94a3b8", "#0b1220"],
+  ["eyebrow", "#fbbf24", "#0b1220"],
+  ["step box title", "#f8fafc", "#1e293b"],
+  ["step box text", "#cbd5e1", "#1e293b"],
+  ["skip link", "#93c5fd", "#0b1220"],
+  ["preparing chip", "#dbeafe", "#1e3a8a"],
+  ["missing-link card", "#334155", "#ffffff"],
+  ["missing-link link", "#1d4ed8", "#ffffff"],
+  // the tour card
+  ["card text", "#1e293b", "#ffffff"],
+  ["card title", "#0f172a", "#ffffff"],
+  ["card progress and exit", "#475569", "#ffffff"],
+  ["card status", "#1e3a8a", "#eff6ff"],
+  ["card error", "#991b1b", "#fef2f2"],
+  ["primary button", "#ffffff", "#1d4ed8"],
+  ["primary button hover", "#ffffff", "#1e40af"],
+  ["secondary button", "#0f172a", "#ffffff"],
+  // the call
+  ["caller details", "#e5e7eb", "#262b33"],
+  ["fraud flag chip", "#7f1d1d", "#fee2e2"],
+  ["your words", "#ffffff", "#0a63d6"],
+  ["Sam's words", "#ffffff", "#3a3a3c"],
+  ["call note badge", "#ecfdf5", "#065f46"],
+  ["watch subtitle", "#d4d4d8", "#000000"],
 ];

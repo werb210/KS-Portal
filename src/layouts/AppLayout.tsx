@@ -28,6 +28,7 @@ import { usePlanBootstrap } from "@/plans/planStore";
 import PlanBanners from "@/plans/PlanBanners";
 import UpsellHost from "@/plans/UpsellHost";
 import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
+import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
 
 
 const TOPBAR_HEIGHT = 68;
@@ -90,7 +91,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const messagesUnread = useNotificationsStore((st) => st.messagesUnread);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { user } = useAuth();
-  usePushRegistration(Boolean(user));
+  usePushRegistration(Boolean(user) && !isLiveDemo()); // KS_PORTAL_v11_LIVE_DEMO - no push in the demo
   usePlanBootstrap(Boolean(user)); // KS_PORTAL_v3_PLANS
   const { silo } = useSilo();
   const role = (user as { role?: string } | null)?.role ?? "";
@@ -199,7 +200,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         <NavContent />
 
         {/* Maya toggle */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 8, flexShrink: 0 }}>
+        {/* KS_PORTAL_v11_LIVE_DEMO - no Maya in the demo */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 8, flexShrink: 0, display: isLiveDemo() ? "none" : undefined }}>
           <button
             type="button"
             onClick={() => setMayaOpen((prev) => !prev)}
@@ -214,7 +216,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
             <span>MAYA</span>
             <span>{mayaOpen ? "▼" : "▲"}</span>
           </button>
-          {mayaOpen && (
+          {mayaOpen && !isLiveDemo() && (
             <div style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))", flexShrink: 0, display: "flex", flexDirection: "column", minHeight: 0, maxHeight: "46vh", overflowY: "auto" }}>
               <MayaCommandBar />
             </div>
@@ -230,7 +232,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ position: "sticky", top: 0, zIndex: 30, flexShrink: 0 }}><Topbar onToggleSidebar={() => setMobileNavOpen((prev) => !prev)} /></div>
         <main style={{ height: `calc(100dvh - ${TOPBAR_HEIGHT}px)`, overflowY: "auto", padding: 24, background: "var(--bg-primary)" }}>
-          <UpdatePromptBanner />{/* BF_PORTAL_BLOCK_v478 - was built but never rendered */}
+          {!isLiveDemo() && <UpdatePromptBanner />}{/* BF_PORTAL_BLOCK_v478 - was built but never rendered; KS_PORTAL_v11_LIVE_DEMO - not in the demo */}
           <PlanBanners role={role} />{/* KS_PORTAL_v3_PLANS */}
           {children ?? <Outlet />}
         </main>

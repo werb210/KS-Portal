@@ -1,18 +1,17 @@
-// KS_PORTAL_v8_DEMO - starts the demo page instead of the portal when the address is /demo. Nothing of the real portal
-// boots (no sign-in check, MSAL, push, or service worker).
+// KS_PORTAL_v8_DEMO / KS_PORTAL_v11_LIVE_DEMO - /demo boots on its own, without the portal's sign-in: the phase-1
+// shell (the client app in a phone frame). Nothing of the real portal starts here (no MSAL, push or service worker).
 import React from "react";
 import ReactDOM from "react-dom/client";
-import DemoApp from "./DemoApp";
+import DemoShell from "./DemoShell";
+import "./liveDemo.css";
 
-export function isDemoPath(pathname: string): boolean {
-  return pathname === "/demo" || pathname.startsWith("/demo/");
-}
+export { isDemoPath } from "./mode";
 
 export function bootDemo(): void {
   document.title = "Keystone demo";
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-      <DemoApp />
+      <DemoShell />
     </React.StrictMode>,
   );
 }
