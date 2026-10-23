@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Rea
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import "./demo.css";
 import { C } from "./palette";
-import { DemoApiError, demoClient, loadStoredSession, openDemo, parseMagicLink, storeSession, type DemoSessionInfo, type DemoState } from "./demoApi";
+import { DemoApiError, demoClient, loadStoredSession, openDemoWithRetry, parseMagicLink, storeSession, type DemoSessionInfo, type DemoState } from "./demoApi";
 import { STEPS, stepIndex, type StepKey, type Tab } from "./steps";
 import Walkthrough from "./Walkthrough";
 import { BorrowerPanel, OnScreenBorrower } from "./BorrowerPanel";
@@ -28,7 +28,7 @@ const TABS: Array<[Tab, string]> = [
   ["pipeline", "Pipeline"], ["overview", "File"], ["documents", "Documents"], ["financials", "Financials"], ["credit", "Credit summary"], ["lenders", "Lenders"],
 ];
 
-type Boot = { kind: "loading" } | { kind: "ready"; info: DemoSessionInfo } | { kind: "error"; title: string; message: string };
+type Boot = { kind: "loading"; waking?: boolean } | { kind: "ready"; info: DemoSessionInfo } | { kind: "error"; title: string; message: string };
 
 function Shell({ children, info }: { children: ReactNode; info?: { name: string; company: string; expires_at: string } }) {
   return (
@@ -64,12 +64,12 @@ export default function DemoApp({ fetchImpl = fetch }: { fetchImpl?: typeof fetc
     (async () => {
       if (link) {
         try {
-          const info = await openDemo(link, fetchImpl);
+          const info = await openDemoWithRetry(link, { fetchImpl, onWaiting: () => { if (alive) setBoot({ kind: "loading", waking: true }); } });
           storeSession(info);
           window.history.replaceState(null, "", "/demo");
           if (alive) setBoot({ kind: "ready", info });
         } catch (err) {
-          const e = err instanceof DemoApiError ? err : new DemoApiError(0, "network", "We could not reach the demo. Check your connection and open the link again.");
+          const e = err instanceof DemoApiError ? err : new DemoApiError(0, "network", "We could not reach the demo. Check your connection and open the link again in a minute.");
           const title = e.status === 410 ? "This demo has ended" : e.status === 404 ? "This link is not valid" : "The demo could not start";
           if (alive) setBoot({ kind: "error", title, message: e.message });
         }
@@ -81,7 +81,15 @@ export default function DemoApp({ fetchImpl = fetch }: { fetchImpl?: typeof fetc
     return () => { alive = false; };
   }, [fetchImpl]);
 
-  if (boot.kind === "loading") return <Shell><div className="ksd-center"><p aria-live="polite">Opening your demo...</p></div></Shell>;
+  if (boot.kind === "loading") {
+    return (
+      <Shell>
+        <div className="ksd-center">
+          <p aria-live="polite">{boot.waking ? "Starting your demo - this can take up to a minute. Keep this page open." : "Opening your demo..."}</p>
+        </div>
+      </Shell>
+    );
+  }
   if (boot.kind === "error") return <Message title={boot.title} message={boot.message} />;
   return (
     <QueryClientProvider client={client}>

@@ -171,6 +171,27 @@ describe("magic link and session", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("This demo has ended");
   });
 
+  it("keeps trying while the demo server wakes up, and stops on a real answer", async () => {
+    vi.stubEnv("VITE_KS_OPS_URL", "https://ops.example");
+    const { openDemoWithRetry, isRetryable, DemoApiError } = await import("../demoApi");
+    const ok = { server_url: "https://demo.example", staff_token: "t", client_url: null, expires_at: "2099-01-01T00:00:00Z", name: "D", company: "C" };
+    let n = 0;
+    const waking = vi.fn(async () => (++n < 3
+      ? new Response(JSON.stringify({ error: "demo_server_unavailable", message: "x" }), { status: 503 })
+      : new Response(JSON.stringify(ok), { status: 200 }))) as unknown as typeof fetch;
+    const onWaiting = vi.fn();
+    await expect(openDemoWithRetry({ demoId: "d", token: "t" }, { fetchImpl: waking, sleep: async () => {}, onWaiting })).resolves.toEqual(ok);
+    expect(onWaiting).toHaveBeenCalledTimes(2);
+    const gone = vi.fn(async () => new Response(JSON.stringify({ error: "demo_expired", message: "ended" }), { status: 410 })) as unknown as typeof fetch;
+    await expect(openDemoWithRetry({ demoId: "d", token: "t" }, { fetchImpl: gone, sleep: async () => {} })).rejects.toMatchObject({ status: 410 });
+    expect(gone).toHaveBeenCalledTimes(1);
+    const down = vi.fn(async () => new Response("{}", { status: 503 })) as unknown as typeof fetch;
+    await expect(openDemoWithRetry({ demoId: "d", token: "t" }, { fetchImpl: down, sleep: async () => {}, attempts: 3 })).rejects.toMatchObject({ status: 503 });
+    expect(down).toHaveBeenCalledTimes(3);
+    expect(isRetryable(new TypeError("Failed to fetch"))).toBe(true);
+    expect(isRetryable(new DemoApiError(503, "demo_not_configured", "x"))).toBe(false);
+  });
+
   it("without a link or a saved session it asks the prospect to use their email", async () => {
     render(<DemoApp fetchImpl={vi.fn() as unknown as typeof fetch} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Open your demo from your email");
