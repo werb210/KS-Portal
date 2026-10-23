@@ -35,8 +35,10 @@ export function demoWebsiteUrl(): string {
 }
 
 /** The client app's guided tour, embedded: it posts its pop-ups and "client-done" back to `parentOrigin`. */
-export function clientTourUrl(parentOrigin: string): string {
-  return `${demoClientUrl()}/tour?embed=1&parent=${encodeURIComponent(parentOrigin)}`;
+export function clientTourUrl(parentOrigin: string, sidePanel = false): string {
+  // KS_PORTAL_v11_LIVE_DEMO - panel=1: the pop-up text and the Next/Back buttons live in this page's side panel, so
+  // nothing covers the questions on the phone.
+  return `${demoClientUrl()}/tour?embed=1${sidePanel ? "&panel=1" : ""}&parent=${encodeURIComponent(parentOrigin)}`;
 }
 
 /** Where "Talk to us" on the last pop-up writes to (Keystone sales). */
