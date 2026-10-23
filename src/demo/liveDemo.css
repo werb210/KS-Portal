@@ -1,0 +1,186 @@
+/* KS_PORTAL_v11_LIVE_DEMO - the live demo's own pieces: the /demo shell, the phone frame, the tour pop-ups and the
+   iPhone + Apple Watch call. Everything is prefixed ksld- so nothing leaks into the portal's own styles. Text pairs
+   are listed in src/demo/palette.ts and tested for at least 4.5:1 contrast. */
+
+/* ------------------------------------------------------------------ shell (/demo) */
+.ksld-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: radial-gradient(ellipse at top, #1e293b 0%, #0b1220 70%);
+  color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  box-sizing: border-box;
+}
+.ksld-shell *, .ksld-tour *, .ksld-call * { box-sizing: border-box; }
+.ksld-shell-header { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 16px 28px 8px; }
+.ksld-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; color: #ffffff; letter-spacing: 0.01em; }
+.ksld-greeting { margin: 0; font-size: 16px; color: #e2e8f0; }
+.ksld-chip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #1e3a8a; color: #dbeafe; }
+.ksld-shell-main { display: flex; justify-content: center; align-items: flex-start; gap: 48px; padding: 8px 28px 24px; }
+.ksld-phone-slot { position: relative; flex-shrink: 0; }
+.ksld-side { max-width: 380px; margin-top: 48px; }
+.ksld-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fbbf24; }
+.ksld-side-title { margin: 8px 0 10px; font-size: 24px; line-height: 1.25; color: #f8fafc; }
+.ksld-side-text { margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: #cbd5e1; }
+.ksld-side-muted { color: #94a3b8; }
+.ksld-side-step { margin: 0 0 18px; padding: 14px 16px; border-radius: 14px; background: #1e293b; border: 1px solid #334155; }
+.ksld-side-step-title { font-size: 16px; font-weight: 700; color: #f8fafc; }
+.ksld-side-step-text { margin-top: 6px; font-size: 14px; line-height: 1.5; color: #cbd5e1; }
+.ksld-link { background: none; border: 0; padding: 0; font: inherit; font-size: 14px; font-weight: 600; color: #93c5fd; cursor: pointer; text-decoration: underline; }
+.ksld-link:hover { color: #bfdbfe; }
+
+.ksld-shell--narrow { position: fixed; inset: 0; background: #ffffff; }
+.ksld-shell--narrow .ksld-client-iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.ksld-shell--empty { display: flex; align-items: center; justify-content: center; padding: 16px; }
+.ksld-empty-card { max-width: 440px; padding: 28px; border-radius: 18px; background: #ffffff; color: #0f172a; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
+.ksld-empty-card .ksld-brand { color: #0f172a; }
+.ksld-empty-card h1 { margin: 16px 0 8px; font-size: 22px; }
+.ksld-empty-card p { margin: 0; font-size: 15px; line-height: 1.55; color: #334155; }
+.ksld-empty-card a { color: #1d4ed8; font-weight: 600; }
+
+/* ------------------------------------------------------------------ iPhone */
+.ksld-iphone {
+  position: relative;
+  padding: 14px;
+  border-radius: 62px;
+  background: linear-gradient(145deg, #34363b 0%, #121315 55%, #2a2c30 100%);
+  box-shadow: inset 0 0 0 2px #4b4e54, inset 0 0 0 5px #0b0b0c, 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+.ksld-iphone--frame { position: absolute; top: 0; left: 0; transform-origin: top left; }
+.ksld-iphone--call { width: 300px; height: 630px; border-radius: 54px; padding: 12px; }
+.ksld-iphone-button { position: absolute; width: 4px; border-radius: 2px; background: #3a3c41; }
+.ksld-iphone-button--action { left: -3px; top: 118px; height: 30px; }
+.ksld-iphone-button--up { left: -3px; top: 172px; height: 56px; }
+.ksld-iphone-button--down { left: -3px; top: 240px; height: 56px; }
+.ksld-iphone-button--power { right: -3px; top: 196px; height: 88px; }
+.ksld-iphone-screen { position: relative; width: 100%; height: 100%; border-radius: 48px; overflow: hidden; background: #000000; }
+.ksld-iphone--call .ksld-iphone-screen { border-radius: 42px; }
+.ksld-iphone-screen--app { display: flex; flex-direction: column; background: #ffffff; }
+.ksld-iphone-screen--app .ksld-client-iframe { flex: 1; width: 100%; border: 0; display: block; background: #ffffff; }
+.ksld-island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 120px; height: 34px; border-radius: 20px; background: #000000; z-index: 3; }
+.ksld-iphone--call .ksld-island { width: 88px; height: 27px; top: 10px; }
+.ksld-iphone--call .ksld-statusbar { height: 46px; padding: 4px 22px 0 28px; font-size: 14px; }
+.ksld-iphone--call .ksld-statusbar-icons { gap: 4px; transform: scale(0.85); transform-origin: right center; }
+.ksld-statusbar { position: relative; z-index: 2; flex-shrink: 0; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 34px; font-size: 16px; font-weight: 600; }
+.ksld-statusbar-icons { display: inline-flex; align-items: center; gap: 6px; }
+.ksld-homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 128px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.85); z-index: 4; pointer-events: none; }
+.ksld-homebar--dark { background: rgba(0, 0, 0, 0.8); }
+
+/* ------------------------------------------------------------------ the portal on a phone during the demo
+   The staff portal is built for iPad and desktop; on a phone-sized screen the demo hides its fixed sidebar (the
+   top bar's menu button still opens the navigation) so the screens fit. */
+@media (max-width: 699px) {
+  html[data-live-demo] .app-sidebar { display: none !important; }
+}
+
+/* ------------------------------------------------------------------ tour pop-ups (over the real portal) */
+.ksld-tour { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif; }
+.ksld-spot {
+  position: fixed;
+  z-index: 990;
+  border-radius: 12px;
+  pointer-events: none;
+  box-shadow: 0 0 0 3px #f59e0b, 0 0 0 9999px rgba(15, 23, 42, 0.42);
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+}
+.ksld-dim { position: fixed; inset: 0; z-index: 990; background: rgba(15, 23, 42, 0.55); pointer-events: none; }
+.ksld-card {
+  position: fixed;
+  z-index: 1300;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  padding: 16px 18px 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.35);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.ksld-card--sheet { width: auto; max-width: none; }
+.ksld-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.ksld-card-progress { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #475569; }
+.ksld-card-exit { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; text-decoration: underline; }
+.ksld-card-exit:hover { color: #0f172a; }
+.ksld-card-title { margin: 0 0 6px; font-size: 18px; line-height: 1.3; color: #0f172a; }
+.ksld-card-body { display: flex; flex-direction: column; gap: 6px; color: #1e293b; }
+.ksld-card-strong { font-weight: 700; color: #0f172a; }
+.ksld-card-list { margin: 0; padding-left: 18px; list-style: disc; font-size: 14px; color: #1e293b; }
+.ksld-card-status { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: #eff6ff; color: #1e3a8a; font-size: 14px; font-weight: 600; }
+.ksld-card-error { margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: #fef2f2; color: #991b1b; font-size: 14px; white-space: pre-line; }
+.ksld-card-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.ksld-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 16px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
+.ksld-btn:disabled { cursor: default; opacity: 0.6; }
+.ksld-btn--primary { background: #1d4ed8; color: #ffffff; border: 1px solid #1d4ed8; }
+.ksld-btn--primary:hover:not(:disabled) { background: #1e40af; }
+.ksld-btn--ghost { background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; }
+.ksld-btn--ghost:hover:not(:disabled) { background: #f1f5f9; }
+
+/* ------------------------------------------------------------------ the call: iPhone + Apple Watch */
+.ksld-call {
+  position: fixed;
+  z-index: 1005;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 44px;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+}
+.ksld-call button { pointer-events: auto; }
+@media (max-height: 760px) { .ksld-call { transform: translate(-50%, -50%) scale(0.82); } }
+@media (max-height: 620px) { .ksld-call { transform: translate(-50%, -50%) scale(0.66); } }
+@media (max-width: 699px) { .ksld-call { gap: 20px; transform: translate(-50%, -62%) scale(0.6); } }
+
+.ksld-callscreen { display: flex; flex-direction: column; color: #ffffff; background: radial-gradient(circle at 30% 18%, #5b6472 0%, #262b33 45%, #0b0d10 100%); }
+.ksld-callscreen--connected, .ksld-callscreen--ended, .ksld-callscreen--declined { background: linear-gradient(180deg, #1f2937 0%, #0b0d10 100%); }
+.ksld-callscreen-head { text-align: center; padding: 14px 18px 4px; }
+.ksld-callscreen-name { font-size: 30px; font-weight: 400; letter-spacing: -0.01em; margin: 2px 0; }
+.ksld-callscreen-sub { font-size: 14px; color: #e5e7eb; }
+.ksld-callcard { margin: 18px 16px 0; padding: 12px 14px; border-radius: 18px; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.18); }
+.ksld-callcard-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.ksld-callcard-line { font-size: 13px; color: #e5e7eb; line-height: 1.5; }
+.ksld-callcard-flag { display: inline-block; margin-top: 8px; padding: 3px 9px; border-radius: 999px; background: #fee2e2; color: #7f1d1d; font-size: 12px; font-weight: 700; }
+.ksld-callbuttons { position: absolute; left: 0; right: 0; bottom: 54px; display: flex; justify-content: space-around; padding: 0 22px; }
+.ksld-callbuttons--live { justify-content: center; bottom: 40px; }
+.ksld-roundbtn { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: 0; color: #ffffff; font: inherit; font-size: 13px; cursor: pointer; }
+.ksld-roundbtn svg { width: 68px; height: 68px; padding: 19px; border-radius: 50%; }
+.ksld-roundbtn--decline svg { background: #ff3b30; }
+.ksld-roundbtn--accept svg { background: #34c759; animation: ksld-ring 1.2s ease-in-out infinite; }
+.ksld-roundbtn--end { width: 64px; height: 64px; border-radius: 50%; background: #ff3b30; display: grid; place-items: center; }
+.ksld-roundbtn--end svg { width: 30px; height: 30px; padding: 0; }
+@keyframes ksld-ring { 0%, 100% { transform: rotate(0deg); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(12deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .ksld-roundbtn--accept svg, .ksld-watch-screen--ringing .ksld-watch-avatar, .ksld-watch-wave span { animation: none !important; } .ksld-spot { transition: none; } }
+.ksld-transcript { flex: 1; overflow-y: auto; margin: 12px 0 130px; padding: 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.ksld-transcript-wait, .ksld-transcript-done { align-self: center; font-size: 12px; color: #d1d5db; padding: 4px 10px; }
+.ksld-transcript-done { margin-top: 6px; border-radius: 999px; background: #065f46; color: #ecfdf5; font-weight: 700; }
+.ksld-bubble { max-width: 86%; padding: 7px 11px; border-radius: 16px; font-size: 12.5px; line-height: 1.4; }
+.ksld-bubble-who { display: block; font-size: 10.5px; font-weight: 700; opacity: 0.9; margin-bottom: 1px; }
+.ksld-bubble--broker { align-self: flex-end; background: #0a63d6; color: #ffffff; border-bottom-right-radius: 5px; }
+.ksld-bubble--borrower { align-self: flex-start; background: #3a3a3c; color: #ffffff; border-bottom-left-radius: 5px; }
+
+.ksld-watch { display: flex; flex-direction: column; align-items: center; }
+.ksld-watch-band { width: 116px; height: 96px; background: linear-gradient(90deg, #1f2937, #374151 50%, #1f2937); }
+.ksld-watch-band--top { border-radius: 22px 22px 6px 6px; margin-bottom: -8px; }
+.ksld-watch-band--bottom { border-radius: 6px 6px 22px 22px; margin-top: -8px; }
+.ksld-watch-case { position: relative; z-index: 1; width: 172px; height: 208px; padding: 11px; border-radius: 46px; background: linear-gradient(145deg, #4b4b52 0%, #1c1c20 60%, #3a3a40 100%); box-shadow: inset 0 0 0 2px #5b5b63, 0 18px 50px rgba(0, 0, 0, 0.45); }
+.ksld-watch-crown { position: absolute; right: -10px; top: 46px; width: 12px; height: 36px; border-radius: 4px; background: linear-gradient(90deg, #52525b, #a1a1aa); }
+.ksld-watch-side { position: absolute; right: -6px; top: 104px; width: 7px; height: 44px; border-radius: 3px; background: #3f3f46; }
+.ksld-watch-screen { position: relative; height: 100%; border-radius: 36px; background: #000000; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 10px; text-align: center; }
+.ksld-watch-time { position: absolute; top: 12px; right: 20px; font-size: 12px; font-weight: 600; color: #e5e7eb; }
+.ksld-watch-avatar { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 17px; background: linear-gradient(135deg, #60a5fa, #2563eb); color: #ffffff; }
+.ksld-watch-screen--ringing .ksld-watch-avatar { animation: ksld-pulse 1.2s ease-in-out infinite; }
+@keyframes ksld-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(96, 165, 250, 0); } }
+.ksld-watch-name { margin-top: 6px; font-size: 15px; font-weight: 700; }
+.ksld-watch-sub { font-size: 11px; color: #d4d4d8; }
+.ksld-watch-buttons { display: flex; gap: 22px; margin-top: 10px; }
+.ksld-watch-btn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: #ffffff; }
+.ksld-watch-btn--decline { background: #ff3b30; }
+.ksld-watch-btn--accept { background: #34c759; }
+.ksld-watch-wave { display: flex; gap: 4px; align-items: center; height: 26px; margin-top: 10px; }
+.ksld-watch-wave span { width: 4px; height: 8px; border-radius: 2px; background: #34c759; animation: ksld-wave 0.9s ease-in-out infinite; }
+@keyframes ksld-wave { 0%, 100% { height: 6px; } 50% { height: 24px; } }

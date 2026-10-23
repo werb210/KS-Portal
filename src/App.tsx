@@ -88,6 +88,7 @@ import { queryClient } from "@/lib/queryClient";
 import { sanitizeOtpFlowStateOnBoot } from "@/auth/otpFlow";
 import { getAuthToken } from "@/lib/authToken";
 import { refreshO365TokenIfPossible } from "@/lib/o365";
+import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
 
 function SessionGuard() {
   usePortalSessionGuard();
@@ -149,6 +150,7 @@ const AppRoutes = () => {
 
   useEffect(() => {
     sanitizeOtpFlowStateOnBoot();
+    if (isLiveDemo()) return; // KS_PORTAL_v11_LIVE_DEMO - no Microsoft 365 in the demo
     void refreshO365TokenIfPossible();
     // BF_PORTAL_BLOCK_v323_O365_PERIODIC_REFRESH_APP_LEVEL_v1
     // Pre-fix the 30-min periodic /o365-refresh tick lived inside
@@ -174,8 +176,9 @@ const AppRoutes = () => {
       <BiometricLock />{/* BF_PORTAL_FACE_ID_v243 */}
       <SavedCopyNotice />{/* BF_PORTAL_OFFLINE_READ_CACHE_v252 */}
       <OfflineBanner />{/* BF_PORTAL_OFFLINE_OUTBOX_v251 */}
-      <InstallPromptBanner />
-      <IOSInstallBanner />
+      {/* KS_PORTAL_v11_LIVE_DEMO - no install banners over the demo */}
+      {!isLiveDemo() && <InstallPromptBanner />}
+      {!isLiveDemo() && <IOSInstallBanner />}
       {/* BF_PORTAL_AUDIT2_v778 - pages load on demand (the whole portal was one 2.9 MB download). */}
       <Suspense fallback={<div data-testid="route-loading" style={{ padding: 24 }}>Loading…</div>}>
       <Routes>
@@ -269,9 +272,12 @@ export default function App() {
             <ErrorBoundary>
               <AppRoutes />
             </ErrorBoundary>
-            <Suspense fallback={null}>
-              <FloatingChat />
-            </Suspense>
+            {/* KS_PORTAL_v11_LIVE_DEMO - no Maya widget in the demo */}
+            {!isLiveDemo() && (
+              <Suspense fallback={null}>
+                <FloatingChat />
+              </Suspense>
+            )}
           </ToastProvider>
         </SiloProvider>
       </BusinessUnitProvider>
