@@ -107,9 +107,40 @@ export async function openDemo(link: { demoId: string; token: string }, fetchImp
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ demo_id: link.demoId, token: link.token }),
+    signal: AbortSignal.timeout(45_000),
   });
   if (!r.ok) throw await readError(r);
   return (await r.json()) as DemoSessionInfo;
+}
+
+/** Worth trying again: the demo server is starting up (KS-Ops answers 503/502/504) or the request timed out. */
+export function isRetryable(err: unknown): boolean {
+  if (!(err instanceof DemoApiError)) return true; // network error or timeout
+  return [502, 503, 504].includes(err.status) && err.code !== "demo_not_configured";
+}
+
+/**
+ * openDemo, tried again while the demo server wakes up (a cold start takes a minute or two). onWaiting is called
+ * before each retry so the page can say what is happening. Gives up after `attempts` tries.
+ */
+export async function openDemoWithRetry(
+  link: { demoId: string; token: string },
+  opts: { fetchImpl?: typeof fetch; attempts?: number; delayMs?: number; onWaiting?: (attempt: number) => void; sleep?: (ms: number) => Promise<void> } = {},
+): Promise<DemoSessionInfo> {
+  const attempts = opts.attempts ?? 6;
+  const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  let last: unknown;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await openDemo(link, opts.fetchImpl ?? fetch);
+    } catch (err) {
+      last = err;
+      if (!isRetryable(err) || i === attempts) break;
+      opts.onWaiting?.(i);
+      await sleep(opts.delayMs ?? 10_000);
+    }
+  }
+  throw last;
 }
 
 export type DemoClient = ReturnType<typeof demoClient>;
