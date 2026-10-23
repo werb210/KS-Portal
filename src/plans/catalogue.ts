@@ -12,6 +12,8 @@ export type FeatureInfo = { key: string; label: string; plan: PlanKey; descripti
 export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_v9_PORTAL_PLANS - lender portal on every plan; broker portal growth and up (Todd, Oct 22).
   { key: "lender_portal", plan: "starter", label: "Lender portal (lenders can send you deals they can't place)", description: "Lenders sign in to see the files you send them, post their decisions, and send you deals they can't place themselves." },
+  // KS_PORTAL_v9_PGI - every plan.
+  { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (20% referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner and you earn 20% of the partner's commission on every bound policy." },
   { key: "call_recording", plan: "growth", label: "Call recording", description: "Record calls and play them back from the contact's timeline." },
   { key: "call_summaries", plan: "growth", label: "Call summaries", description: "The assistant writes a short summary and transcript of every recorded call." },
   { key: "voicemail_transcription", plan: "growth", label: "Voicemail transcription", description: "Voicemails turned into text you can read at a glance." },
