@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/demo-csp.mjs",
+    "build": "vite build && node scripts/demo-csp.mjs && node scripts/server-csp.mjs",
     "preview": "vite preview",
     "start": "vite preview --port 8080",
     "typecheck": "tsc --noEmit",

@@ -7,20 +7,31 @@ on:
     workflows: ["CI"]
     types: [completed]
     branches: [main]
+  # KS_LICENSEE_DEPLOY_v1 - by hand, from main only: the development copy and every licensee, or one licensee.
+  workflow_dispatch:
+    inputs:
+      licensee:
+        description: >-
+          Only this licensee (its code in deploy/licensees.json, e.g. northwind). Empty deploys the development copy
+          and every enabled licensee.
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build_and_deploy:
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.licensee == '') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout the commit CI passed
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # ✅ CRITICAL: Create .env file for Vite (THIS is the fix)
       - name: Inject env for Vite
@@ -41,6 +52,142 @@ jobs:
           echo "VITE_CLIENT_URL=${{ vars.VITE_CLIENT_URL || 'https://wonderful-island-0b68ae310.5.azurestaticapps.net' }}" >> .env
 
       # ❌ REMOVE ALL previous "verify env" steps — they are wrong
+
+      - name: Build and Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          output_location: "dist"
+
+  # KS_LICENSEE_DEPLOY_v1 - every licensee's own portal (Static Web App ks-<code>-portal). deploy/licensees.json lists
+  # the licensees; each one's settings live in its GitHub environment (normally ks-<code>, Settings > Environments):
+  #   secret    AZURE_STATIC_WEB_APPS_API_TOKEN   the deployment token of ks-<code>-portal
+  #   variables VITE_API_BASE_URL                 the licensee's KS-server (https://...)        required
+  #             VITE_APP_URL                      this portal's address                         required
+  #             VITE_CLIENT_APP_URL               the licensee's client app                     required
+  #             VITE_MSAL_CLIENT_ID, VITE_MSAL_TENANT_ID, VITE_MSAL_REDIRECT_URI, VITE_MSAL_SCOPES   Microsoft sign-in
+  #             VITE_WEBSITE_URL, VITE_SUPPORT_EMAIL, VITE_COMPANY_NAME, VITE_ASSISTANT_NAME         optional
+  # The VITE_* values end up in the public JavaScript, so they are variables, not secrets. The self-serve /demo page
+  # stays off in licensee builds. Separate jobs from the development deploy above; one licensee failing never stops
+  # the rest (fail-fast: false).
+  licensee-plan:
+    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
+      repo_token: ${{ steps.repo.outputs.token }}
+      repo_api_base_url: ${{ steps.repo.outputs.api_base_url }}
+      repo_app_url: ${{ steps.repo.outputs.app_url }}
+      repo_client_app_url: ${{ steps.repo.outputs.client_app_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Licensees to deploy
+        id: plan
+        env:
+          WANTED: ${{ inputs.licensee }}
+        run: node deploy/licensee-matrix.mjs portal "$WANTED"
+
+      # A licensee environment without its own value silently gets the repository's (the development copy's): its
+      # build would talk to the development server, or deploy over the development portal. Fingerprints and the
+      # repository-level values let each licensee job refuse that without the secret itself leaving this job.
+      - name: Repository-level settings (to tell them apart from a licensee's)
+        id: repo
+        env:
+          REPO_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          REPO_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          REPO_APP_URL: ${{ vars.VITE_APP_URL }}
+          REPO_CLIENT_APP_URL: ${{ vars.VITE_CLIENT_APP_URL }}
+        run: |
+          {
+            echo "token=$(printf '%s' "$REPO_TOKEN" | sha256sum | cut -d' ' -f1)"
+            echo "api_base_url=$REPO_API_BASE_URL"
+            echo "app_url=$REPO_APP_URL"
+            echo "client_app_url=$REPO_CLIENT_APP_URL"
+          } >> "$GITHUB_OUTPUT"
+
+  licensee-deploy:
+    name: deploy ${{ matrix.code }}
+    needs: licensee-plan
+    if: needs.licensee-plan.outputs.count != '0'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.licensee-plan.outputs.matrix) }}
+    environment: ${{ matrix.environment }}
+    concurrency:
+      group: deploy-ks-portal-${{ matrix.code }}
+      cancel-in-progress: false
+    env:
+      CODE: ${{ matrix.code }}
+      ENVIRONMENT: ${{ matrix.environment }}
+      SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_APP_URL: ${{ vars.VITE_APP_URL }}
+      VITE_CLIENT_APP_URL: ${{ vars.VITE_CLIENT_APP_URL }}
+      VITE_MSAL_CLIENT_ID: ${{ vars.VITE_MSAL_CLIENT_ID }}
+      VITE_MSAL_TENANT_ID: ${{ vars.VITE_MSAL_TENANT_ID }}
+      VITE_MSAL_REDIRECT_URI: ${{ vars.VITE_MSAL_REDIRECT_URI }}
+      VITE_MSAL_SCOPES: ${{ vars.VITE_MSAL_SCOPES }}
+      VITE_WEBSITE_URL: ${{ vars.VITE_WEBSITE_URL }}
+      VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
+      VITE_COMPANY_NAME: ${{ vars.VITE_COMPANY_NAME }}
+      VITE_ASSISTANT_NAME: ${{ vars.VITE_ASSISTANT_NAME }}
+    steps:
+      - name: Check the licensee's settings
+        env:
+          REPO_TOKEN: ${{ needs.licensee-plan.outputs.repo_token }}
+          REPO_API_BASE_URL: ${{ needs.licensee-plan.outputs.repo_api_base_url }}
+          REPO_APP_URL: ${{ needs.licensee-plan.outputs.repo_app_url }}
+          REPO_CLIENT_APP_URL: ${{ needs.licensee-plan.outputs.repo_client_app_url }}
+        run: |
+          missing=""
+          if [ -z "$SWA_TOKEN" ] || [ "$(printf '%s' "$SWA_TOKEN" | sha256sum | cut -d' ' -f1)" = "$REPO_TOKEN" ]; then
+            missing="$missing secret:AZURE_STATIC_WEB_APPS_API_TOKEN"
+          fi
+          for pair in "VITE_API_BASE_URL:$REPO_API_BASE_URL" "VITE_APP_URL:$REPO_APP_URL" "VITE_CLIENT_APP_URL:$REPO_CLIENT_APP_URL"; do
+            name="${pair%%:*}"; repo_value="${pair#*:}"; value="${!name}"
+            case "$value" in
+              https://*) [ "$value" != "$repo_value" ] || missing="$missing variable:$name" ;;
+              *) missing="$missing variable:$name" ;;
+            esac
+          done
+          if [ -n "$missing" ]; then
+            echo "::error title=$CODE::Add to the GitHub environment '$ENVIRONMENT':$missing (https addresses for the variables)."
+            exit 1
+          fi
+          [ -n "$VITE_MSAL_CLIENT_ID" ] || echo "::notice title=$CODE::No VITE_MSAL_CLIENT_ID in '$ENVIRONMENT' - Microsoft sign-in stays off in this portal."
+
+      - name: Checkout the commit CI passed
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # Same file the development deploy writes; optional values are written only when set, so the app's own
+      # defaults apply otherwise (an empty VITE_MSAL_SCOPES would mean no scopes at all).
+      - name: Inject env for Vite
+        run: |
+          {
+            echo "VITE_API_URL=$VITE_API_BASE_URL"
+            echo "VITE_API_BASE_URL=$VITE_API_BASE_URL"
+            echo "VITE_APP_URL=$VITE_APP_URL"
+            echo "VITE_CLIENT_APP_URL=$VITE_CLIENT_APP_URL"
+            echo "VITE_JWT_STORAGE_KEY=auth_token"
+            for name in VITE_MSAL_CLIENT_ID VITE_MSAL_TENANT_ID VITE_MSAL_REDIRECT_URI VITE_MSAL_SCOPES \
+                        VITE_WEBSITE_URL VITE_SUPPORT_EMAIL VITE_COMPANY_NAME VITE_ASSISTANT_NAME; do
+              if [ -n "${!name}" ]; then echo "$name=${!name}"; fi
+            done
+          } >> .env
 
       - name: Build and Deploy
         uses: Azure/static-web-apps-deploy@v1
