@@ -16,7 +16,10 @@ const WORD = /\bBoreal\b/;
 
 // "src/path:text" entries allowed to keep the word. Keep this list short and say why for each entry. Empty today:
 // the native identifiers that remain (BorealVoice, BorealPortalSummary) do not match the whole word "Boreal".
-export const ALLOW = new Set([]);
+export const ALLOW = new Set([
+  // KS_PORTAL_v9_PGI - the insurance partner licensees refer PGI to, named on purpose in one constant.
+  "src/pgi/partner.ts:Boreal Insurance",
+]);
 
 /** Every piece of user-visible text in a TS/TSX source that contains "Boreal". */
 export function findBorealText(source, fileName = "file.tsx") {

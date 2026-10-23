@@ -13,6 +13,7 @@ import NotesTab from "@/pages/applications/tabs/NotesTab";
 import LendersTab from "@/pages/applications/tabs/LendersTab";
 import SbaSigningTab from "@/pages/applications/tabs/SbaSigningTab"; // BF_PORTAL_SBA_SIGNING_TAB_v146
 import FraudTab from "@/fraud/FraudTab"; // KS_PORTAL_v7_FRAUD
+import PgiTab from "@/pgi/PgiTab"; // KS_PORTAL_v9_PGI
 
 const TABS = [
   { key: "application", label: "Application" },
@@ -24,6 +25,7 @@ const TABS = [
   { key: "notes", label: "Notes" },
   { key: "lenders", label: "Lenders" },
   { key: "fraud", label: "Fraud check" }, // KS_PORTAL_v7_FRAUD - before lender submission
+  { key: "pgi", label: "PGI insurance" }, // KS_PORTAL_v9_PGI - referral to the insurance partner
   // BF_PORTAL_SBA_SIGNING_TAB_v146 - expose signing status and resend.
   { key: "sba-signing", label: "SBA Signing" },
 ] as const;
@@ -76,6 +78,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
     lenders: <LendersTab applicationId={applicationId} />,
     "sba-signing": <SbaSigningTab applicationId={applicationId} />,
     fraud: <FraudTab applicationId={applicationId} />, // KS_PORTAL_v7_FRAUD
+    pgi: <PgiTab applicationId={applicationId} />, // KS_PORTAL_v9_PGI
   }[activeTab];
 
   return (

@@ -42,6 +42,7 @@ const BF_NAV: NavItem[] = [
   { label: "Calendar",       path: "/calendar",        roles: ["Admin", "Staff", "Ops"] },
   { label: "Marketing",      path: "/marketing",       roles: ["Admin"] },
   { label: "Lenders",        path: "/lenders",         roles: ["Admin", "Staff"] },
+  { label: "PGI referrals",  path: "/pgi-referrals",   roles: ["Admin", "Staff"] }, // KS_PORTAL_v9_PGI - every plan
   { label: "Reports",        path: "/reports",         roles: ["Admin", "Staff", "Ops", "Marketing"] }, // BF_PORTAL_REPORTS_SECTION_v714
   { label: "Settings",       path: "/settings",        roles: ["Admin", "Staff", "Ops"] },
   { label: "Get help",       path: "/help",            roles: ["Admin", "Staff"] }, // KS_PORTAL_v6_SUPPORT
