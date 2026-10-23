@@ -19,6 +19,7 @@ import OutOfOfficePanel from "@/components/o365/OutOfOfficePanel"; // BF_PORTAL_
 import OneDriveFilePicker from "@/components/o365/OneDriveFilePicker"; // BF_PORTAL_O365_UI_v1
 import ContactsSyncButton from "@/components/o365/ContactsSyncButton"; // BF_PORTAL_CONTACTS_PULL_TRIGGER_v1
 import { registerExistingPushPermission } from "@/hooks/usePushRegistration";
+import { WorkspaceConnections } from "@/components/settings/GoogleWorkspaceConnect"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_AVATAR_DIMENSION = 256;
@@ -489,7 +490,10 @@ const ProfileSettings = () => {
       <div className="connected-accounts">
         <h3>Connected accounts</h3>
         <p>Connect optional services. OAuth prompts open in a new window.</p>
-        <div className="connected-accounts__actions">
+        {/* KS_PORTAL_v12_GOOGLE_WORKSPACE - the company setting picks Microsoft 365, Google Workspace or both.
+            A Microsoft connection made earlier stays visible so it can still be disconnected. */}
+        <WorkspaceConnections microsoftConnected={Boolean(profile.microsoftConnected)} microsoft={
+        <div className="connected-accounts__actions" data-testid="microsoft-connect">
           <Button
             type="button"
             variant="secondary"
@@ -525,7 +529,7 @@ const ProfileSettings = () => {
             <span className="text-xs text-slate-500">Microsoft OAuth is not configured.</span>
           )}
           {hideMicrosoftButton && (
-            <span className="text-xs text-amber-600">
+            <span className="text-xs text-amber-800">
               Microsoft sign-in needs a popup or redirect. Use a browser that allows pop-ups.
             </span>
           )}
@@ -552,6 +556,7 @@ const ProfileSettings = () => {
             <span className="text-xs text-slate-500">Connecting…</span>
           )}
         </div>
+        } />
       </div>
 
       <section style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #eaf0f6" }}>

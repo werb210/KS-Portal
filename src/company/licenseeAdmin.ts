@@ -11,6 +11,7 @@ export const COMPANY_FIELDS = [
   "support_email", "support_phone", "mailing_address",
   "logo_url", "primary_color", "accent_color",
   "assistant_name",
+  "workspace_provider", // KS_PORTAL_v12_GOOGLE_WORKSPACE - m365 | google | both
 ] as const;
 export const CONNECTION_FIELDS = ["twilio_main_number", "google_ads_customer_id", "office365_tenant_id"] as const;
 
@@ -31,6 +32,7 @@ export const FIELD_LABEL: Record<FormField, string> = {
   primary_color: "Primary colour",
   accent_color: "Accent colour",
   assistant_name: "Assistant name",
+  workspace_provider: "Email, calendar and files",
   twilio_main_number: "Main phone number (Twilio)",
   google_ads_customer_id: "Google Ads customer ID",
   office365_tenant_id: "Microsoft 365 tenant ID",

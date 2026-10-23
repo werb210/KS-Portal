@@ -11,6 +11,7 @@ import {
 } from "@/company/licenseeAdmin";
 import { primaryButton, useIsAdmin } from "@/plans/ui";
 import FraudProtectionCard from "@/fraud/FraudProtectionCard"; // KS_PORTAL_v7_FRAUD
+import { WORKSPACE_MODE_LABEL, normalizeWorkspaceMode, type WorkspaceMode } from "@/lib/workspace"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 4px", fontSize: 16, color: "var(--ui-text)" };
@@ -238,6 +239,27 @@ export default function CompanySettings() {
         <h3 style={h3}>Assistant</h3>
         <p style={muted}>The name your AI assistant uses with staff and clients.</p>
         <div style={grid}>{text("assistant_name")}</div>
+      </section>
+
+      {/* KS_PORTAL_v12_GOOGLE_WORKSPACE - which Connect buttons staff see in My Profile. */}
+      <section style={card} data-testid="company-section-workspace">
+        <h3 style={h3}>Email, calendar and files</h3>
+        <p style={muted}>
+          Choose the service your team uses for email, calendar, tasks and client folders. Staff connect their own account in
+          My Profile. With &ldquo;Both&rdquo;, each person can connect either one; Microsoft 365 is used when someone connects both.
+        </p>
+        <Field id="company-workspace_provider" label={FIELD_LABEL.workspace_provider} error={errors.workspace_provider}>
+          <select
+            id="company-workspace_provider"
+            value={normalizeWorkspaceMode(form.workspace_provider)}
+            onChange={(e) => set("workspace_provider")(e.target.value)}
+            style={{ ...inputStyle, maxWidth: 320 }}
+          >
+            {(Object.keys(WORKSPACE_MODE_LABEL) as WorkspaceMode[]).map((m) => (
+              <option key={m} value={m}>{WORKSPACE_MODE_LABEL[m]}</option>
+            ))}
+          </select>
+        </Field>
       </section>
 
       {connections && (

@@ -1505,7 +1505,7 @@ function MessagesTab({ onStartConversation }: { onStartConversation: (contact: C
 function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
   const [composeOpen, setComposeOpen] = useState(false);
   // v702: reply prefill (to / "Re:" subject / quoted body) for the open email.
-  const [replyCtx, setReplyCtx] = useState<{ to: string; subject: string; body: string }>({
+  const [replyCtx, setReplyCtx] = useState<{ to: string; subject: string; body: string; inReplyTo?: string }>({
     to: "",
     subject: "",
     body: "",
@@ -2354,7 +2354,8 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
                 };
                 const openCompose = (to: string, subject: string) => {
                   setReplyAttachments([]);
-                  setReplyCtx({ to, subject, body: quoted });
+                  const msgId = (selected as { internetMessageId?: string }).internetMessageId; // KS_PORTAL_v12_GOOGLE_WORKSPACE
+                  setReplyCtx({ to, subject, body: quoted, ...(msgId ? { inReplyTo: msgId } : {}) });
                   setComposeOpen(true);
                 };
                 const openForward = async (): Promise<void> => {
@@ -2449,6 +2450,7 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
         initialTo={replyCtx.to}
         initialSubject={replyCtx.subject}
         initialBody={replyCtx.body}
+        inReplyTo={replyCtx.inReplyTo}
         initialAttachments={replyAttachments}
         fromOptions={mailboxOptions.filter((o) => o.value !== ALL_MAILBOXES)}
         defaultFrom={active === ALL_MAILBOXES ? "" : active}

@@ -12,6 +12,7 @@ import { sanitizeHtml } from "@/lib/sanitizeHtml"; // BF_PORTAL_HTML_SANITIZE_v1
 import { useSnippets, snippetBody } from "@/hooks/useSnippets"; // BF_PORTAL_EMAIL_SNIPPET_v48
 import { RecipientAutocomplete } from "./RecipientAutocomplete"; // BF_PORTAL_RECIPIENT_AUTOSUGGEST_v53
 import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
+import { useGoogleMailOnly } from "@/lib/workspace"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 type MailboxOption = { value: string; label: string };
 type AppOption = { id: string; label: string };
@@ -130,6 +131,7 @@ export default function O365ComposeModal({
   onSent,
   logScope,
   recipientName,
+  inReplyTo,
 }: {
   open: boolean;
   initialTo?: string;
@@ -143,6 +145,8 @@ export default function O365ComposeModal({
   onSent?: () => void;
   logScope?: { kind: "contact" | "company"; id: string }; // BF_PORTAL_BLOCK_v734
   recipientName?: string; // BF_PORTAL_TEMPLATE_FIRSTNAME_v1
+  /** KS_PORTAL_v12_GOOGLE_WORKSPACE - Message-ID being replied to; Gmail sends carry In-Reply-To/References. */
+  inReplyTo?: string;
 }) {
   const [composeTo, setComposeTo] = useState(initialTo);
   const [composeCc, setComposeCc] = useState("");
@@ -164,6 +168,9 @@ export default function O365ComposeModal({
   const [collateral, setCollateral] = useState<CollateralOption[]>([]); // v694
   const [collateralIds, setCollateralIds] = useState<string[]>([]); // v694
   const [selfMailboxes, setSelfMailboxes] = useState<MailboxOption[]>([]); // BF_PORTAL_BLOCK_v730 — used when caller passes no fromOptions
+  // KS_PORTAL_v12_GOOGLE_WORKSPACE - Gmail sends (gmail.send) cannot keep server drafts or schedule a send, so with
+  // Google only the composer sends now and hides the Outlook-only draft and schedule controls.
+  const googleOnly = useGoogleMailOnly(open);
   const [composeSending, setComposeSending] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -239,12 +246,13 @@ export default function O365ComposeModal({
   useEffect(() => {
     if (!open) return;
     const hasContent = !!((composeBody || "").replace(/<[^>]*>/g, "").trim() || composeSubject.trim());
+    if (googleOnly) return; // KS_PORTAL_v12_GOOGLE_WORKSPACE - no server drafts with gmail.send
     if (!hasContent || composeSending || savingDraft || autosaveStopped) return; // BF_PORTAL_DRAFT_NOT_FOUND_v27
     const autosaveKey = draftContentKey();
     if (lastAutosaveKeyRef.current === autosaveKey) return;
     const t = setTimeout(() => { void saveDraft(); }, 25000);
     return () => clearTimeout(t);
-  }, [open, composeBody, composeSubject, composeTo, composeCc, composeBcc, composeFrom, importance, requestReadReceipt, requestDeliveryReceipt, composeSending, savingDraft, autosaveStopped]);
+  }, [open, googleOnly, composeBody, composeSubject, composeTo, composeCc, composeBcc, composeFrom, importance, requestReadReceipt, requestDeliveryReceipt, composeSending, savingDraft, autosaveStopped]);
 
   // BF_PORTAL_BLOCK_v730 — when the caller passes no mailboxes (CRM / BI "Email"
   // actions), self-fetch them so the composer is fully drop-in everywhere and
@@ -681,6 +689,7 @@ export default function O365ComposeModal({
           ...(scheduleIso ? { scheduleAt: scheduleIso } : {}),
           log_contact_id: logScope?.kind === "contact" ? logScope.id : undefined, // BF_PORTAL_BLOCK_v734
           log_company_id: logScope?.kind === "company" ? logScope.id : undefined,
+          ...(inReplyTo ? { in_reply_to: inReplyTo, references: inReplyTo } : {}), // KS_PORTAL_v12_GOOGLE_WORKSPACE
           attachments: attachments.map(({ name, contentType, contentBytes }) => ({ name, contentType, contentBytes })),
           collateralIds,
         },
@@ -945,10 +954,12 @@ export default function O365ComposeModal({
 
         <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", position: "sticky", bottom: 0, background: "var(--ui-surface-strong)", paddingTop: 12, marginTop: 4, borderTop: "1px solid var(--ui-border)", zIndex: 6 }}>
           <div style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>
+            {googleOnly ? "Sending from your Google account" : ""}
             {draftId ? "Outlook draft linked" : ""}
             {draftSavedAt ? ` · Saved ${new Date(draftSavedAt).toLocaleTimeString()}` : ""}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", justifyContent: "flex-end" }}>
+            {!googleOnly && (<>
             <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--ui-text)" }}>
               Schedule
               <select value={scheduleMode} onChange={(e) => setScheduleMode(e.target.value)} disabled={composeSending || savingDraft} style={{ padding: 4, border: "1px solid var(--ui-border)", borderRadius: 4, fontSize: 13 }}>
@@ -966,8 +977,9 @@ export default function O365ComposeModal({
               )}
             </label>
             <button type="button" disabled={composeSending || savingDraft || !scheduleMode || (scheduleMode === "custom" && !scheduleAt)} onClick={() => { let iso = ""; if (scheduleMode === "custom") { iso = scheduleAt ? new Date(scheduleAt).toISOString() : ""; } else if (scheduleMode) { iso = new Date(Date.now() + Number(scheduleMode) * 3600 * 1000).toISOString(); } if (iso) void sendComposed(iso); }} style={{ padding: "8px 14px", border: "1px solid var(--ui-accent-blue)", borderRadius: 4, background: "var(--ui-surface-strong)", color: "var(--ui-accent-blue)", fontWeight: 600, cursor: (composeSending || savingDraft || !scheduleMode || (scheduleMode === "custom" && !scheduleAt)) ? "default" : "pointer" }}>Schedule send</button>
+            </>)}
             <button type="button" onClick={onClose} disabled={composeSending || savingDraft} style={{ padding: "8px 14px", border: "1px solid var(--ui-border)", borderRadius: 4, background: "var(--ui-surface-strong)", cursor: composeSending || savingDraft ? "default" : "pointer" }}>Cancel</button>
-            <button type="button" onClick={() => void saveDraft()} disabled={composeSending || savingDraft} style={{ padding: "8px 14px", border: "1px solid var(--ui-border)", borderRadius: 4, background: "var(--ui-surface-strong)", cursor: composeSending || savingDraft ? "default" : "pointer" }}>{savingDraft ? "Saving..." : "Save draft"}</button>
+            {!googleOnly && <button type="button" onClick={() => void saveDraft()} disabled={composeSending || savingDraft} style={{ padding: "8px 14px", border: "1px solid var(--ui-border)", borderRadius: 4, background: "var(--ui-surface-strong)", cursor: composeSending || savingDraft ? "default" : "pointer" }}>{savingDraft ? "Saving..." : "Save draft"}</button>}
             <button type="button" onClick={() => void sendComposed()} disabled={composeSending || savingDraft} style={{ padding: "8px 14px", border: "none", borderRadius: 4, background: "var(--ui-accent-blue)", color: "#fff", fontWeight: 600, cursor: composeSending || savingDraft ? "default" : "pointer" }}>{composeSending ? "Sending..." : "Send"}</button>
           </div>
         </div>
