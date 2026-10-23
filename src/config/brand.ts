@@ -18,6 +18,8 @@ export type Brand = {
   country: string;
   /** KS_PORTAL_v6_COMPANY - postal address printed in marketing email footers (Canada's anti-spam law). */
   mailing_address: string;
+  /** KS_PORTAL_v12_GOOGLE_WORKSPACE - m365 | google | both: which Connect buttons staff see (default m365). */
+  workspace_provider: "m365" | "google" | "both";
   urls: { server: string; portal: string; client: string; website: string };
 };
 
@@ -44,6 +46,7 @@ export function defaultBrand(): Brand {
     time_zone: "",
     country: "",
     mailing_address: "",
+    workspace_provider: "m365",
     urls: { server: "", portal: "", client: "", website: "" },
   };
 }
@@ -72,6 +75,7 @@ function normalize(raw: unknown): Brand {
     time_zone: str(r.time_zone),
     country: str(r.country),
     mailing_address: str(r.mailing_address),
+    workspace_provider: ((v: string) => (v === "google" || v === "both" ? v : "m365"))(str(r.workspace_provider).toLowerCase()),
     urls: { server: str(urls.server), portal: str(urls.portal), client: str(urls.client), website: str(urls.website) },
   };
 }

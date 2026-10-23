@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { api } from "@/api";
 import { withO365Scopes } from "@/api/o365Interceptor"; // BF_PORTAL_v789_INCREMENTAL_CONSENT - Files.ReadWrite on use
 import { FILES_READWRITE_SCOPES } from "@/auth/o365Scopes";
+import { useWorkspaceMode } from "@/lib/workspace"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 type DriveFile = { id: string; name: string; webUrl?: string | null; isFolder?: boolean };
 
@@ -28,18 +29,23 @@ export function ContactOneDrive({ contactId }: { contactId: string }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // KS_PORTAL_v12_GOOGLE_WORKSPACE - the server answers provider "google" for a Google Drive folder.
+  const [provider, setProvider] = useState<string | null>(null);
+  const mode = useWorkspaceMode();
+  const drive = provider === "google" || (!provider && mode === "google") ? "Google Drive" : "OneDrive";
 
   const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
       const r = await withO365Scopes(FILES_READWRITE_SCOPES, () => api.get<unknown>(`/api/o365/contacts/${encodeURIComponent(contactId)}/folder/files`));
-      const body = ((r as { data?: unknown })?.data ?? r) as { hasFolder?: boolean; url?: string | null; files?: DriveFile[] };
+      const body = ((r as { data?: unknown })?.data ?? r) as { hasFolder?: boolean; url?: string | null; files?: DriveFile[]; provider?: string };
+      if (body?.provider) setProvider(body.provider);
       setHasFolder(!!body?.hasFolder);
       setUrl(body?.url ?? null);
       setFiles(Array.isArray(body?.files) ? body.files : []);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not load OneDrive folder");
+      setErr(e instanceof Error ? e.message : "Could not load the client folder");
     } finally {
       setLoading(false);
     }
@@ -52,11 +58,12 @@ export function ContactOneDrive({ contactId }: { contactId: string }) {
     setErr(null);
     try {
       const r = await withO365Scopes(FILES_READWRITE_SCOPES, () => api.post<unknown>(`/api/o365/contacts/${encodeURIComponent(contactId)}/folder`, {}), { interactive: true });
-      const body = ((r as { data?: unknown })?.data ?? r) as { url?: string };
+      const body = ((r as { data?: unknown })?.data ?? r) as { url?: string; provider?: string };
+      if (body?.provider) setProvider(body.provider);
       if (body?.url) setUrl(body.url);
       await load();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not create folder - connect Microsoft 365 in Settings first.");
+      setErr(e instanceof Error ? e.message : `Could not create folder - connect ${drive === "Google Drive" ? "Google" : "Microsoft 365"} in Settings first.`);
     } finally {
       setBusy(false);
     }
@@ -64,12 +71,12 @@ export function ContactOneDrive({ contactId }: { contactId: string }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h3 style={{ marginTop: 0, marginBottom: 8 }}>OneDrive</h3>
+      <h3 style={{ marginTop: 0, marginBottom: 8 }}>{drive}</h3>
       {loading ? (
         <div style={{ fontSize: 13, color: "var(--ui-text-muted)" }}>Loading...</div>
       ) : !hasFolder ? (
         <button type="button" onClick={() => void create()} disabled={busy} style={{ ...btn, opacity: busy ? 0.6 : 1 }}>
-          {busy ? "Creating..." : "Create OneDrive folder"}
+          {busy ? "Creating..." : `Create ${drive} folder`}
         </button>
       ) : (
         <div>
@@ -79,7 +86,7 @@ export function ContactOneDrive({ contactId }: { contactId: string }) {
             rel="noopener noreferrer"
             style={{ ...btn, display: "block", textDecoration: "none", textAlign: "center" }}
           >
-            Open OneDrive folder
+            Open {drive} folder
           </a>
           <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
             {files.length === 0 ? (
@@ -108,7 +115,7 @@ export function ContactOneDrive({ contactId }: { contactId: string }) {
           </button>
         </div>
       )}
-      {err && <div style={{ fontSize: 12, color: "#dc2626", marginTop: 6 }}>{err}</div>}
+      {err && <div style={{ fontSize: 12, color: "#b91c1c", marginTop: 6 }}>{err}</div>}
     </div>
   );
 }
