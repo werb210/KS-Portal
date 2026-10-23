@@ -283,11 +283,21 @@ describe("the broker tour on the real portal", () => {
       const next = screen.queryByTestId("live-demo-next") as HTMLButtonElement | null;
       if (!next) break;
       expect(card().querySelector('[role="alert"]')).toBeNull();
-      fireEvent.click(next);
+      if (title === "Pick your lenders") {
+        // The prospect picks the lenders: Submit waits for 1-3 ticks.
+        await waitFor(() => expect(screen.getByTestId("live-demo-pick-hint").textContent).toMatch(/at least one/), { timeout: 10_000 });
+        expect(next.disabled).toBe(true);
+        for (const name of ["Aspen Ridge Capital", "Northgate Equipment Finance"]) {
+          fireEvent.click(await screen.findByLabelText(`Send to ${name}`));
+        }
+        await waitFor(() => expect((screen.getByTestId("live-demo-next") as HTMLButtonElement).disabled).toBe(false), { timeout: 10_000 });
+        expect(screen.getByTestId("live-demo-next").textContent).toBe("Submit to 2 lenders");
+      }
+      fireEvent.click(screen.getByTestId("live-demo-next"));
       await waitFor(() => {
         const n = screen.queryByTestId("live-demo-next") as HTMLButtonElement | null;
         const t = card().querySelector("h2")?.textContent ?? "";
-        expect(!n || (!n.disabled && (t !== title || ["Sam is calling", "Live call"].includes(t)))).toBe(true);
+        expect(!n || ((!n.disabled || t === "Pick your lenders") && (t !== title || ["Client intake call: Sam is calling", "Live call"].includes(t)))).toBe(true);
       }, { timeout: 30_000 });
     }
 
@@ -299,10 +309,10 @@ describe("the broker tour on the real portal", () => {
       "The bank summary",
       "A credit summary, drafted",
       "The fraud report",
-      "Sam is calling",
+      "Client intake call: Sam is calling",
       "Live call",
       "AI call note added to the file",
-      "Pick the lenders",
+      "Pick your lenders",
       "That's the whole file",
     ]);
     expect(screen.getByTestId("live-demo-sent").textContent).toContain("dana@brokerco.example");
@@ -313,7 +323,7 @@ describe("the broker tour on the real portal", () => {
     expect(JSON.parse(String((submits[0] as unknown as [string, RequestInit])[1].body))).toEqual({
       accepted: DOCS.map((d) => d.key),
       rejected: [],
-      lenders: ["aspen-ridge", "northgate", "granite-peak"],
+      lenders: ["aspen-ridge", "northgate"],
       call_answered: true,
     });
     expect(getState().creditSummary.status).toBe("submitted");
