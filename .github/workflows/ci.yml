@@ -60,6 +60,10 @@ jobs:
       - name: No Boreal text
         run: node scripts/check-no-boreal-text.mjs
 
+      # KS_LICENSEE_DEPLOY_v1 - the licensee registry the deploy workflow reads must be valid before it reaches main.
+      - name: Licensee deploy registry
+        run: node deploy/licensee-matrix.mjs --check
+
       - run: npm run typecheck
       # BF_PORTAL_AUDIT_v777 - the test files' types (tsconfig.tests.json) and lint were never checked in CI.
       - run: npm run typecheck:all
