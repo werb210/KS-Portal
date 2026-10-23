@@ -12,7 +12,7 @@ import { exitLiveDemo } from "../session";
 import CallOverlay from "./CallOverlay";
 import { CALLER, answer, getCall, resetCall, ring, skipAhead, subscribeCall } from "./callSim";
 import { reveal, sleep } from "./dom";
-import { CALL_TEXT, STEPS, appTab, tickAndSend, type TourCtx, type TourStep } from "./steps";
+import { CALL_TEXT, MAX_PICK, STEPS, appTab, pickedLenders, tickAndSend, type TourCtx, type TourStep } from "./steps";
 
 const TOUR_KEY = "ks_live_demo_tour_v1";
 
@@ -83,6 +83,8 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   pathRef.current = location.pathname;
 
   const [focusEl, setFocus] = useState<Element | null>(null);
+  // KS_PORTAL_v11_LIVE_DEMO - on the lenders step the prospect ticks 1-3 lenders themselves; Submit waits for that.
+  const [picked, setPicked] = useState(0);
   const ctx: TourCtx = { navigate, setStatus, setFocus };
 
   const go = useCallback((to: number) => {
@@ -164,6 +166,14 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
       window.removeEventListener("resize", onResize);
     };
   }, [target]);
+
+  useEffect(() => {
+    if (steps[index]?.key !== "lenders") return;
+    const tick = () => setPicked(pickedLenders());
+    tick();
+    const t = window.setInterval(tick, 250);
+    return () => window.clearInterval(t);
+  }, [index, steps]);
 
   const send = async () => {
     if (getState().submission) {
@@ -247,12 +257,19 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
       );
     }
   }
+  const pickOk = picked >= 1 && picked <= MAX_PICK;
+  if (step.key === "lenders" && !getState().submission && !busy) {
+    nextLabel = picked === 0 ? "Submit" : `Submit to ${picked} lender${picked === 1 ? "" : "s"}`;
+  }
+  const pickHint = step.key === "lenders" && !getState().submission
+    ? picked === 0 ? "Tick at least one lender to submit." : picked > MAX_PICK ? `Pick up to ${MAX_PICK} lenders - untick ${picked - MAX_PICK}.` : null
+    : null;
   const sub = getState().submission;
   if (step.key === "done") {
     body = (
       <>
         <span className="ksld-card-strong" data-testid="live-demo-sent">Sent - the lender package is on its way to {sub?.emailed_to ?? "your inbox"}.</span>
-        <span>In a few minutes you'll have the same package a lender receives. You took a phone application, reviewed the documents, caught a doctored statement, took the client's call and sent the file to three lenders - without typing a thing.</span>
+        <span>In a few minutes you'll have the same package a lender receives. You took a phone application, reviewed the documents, caught a doctored statement, took the client's call and sent the file to {sub?.lenders?.length === 1 ? "a lender" : `${sub?.lenders?.length ?? "your"} lenders`} - without typing a thing.</span>
       </>
     );
   }
@@ -308,6 +325,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
         <h2 id="ksld-card-title" className="ksld-card-title">{title}</h2>
         <div className="ksld-card-body">{body}</div>
         {statusLine && <div className="ksld-card-status" role="status">{statusLine}</div>}
+        {pickHint && !statusLine && <div className="ksld-card-status" role="status" data-testid="live-demo-pick-hint">{pickHint}</div>}
         {error && (
           <div className="ksld-card-error" role="alert">
             {error}
@@ -321,7 +339,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
               <a className="ksld-btn ksld-btn--primary" href={`${websiteUrl}/signup`}>Sign up</a>
             </>
           ) : (
-            <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => void next()} disabled={busy} data-testid="live-demo-next">
+            <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => void next()} disabled={busy || (step.key === "lenders" && !getState().submission && !pickOk)} data-testid="live-demo-next">
               {busy ? (step.key === "lenders" ? "Sending…" : "Working…") : error && step.key === "lenders" ? "Try again" : nextLabel}
             </button>
           )}

@@ -27,6 +27,9 @@ export type TourStep = {
   action?: (ctx: TourCtx) => Promise<ActionResult>;
 };
 
+/** The prospect picks 1 to MAX_PICK lenders themselves on the Lenders tab before Submit. */
+export const MAX_PICK = 3;
+
 export const appTab = (tab: string) => `/applications/${APP_ID}/${tab}`;
 
 const growthPct = () => {
@@ -175,7 +178,7 @@ export const STEPS: TourStep[] = [
     key: "call",
     track: "call",
     route: appTab("fraud"),
-    title: "Sam is calling",
+    title: "Client intake call: Sam is calling",
     body: "Your iPhone, your watch and the portal ring together - with the file in front of you: who it is, the deal, 6 of 6 documents and the fraud flag.",
     placement: "bottom-left",
     nextLabel: "Answer",
@@ -184,10 +187,10 @@ export const STEPS: TourStep[] = [
     key: "lenders",
     track: "lenders",
     route: appTab("lenders"),
-    title: "Pick the lenders",
-    body: `Every lender scored against this file. ${strongLenders().map((l) => l.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are strong fits. Next ticks them and sends the package.`,
+    title: "Pick your lenders",
+    body: `Every lender is scored against this file - ${strongLenders().map((l) => l.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are strong fits. Tick 1 to ${MAX_PICK} lenders in the list, then Submit.`,
     target: () => document.querySelector('[data-testid="lenders-tab"] table'),
-    nextLabel: "Send to lenders",
+    nextLabel: "Submit",
   },
   {
     key: "done",
@@ -205,16 +208,15 @@ export const CALL_TEXT = {
   declined: { title: "Call declined", body: "No problem - Sam can leave a voicemail and the file keeps moving. Next goes to the lenders.", next: "Next" },
 };
 
-/** Tick the strong matches and press the real Send button. Resolves when the Lenders tab shows the outcome. */
+/** How many lenders are ticked on the Lenders tab right now. */
+export function pickedLenders(): number {
+  const tab = document.querySelector<HTMLElement>('[data-testid="lenders-tab"]');
+  return tab ? tab.querySelectorAll<HTMLInputElement>('input[aria-label^="Send to "]:checked').length : 0;
+}
+
+/** Press the real Send button for the lenders the prospect ticked. Resolves when the Lenders tab shows the outcome. */
 export async function tickAndSend(ctx: TourCtx, timeoutMs = 120_000): Promise<{ ok: boolean; message: string }> {
-  const tab = await waitFor(() => document.querySelector<HTMLElement>('[data-testid="lenders-tab"]'));
-  for (const l of strongLenders()) {
-    const box = tab.querySelector<HTMLInputElement>(`input[aria-label="Send to ${l.name}"]`);
-    if (box && !box.checked && !box.disabled) {
-      press(box);
-      await sleep(250);
-    }
-  }
+  await waitFor(() => document.querySelector<HTMLElement>('[data-testid="lenders-tab"]'));
   const footer = await waitFor(() => document.querySelector<HTMLElement>('[data-testid="lenders-send-footer"]'));
   const send = await waitFor(() => Array.from(footer.querySelectorAll("button")).find((b) => /^Send \(\d+\)$/.test((b.textContent ?? "").trim()) && !b.disabled));
   ctx.setStatus("Sending the package…");
