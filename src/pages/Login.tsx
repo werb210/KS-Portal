@@ -7,6 +7,9 @@ import { clearOtpFlowState, setOtpStartRequested, setOtpStartSucceeded } from "@
 import { API_BASE } from "@/config/api";
 import { writeSessionItem } from "@/lib/secureStore";
 import { loginWithPasskey, passkeysSupported } from "@/auth/passkey"; // BF_PORTAL_WEBAUTHN_v1
+// KS_STAFF_DIRECTORY_v1 - the iPad app finds the brokerage from the person's email or mobile number first.
+import { clearWorkspace, needsWorkspace, storedWorkspace, takePrefillPhone } from "@/config/workspace";
+import FindWorkspace from "./FindWorkspace";
 
 type StartError = string | null;
 
@@ -20,7 +23,13 @@ function normalizeNorthAmericanPhone(value: string): string | null {
 }
 
 export default function Login() {
-  const [phone, setPhone] = useState("");
+  return needsWorkspace() ? <FindWorkspace /> : <PhoneLogin />;
+}
+
+function PhoneLogin() {
+  // KS_STAFF_DIRECTORY_v1 - a mobile number typed on the email-or-mobile step is filled in (and sent) here.
+  const [phone, setPhone] = useState(() => takePrefillPhone());
+  const [workspace] = useState(() => storedWorkspace());
   const [error, setError] = useState<StartError>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const autoFiredFor = useRef<string | null>(null);
@@ -181,6 +190,14 @@ export default function Login() {
             We{"'"}ll text you a one-time code to verify.
           </p>
         </form>
+        {workspace ? (
+          <p className="text-sm text-white/70 text-center" data-testid="workspace-line">
+            Signing in to {workspace.name}.{" "}
+            <button type="button" onClick={() => clearWorkspace()} className="font-semibold text-white underline underline-offset-2">
+              Change
+            </button>
+          </p>
+        ) : null}
         {passkeysSupported() ? (
           <button
             type="button"

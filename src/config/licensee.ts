@@ -2,6 +2,8 @@
 // KS-Portal was copied from BF-portal, which wrote Boreal's addresses (server/client/www.boreal.financial) into the
 // code. Each Keystone copy sets its own at build time (VITE_API_URL, VITE_CLIENT_APP_URL, VITE_WEBSITE_URL); when one
 // is missing, the Keystone development copy's address is used - never Boreal's.
+import { nativeWorkspaceServer } from "./workspace";
+
 const DEV = {
   server: "https://ks-server-dev-chb5htbwaue2hygk.canadacentral-01.azurewebsites.net",
   client: "https://wonderful-island-0b68ae310.5.azurestaticapps.net",
@@ -12,8 +14,10 @@ const clean = (v: unknown): string => {
   return /^https?:\/\/[^\s/]+/i.test(s) ? s.replace(/\/+$/, "") : "";
 };
 
+// KS_STAFF_DIRECTORY_v1 - the iPad app uses the brokerage chosen on its sign-in screen (see ./workspace.ts); the web
+// portal and an iPad app with no choice yet use the build's server.
 export const SERVER_URL: string =
-  clean(import.meta.env.VITE_API_URL) || clean(import.meta.env.VITE_API_BASE_URL) || clean(import.meta.env.VITE_BF_API_URL) || DEV.server;
+  nativeWorkspaceServer() || clean(import.meta.env.VITE_API_URL) || clean(import.meta.env.VITE_API_BASE_URL) || clean(import.meta.env.VITE_BF_API_URL) || DEV.server;
 
 export const CLIENT_URL: string = clean(import.meta.env.VITE_CLIENT_APP_URL) || DEV.client;
 
