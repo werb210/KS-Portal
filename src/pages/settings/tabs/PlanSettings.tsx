@@ -7,7 +7,7 @@ import {
   FEATURES, OVERAGE_PRICE, PLAN_ALLOWANCES, PLAN_LABEL, PLAN_ORDER, STARTER_BASICS, STORAGE_BLOCK_GB, STORAGE_BLOCK_PRICE_TEXT,
   formatBytes, planRank, type PlanKey,
 } from "@/plans/catalogue";
-import { trialOfferText, featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState, type PlanUsage } from "@/plans/planStore";
+import { trialFeaturesText, trialOfferText, featureLabel, hasFeature, requestUpgrade, startTrial, usePlan, type PlanState, type PlanUsage } from "@/plans/planStore";
 import { TRIAL_CTA } from "@/plans/FeatureGate";
 import { daysLeftText } from "@/plans/PlanBanners";
 import { PlanBadge, primaryButton, secondaryButton, useIsAdmin } from "@/plans/ui";
@@ -251,7 +251,7 @@ export default function PlanSettings() {
           {trialActive && (
             <p style={{ margin: "8px 0 0", fontSize: 14 }}>
               <strong>{daysLeftText(state.trial.days_left)}</strong>
-              {state.trial.ends_at ? ` (ends ${fmtDate(state.trial.ends_at)})` : ""}. You have every Growth and Pro feature until then.
+              {state.trial.ends_at ? ` (ends ${fmtDate(state.trial.ends_at)})` : ""}. You have every {trialFeaturesText(state)} until then.
             </p>
           )}
           {state.trial.status === "used" && <p style={{ margin: "8px 0 0", ...muted }}>Your free trial has been used.</p>}

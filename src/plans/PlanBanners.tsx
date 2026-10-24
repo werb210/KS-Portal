@@ -36,7 +36,7 @@ export function TrialBanner({ role: rawRole }: RoleProp) {
   return (
     <div role="status" data-testid="trial-banner" data-urgent={urgent ? "true" : "false"} style={urgent ? AMBER : BLUE}>
       <strong>{daysLeftText(days)}</strong>
-      <span>Every Growth and Pro feature is on, plus bonus minutes and texts.</span>
+      <span>{state.plan === "growth" ? "Every Pro feature is on." : "Every Growth and Pro feature is on, plus bonus minutes and texts."}</span>
       <PlanLink>See your plan</PlanLink>
     </div>
   );
