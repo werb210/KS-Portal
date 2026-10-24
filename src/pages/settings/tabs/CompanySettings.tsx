@@ -11,6 +11,7 @@ import {
 } from "@/company/licenseeAdmin";
 import { primaryButton, useIsAdmin } from "@/plans/ui";
 import FraudProtectionCard from "@/fraud/FraudProtectionCard"; // KS_PORTAL_v7_FRAUD
+import QuickBooksCard from "./QuickBooksCard"; // KS_PORTAL_v13_QUICKBOOKS
 import { WORKSPACE_MODE_LABEL, normalizeWorkspaceMode, type WorkspaceMode } from "@/lib/workspace"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
@@ -288,6 +289,8 @@ export default function CompanySettings() {
 
       {/* KS_PORTAL_v7_FRAUD - saves on its own, separate from the company details above. */}
       <div style={{ marginTop: 20 }}><FraudProtectionCard /></div>
+      {/* KS_PORTAL_v13_QUICKBOOKS - the licensee's own QuickBooks Online, for media fee invoices. */}
+      <div style={{ marginTop: 20 }}><QuickBooksCard /></div>
     </div>
   );
 }
