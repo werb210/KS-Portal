@@ -27,7 +27,7 @@ describe("beta store", () => {
   it("drops unknown, retired and duplicate items and keeps only https links", () => {
     const out = normalizeBeta({ features: [feature({ docs_url: "javascript:alert(1)" }), feature(), { key: "x y", status: "ga" }, feature({ key: "gone", status: "retired" })] });
     expect(out).toHaveLength(1);
-    expect(out[0].docs_url).toBeNull();
+    expect(out[0]!.docs_url).toBeNull();
     expect(normalizeBeta(null)).toEqual([]);
   });
 
