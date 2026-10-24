@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ApplicationOriginPanel from "./ApplicationOriginPanel"; // BF_PORTAL_v828_APPLICATION_ORIGIN
+import ApplicationCardActions from "@/components/applications/ApplicationCardActions"; // KS_PORTAL_v13 - calculator + QuickBooks invoice
 import { api } from "@/api";
 // BF_NO_OVERVIEW_v41 — Block 41-C — Overview tab removed from drawer.
 import ApplicationTab from "@/pages/applications/tabs/ApplicationTab";
@@ -113,6 +114,10 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
           borderBottom: "1px solid var(--ui-border)",
           background: "var(--ui-surface-strong)",
           flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          flexWrap: "wrap",
         }}
       >
         <button
@@ -131,6 +136,8 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
         >
           ← Back to pipeline
         </button>
+        <span style={{ flex: 1 }} />
+        <ApplicationCardActions applicationId={applicationId} application={application} />
       </div>
 
       <ApplicationOriginPanel applicationId={applicationId} />{/* BF_PORTAL_v828_APPLICATION_ORIGIN - lender, broker or referrer */}

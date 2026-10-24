@@ -446,6 +446,10 @@ export function createShim(opts: ShimOptions) {
     ] })],
     ["PUT", new RegExp(`^/api/fraud/applications/${ID}/prescreen$`), (r) => ok({ ok: true, include_in_package: Boolean(r.body?.include_in_package) })],
 
+    // KS_PORTAL_v13_QUICKBOOKS - QuickBooks is not part of the demo: no invoice on the card, the Settings card greyed out.
+    ["GET", new RegExp(`^/api/quickbooks/applications/${ID}/invoice$`), () => raw({ configured: false, connected: false, invoice: null })],
+    ["GET", /^\/api\/quickbooks\/status$/, () => raw({ configured: false, reason: "QuickBooks is not part of the demo.", environment: "sandbox", connected: false, status: null, companyName: null, realmId: null, connectedAt: null, lastError: null, taxCodeId: null, taxCodeName: null })],
+
     // notes
     ["GET", new RegExp(`^/api/applications/${ID}/notes$`), (_r, m) => ok({ ok: true, items: notes(m[1]!) })],
     ["POST", new RegExp(`^/api/applications/${ID}/notes$`), (r, m) => {
