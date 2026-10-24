@@ -13,11 +13,12 @@ import { applyTheme } from "@/theme/theme";
 import { SERVER_URL } from "@/config/licensee";
 import { DEMO_CONTACT_EMAIL, demoWebsiteUrl } from "../config";
 import { ensureSession, getKeeper, initKeeper, subscribeKeeper, trackDemo, waitForSession } from "../demoApi";
-import { markLiveDemo } from "../mode";
+import { isPresenterDemo, markLiveDemo, markPresenterDemo, readPresenter } from "../mode";
 import { createShim, type Prospect, type Shim } from "./shim";
 import { installQuietBrowser } from "./quiet";
 import { enterBrokerAuth } from "./session";
 import BrokerTour from "./tour/BrokerTour";
+import PresenterBar from "../presenter/PresenterBar";
 import "../liveDemo.css";
 
 function hasSavedTheme(): boolean {
@@ -31,13 +32,19 @@ function hasSavedTheme(): boolean {
 export type BrokerSetup = { shim: Shim; realFetch: typeof fetch; restore: () => void };
 
 export function prospect(): Prospect {
+  // KS_PORTAL_v12_PRESENTER - the presenter typed the prospect's name and brokerage on the start page.
+  if (isPresenterDemo()) {
+    const p = readPresenter()?.prospect;
+    return { name: p?.name?.trim() || "Demo broker", company: p?.company?.trim() || "Your brokerage" };
+  }
   const s = getKeeper().session;
   return { name: s?.name?.trim() || "Demo broker", company: s?.company?.trim() || "Your brokerage" };
 }
 
 /** Everything before the first render. Returns the shim (tests read its `unhandled` list) and an undo. */
-export function setupBrokerDemo(opts: { realFetch?: typeof fetch; latencyMs?: number; sendTimeoutMs?: number } = {}): BrokerSetup {
+export function setupBrokerDemo(opts: { realFetch?: typeof fetch; latencyMs?: number; sendTimeoutMs?: number; presenter?: boolean } = {}): BrokerSetup {
   markLiveDemo(true);
+  markPresenterDemo(Boolean(opts.presenter));
   document.documentElement.setAttribute("data-live-demo", "broker");
   initKeeper(window.location);
   const original = window.fetch;
@@ -55,14 +62,16 @@ export function setupBrokerDemo(opts: { realFetch?: typeof fetch; latencyMs?: nu
     session: () => getKeeper().session,
     waitForSession: () => waitForSession(opts.sendTimeoutMs ?? 90_000),
     latencyMs: opts.latencyMs ?? 0,
+    localSubmit: Boolean(opts.presenter),
   });
   window.fetch = shim.fetch;
   globalThis.fetch = shim.fetch; // the same object in a browser
   const unquiet = installQuietBrowser();
   enterBrokerAuth(prospect().name);
   const unsubscribe = subscribeKeeper((k) => {
-    if (k.session?.company) applyBrand({ company_name: k.session.company });
+    if (!opts.presenter && k.session?.company) applyBrand({ company_name: k.session.company });
   });
+  if (opts.presenter) applyBrand({ company_name: prospect().company });
   return {
     shim,
     realFetch,
@@ -72,12 +81,13 @@ export function setupBrokerDemo(opts: { realFetch?: typeof fetch; latencyMs?: nu
       unquiet();
       unsubscribe();
       markLiveDemo(false);
+      markPresenterDemo(false);
       document.documentElement.removeAttribute("data-live-demo");
     },
   };
 }
 
-export function BrokerDemoRoot({ realFetch }: { realFetch: typeof fetch }) {
+export function BrokerDemoRoot({ realFetch, presenter = false }: { realFetch: typeof fetch; presenter?: boolean }) {
   const onTrack = (name: string, step: string) => {
     const s = getKeeper().session;
     if (s) void trackDemo(s, name, step, realFetch);
@@ -88,21 +98,22 @@ export function BrokerDemoRoot({ realFetch }: { realFetch: typeof fetch }) {
         <ErrorBoundary>
           <App />
         </ErrorBoundary>
-        <BrokerTour websiteUrl={demoWebsiteUrl()} supportEmail={DEMO_CONTACT_EMAIL} onTrack={onTrack} />
+        {presenter ? <PresenterBar /> : <BrokerTour websiteUrl={demoWebsiteUrl()} supportEmail={DEMO_CONTACT_EMAIL} onTrack={onTrack} />}
       </AuthProvider>
     </BrowserRouter>
   );
 }
 
-export async function bootBroker(): Promise<void> {
-  const { realFetch } = setupBrokerDemo({ latencyMs: 180 });
+export async function bootBroker(opts: { presenter?: boolean } = {}): Promise<void> {
+  const presenter = Boolean(opts.presenter);
+  const { realFetch } = setupBrokerDemo({ latencyMs: 180, presenter });
   // The light theme for a prospect with no saved choice (not saved, so the real portal keeps its own default).
   if (!hasSavedTheme()) applyTheme("light");
-  void ensureSession();
+  if (!presenter) void ensureSession();
   await loadBrand();
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-      <BrokerDemoRoot realFetch={realFetch} />
+      <BrokerDemoRoot realFetch={realFetch} presenter={presenter} />
     </React.StrictMode>,
   );
 }

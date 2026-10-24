@@ -3,7 +3,7 @@
 // summary, tick lenders and Send), and every one of those also works with a real click.
 import { APP_ID, BUSINESS, CALL_SUMMARY, DOCS, FINANCIALS, STATEMENTS, DOCTORED, dscr, matchLenders, money } from "../fixture";
 import { getState } from "../state";
-import { buttonsLabelled, elementWithText, press, sleep, waitFor } from "./dom";
+import { buttonsLabelled, elementWithText, press, reveal, sleep, waitFor } from "./dom";
 
 export type TourCtx = {
   navigate: (to: string) => void;
@@ -65,26 +65,54 @@ function pendingAcceptButtons(): HTMLButtonElement[] {
   return buttonsLabelled("Accept", root).filter((b) => !b.disabled && !b.closest('[data-testid="accept-name-dialog"]'));
 }
 
+/**
+ * KS_PORTAL_v12_DEMO_FIXES - how long the auto-played steps pause so a person can follow them. Tests set `scale` to 0.
+ */
+export const tourPace = { scale: 1 };
+const pause = (ms: number) => sleep(Math.round(ms * tourPace.scale));
+
+/**
+ * KS_PORTAL_v12_DEMO_FIXES - Next on the documents step plays the acceptance one document at a time, at reading pace:
+ * the row scrolls into view and is spotlit, the naming dialog shows the tidy name it will get (held ~1.5 s), and the
+ * accepted row with its new name stays lit a moment before the next one. The card counts "2 of 6" as it goes and
+ * Next stays disabled until the last one is done.
+ */
 async function acceptEveryDocument(ctx: TourCtx): Promise<ActionResult> {
   const pendingLeft = () => DOCS.filter((d) => getState().docs[d.id]?.status === "pending").length;
-  for (let i = 0; i < DOCS.length + 2 && pendingLeft() > 0; i++) {
+  const total = DOCS.length;
+  for (let i = 0; i < total + 2 && pendingLeft() > 0; i++) {
+    const n = total - pendingLeft() + 1;
     // The list reloads after every decision; wait for it to come back with a pending row.
     const btn = await waitFor(() => pendingAcceptButtons()[0], 10_000);
     const row = btn.closest("div[style]")?.parentElement ?? btn;
-    const name = row.querySelector("span")?.textContent ?? "document";
+    const name = (row.querySelector("span")?.textContent ?? "document").trim();
+    reveal(row, "center");
     ctx.setFocus(row);
-    ctx.setStatus(`Accepting ${name}…`);
-    await sleep(350);
+    ctx.setStatus(`Accepting ${n} of ${total}: ${name}`);
+    await pause(900);
     press(btn);
     const dialog = await waitFor(() => document.querySelector<HTMLElement>('[data-testid="accept-name-dialog"]'));
+    const preview = await waitFor(() => dialog.querySelector<HTMLElement>('[data-testid="accept-name-preview"]') ?? (dialog.textContent?.includes("Preparing") ? null : dialog), 6000).catch(() => dialog);
+    const newName = preview && preview !== dialog ? (preview.textContent ?? "").trim() : "";
+    ctx.setFocus(dialog);
+    ctx.setStatus(newName ? `Renamed to: ${newName}` : `Accepting ${n} of ${total}…`);
+    await pause(1600);
     const confirm = await waitFor(() => buttonsLabelled("Accept", dialog).find((b) => !b.disabled));
-    await sleep(450);
     press(confirm);
     await waitFor(() => !document.querySelector('[data-testid="accept-name-dialog"]'), 10_000);
-    await sleep(250);
+    // The accepted row, with its new name and badge.
+    const accepted = newName ? await waitFor(() => elementWithText(newName, documentsRoot() ?? document, "span,div")?.closest("div[style]")?.parentElement ?? null, 4000).catch(() => null) : null;
+    if (accepted) {
+      reveal(accepted, "center");
+      ctx.setFocus(accepted);
+    }
+    ctx.setStatus(`${n} of ${total} accepted${newName ? ` - ${newName}` : ""}`);
+    await pause(900);
   }
   await waitFor(() => documentsRoot() && pendingAcceptButtons().length === 0, 10_000);
   ctx.setFocus(null);
+  ctx.setStatus(`All ${total} documents accepted and named.`);
+  await pause(1200);
   ctx.setStatus(null);
   return "advance";
 }
@@ -98,7 +126,7 @@ async function submitCreditSummary(ctx: TourCtx): Promise<ActionResult> {
     await waitFor(() => submitted(), 8000);
   }
   ctx.setStatus("Submitted - signed with your name.");
-  await sleep(1400);
+  await pause(1800);
   ctx.setStatus(null);
   return "advance";
 }
@@ -115,7 +143,7 @@ export const STEPS: TourStep[] = [
     action: async () => {
       const card = await waitFor(() => sampleCard());
       press(elementWithText(BUSINESS.legal_name, card, "div") ?? card);
-      await sleep(250);
+      await pause(250);
       return "advance";
     },
   },
@@ -124,7 +152,7 @@ export const STEPS: TourStep[] = [
     track: "documents",
     route: appTab("documents"),
     title: "Everything Sam sent is here",
-    body: "Everything Sam sent from the phone is here, sorted and named. Next accepts each document - watch the names tidy up as they go.",
+    body: "Everything Sam sent from the phone is here, sorted by type. Next accepts them one at a time - watch each one get a tidy name. It takes about 20 seconds.",
     target: () => documentsRoot()?.querySelector("header") ?? null,
     nextLabel: "Accept the documents",
     action: acceptEveryDocument,
@@ -196,7 +224,7 @@ export const STEPS: TourStep[] = [
     key: "done",
     track: "submit",
     route: appTab("lenders"),
-    title: "That's the whole file",
+    title: "That's how to efficiently supply all requirements to your lenders and get your clients funded",
     body: "",
     target: () => document.querySelector('[data-testid="lenders-send-footer"]'),
   },

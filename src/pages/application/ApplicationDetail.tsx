@@ -15,6 +15,7 @@ import LendersTab from "@/pages/applications/tabs/LendersTab";
 import SbaSigningTab from "@/pages/applications/tabs/SbaSigningTab"; // BF_PORTAL_SBA_SIGNING_TAB_v146
 import FraudTab from "@/fraud/FraudTab"; // KS_PORTAL_v7_FRAUD
 import PgiTab from "@/pgi/PgiTab"; // KS_PORTAL_v9_PGI
+import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
 
 const TABS = [
   { key: "application", label: "Application" },
@@ -154,7 +155,9 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
           alignItems: "stretch",
         }}
       >
-        {TABS.map((tab) => {
+        {/* KS_PORTAL_v12_DEMO_FIXES - the sample file has no PGI referral or SBA signing: those tabs are left out of
+            the demo rather than shown with errors. */}
+        {TABS.filter((tab) => !isLiveDemo() || (tab.key !== "pgi" && tab.key !== "sba-signing")).map((tab) => {
           const active = tab.key === activeTab;
           return (
             <button

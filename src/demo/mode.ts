@@ -40,6 +40,67 @@ export function hasStoredDemo(): boolean {
   return false;
 }
 
+// ---------------------------------------------------------------- KS_PORTAL_v12_PRESENTER
+// /demo/present is the staff "presenter mode" demo: the same sample data and shims with no tour, for a salesperson to
+// drive live. It opens only with a presenter link from KS-Ops (checked there); the checked link is kept in this tab.
+export const PRESENTER_MODE = "presenter";
+export const PRESENTER_STORE_KEY = "ks_live_demo_presenter_v1";
+
+export function isPresenterPath(pathname: string): boolean {
+  return /^\/demo\/present\/?$/.test(pathname);
+}
+
+/** The tab asked for the presenter-mode portal (set when the presenter presses Start). */
+export function presenterModeRequested(): boolean {
+  return read(() => window.sessionStorage, LIVE_DEMO_MODE_KEY) === PRESENTER_MODE;
+}
+
+export type PresenterStore = {
+  token: string;
+  expiresAt: string;
+  verifiedAt: string | null;
+  presenterName: string | null;
+  prospect: { name: string; company: string } | null;
+};
+
+export function readPresenter(now = Date.now()): PresenterStore | null {
+  const raw = read(() => window.sessionStorage, PRESENTER_STORE_KEY);
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as PresenterStore;
+    if (!v?.token || typeof v.token !== "string") return null;
+    const exp = new Date(v.expiresAt).getTime();
+    if (Number.isFinite(exp) && exp <= now) return null;
+    return v;
+  } catch {
+    return null;
+  }
+}
+
+export function writePresenter(v: PresenterStore | null): void {
+  try {
+    if (v) window.sessionStorage.setItem(PRESENTER_STORE_KEY, JSON.stringify(v));
+    else window.sessionStorage.removeItem(PRESENTER_STORE_KEY);
+  } catch {
+    /* private mode: the presenter page asks again */
+  }
+}
+
+/** A checked, unexpired presenter link with a prospect entered: the presenter portal may boot. */
+export function hasPresenterSession(): boolean {
+  const v = readPresenter();
+  return Boolean(v?.verifiedAt && v.prospect);
+}
+
+/** True while the presenter-mode portal runs in this page. */
+export function isPresenterDemo(): boolean {
+  return (globalThis as { __KS_PRESENTER_DEMO__?: boolean }).__KS_PRESENTER_DEMO__ === true;
+}
+
+export function markPresenterDemo(on: boolean): void {
+  (globalThis as { __KS_PRESENTER_DEMO__?: boolean }).__KS_PRESENTER_DEMO__ = on;
+}
+
 /** True while the broker side of the live demo is running in this page (set by bootBroker before the first render). */
 export function isLiveDemo(): boolean {
   return (globalThis as { __KS_LIVE_DEMO__?: boolean }).__KS_LIVE_DEMO__ === true;

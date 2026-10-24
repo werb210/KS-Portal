@@ -70,6 +70,9 @@ const SLF_NAV: NavItem[] = [
   { label: "Pipeline", path: "/pipeline", roles: ["Admin", "Staff", "Ops"] },
 ];
 
+/** KS_PORTAL_v12_DEMO_FIXES - the sections the live demo's sample data answers. */
+const LIVE_DEMO_NAV = ["/pipeline"];
+
 const SILO_NAV: Record<string, NavItem[]> = { BF: BF_NAV, BI: BI_NAV, SLF: SLF_NAV };
 
 // BF_PORTAL_BLOCK_v_RESKIN_1_ACCENT_FOUNDATION_v1 — accent from the silo-driven
@@ -134,7 +137,20 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const NavContent = () => (
     <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, overflowY: "auto" }}>
-      {navItems.map((item) => (
+      {navItems.map((item) => isLiveDemo() && !LIVE_DEMO_NAV.includes(item.path) ? (
+        // KS_PORTAL_v12_DEMO_FIXES - sections the sample data does not cover are shown but switched off, so a click
+        // never lands on an error screen.
+        <span
+          key={item.path}
+          aria-disabled="true"
+          title="Not part of the demo"
+          data-testid="live-demo-nav-off"
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6, padding: "9px 12px", borderRadius: 8, fontSize: 14, color: "var(--ui-text-muted)", cursor: "not-allowed" }}
+        >
+          {item.label}
+          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ui-text-muted)", border: "1px solid var(--ui-border)", borderRadius: 999, padding: "0 6px" }}>demo off</span>
+        </span>
+      ) : (
         <NavLink
           key={item.path}
           to={item.path}

@@ -28,6 +28,11 @@ export type ShimOptions = {
   latencyMs?: number;
   now?: () => Date;
   onSubmitted?: (r: { emailed_to: string | null; lenders: string[] }) => void;
+  /**
+   * KS_PORTAL_v12_PRESENTER - the presenter-mode demo has no prospect session: Send marks the file sent in the browser
+   * (no package is built or emailed).
+   */
+  localSubmit?: boolean;
 };
 
 type Req = { method: string; path: string; query: URLSearchParams; body: any; url: string };
@@ -322,6 +327,21 @@ export function createShim(opts: ShimOptions) {
   async function submitToLenders(body: { applicationId?: string; lenderProductIds?: string[] }): Promise<Out> {
     if (!isMain(String(body?.applicationId ?? ""))) return raw({ success: false, error: "not_in_demo", message: "Only the sample file can be sent in the demo." }, 409);
     const lenders = (body.lenderProductIds ?? []).map(lenderIdForMatch);
+    if (opts.localSubmit) {
+      const at = now().toISOString();
+      updateState((s) => {
+        s.submission = { submitted_at: at, emailed_to: null, lenders };
+        s.stage = "Off to Lender";
+        for (const l of lenders) if (!s.sent.some((x) => x.lenderId === l)) s.sent.push({ lenderId: l, sentAt: at });
+      });
+      opts.onSubmitted?.({ emailed_to: null, lenders });
+      return ok({
+        submissions: lenders.map((l) => ({ id: `sub-${l}`, lenderId: l, status: "sent" })),
+        sent: lenders.map((l) => ({ lenderId: l, sentAt: at })),
+        orchestrator: { stageA: { fired: false, reason: "already_signed" }, stageB: { fired: true, reason: "dispatched" } },
+        emailed_to: null,
+      });
+    }
     let session: DemoSessionInfo;
     try {
       session = await opts.waitForSession();
@@ -485,6 +505,13 @@ export function createShim(opts: ShimOptions) {
       summary: { total: 2, complete: 2, outstanding: 0, allComplete: true },
     })],
     ["GET", new RegExp(`^/api/applications/${ID}/contacts$`), () => ok([])],
+    // KS_PORTAL_v12_DEMO_FIXES - the Request Items tab: every required document is already in.
+    ["GET", new RegExp(`^/api/portal/applications/${ID}/request-items$`), (_r, m) => raw(isMain(m[1]!)
+      ? { required: [...new Set(DOCS.map((d) => d.category))].map((c) => ({ document_type: c, label: c })), satisfied: [...new Set(DOCS.map((d) => d.category))], waived: [], shared: [], forms: [], formsWaived: [] }
+      : { required: [], satisfied: [], waived: [], shared: [], forms: [], formsWaived: [] })],
+    ["POST", new RegExp(`^/api/applications/${ID}/request-steps$`), () => ok({ ok: true })],
+    ["POST", new RegExp(`^/api/portal/applications/${ID}/document-waivers(/remove)?$`), () => ok({ ok: true })],
+    ["GET", new RegExp(`^/api/portal/applications/${ID}/qa/sets$`), () => raw({ items: [] })],
 
     // the shell around every page: team chat, presence, message and notification badges, referral issues
     ["GET", /^\/api\/team\/channels$/, () => ok({ channels: [] })],
@@ -492,6 +519,7 @@ export function createShim(opts: ShimOptions) {
     ["GET", /^\/api\/team\/statuses$/, () => ok({ statuses: [] })],
     ["PUT", /^\/api\/team\/status$/, () => ok({ ok: true })],
     ["POST", /^\/api\/telephony\/presence$/, () => ok({ ok: true })],
+    ["GET", /^\/api\/telephony\/quick-call$/, () => ok({ staff: [], slots: [] })], // KS_PORTAL_v12_DEMO_FIXES
     ["POST", /^\/api\/telephony\/presence\/heartbeat$/, () => ok({ onCall: false })],
     ["GET", /^\/api\/communications\/messages-list$/, () => ok({ conversations: [] })],
     ["GET", /^\/api\/notifications$/, () => ok({ items: [] })],

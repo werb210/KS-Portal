@@ -26,7 +26,7 @@ import "./styles/bi-theme.css"; // BF_PORTAL_BLOCK_v_BI_THEME_AWARE_v1
 import { initTheme } from "@/theme/theme";
 import { installDocumentPreview } from "./native/documentPreviewDelegate";
 import { loadBrand } from "@/config/brand"; // KS_PORTAL_v2_BRANDING
-import { brokerModeRequested, hasStoredDemo, isDemoPath } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
+import { brokerModeRequested, hasPresenterSession, hasStoredDemo, isDemoPath, presenterModeRequested } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO / v12_PRESENTER
 import { clearLeftoverDemoAuth } from "@/demo/broker/session"; // KS_PORTAL_v11_LIVE_DEMO
 
 initTheme();
@@ -126,6 +126,9 @@ async function bootstrap() {
 // asks for the broker side: the real portal on the sample file, with an in-browser shim instead of the server.
 if (isDemoPath(window.location.pathname)) {
   void import("./demo/bootDemo").then((m) => m.bootDemo());
+} else if (presenterModeRequested() && hasPresenterSession()) {
+  // KS_PORTAL_v12_PRESENTER - the staff presenter-mode demo: the same broker side, no tour, a presenter bar.
+  void import("./demo/broker/bootBroker").then((m) => m.bootBroker({ presenter: true }));
 } else if (brokerModeRequested() && hasStoredDemo()) {
   void import("./demo/broker/bootBroker").then((m) => m.bootBroker());
 } else {

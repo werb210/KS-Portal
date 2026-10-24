@@ -16,6 +16,7 @@ import { getState, resetState, updateState } from "../broker/state";
 import { clearLeftoverDemoAuth, enterBrokerAuth, fakeStaffToken, restoreRealAuth } from "../broker/session";
 import { BrokerDemoRoot, setupBrokerDemo, type BrokerSetup } from "../broker/bootBroker";
 import { resetCall } from "../broker/tour/callSim";
+import { tourPace } from "../broker/tour/steps";
 import { APP_ID, DOCS, matchIdFor } from "../broker/fixture";
 import { samplePdfBytes, samplePdfFor } from "../broker/samplePdf";
 
@@ -26,6 +27,7 @@ const SESSION: DemoSessionInfo = {
   expires_at: "2099-01-01T00:00:00Z",
   name: "Dana Prospect",
   company: "BrokerCo Capital",
+  signup_url: "https://site.example/signup#demo=6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b&k=abcDEF123",
 };
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -40,6 +42,7 @@ function resetAll(): void {
 
 beforeEach(() => {
   resetAll();
+  tourPace.scale = 0; // KS_PORTAL_v12_DEMO_FIXES - the reading-pace pauses are for people, not tests
   window.matchMedia ??= ((q: string) => ({ matches: false, media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false })) as unknown as typeof window.matchMedia;
 });
 
@@ -144,6 +147,8 @@ describe("the /demo shell", () => {
     send(demoClientOrigin(), { type: "ks-live-demo", event: "client-done" });
     expect(assign).toHaveBeenCalledWith("/pipeline");
     expect(sessionStorage.getItem(LIVE_DEMO_MODE_KEY)).toBe("broker");
+    // KS_PORTAL_v12_DEMO_FIXES - the "you switch sides" line is gone from the side panel.
+    expect(document.body.textContent).not.toContain("you switch sides");
   });
 
   it("/demo?broker=1 with a stored demo goes straight to the broker side", () => {
@@ -325,9 +330,11 @@ describe("the broker tour on the real portal", () => {
       "Live call",
       "AI call note added to the file",
       "Pick your lenders",
-      "That's the whole file",
+      "That's how to efficiently supply all requirements to your lenders and get your clients funded",
     ]);
     expect(screen.getByTestId("live-demo-sent").textContent).toContain("dana@brokerco.example");
+    // KS_PORTAL_v12_DEMO_FIXES - Sign up opens the pre-filled sign-up from KS-Ops (id and key in the fragment only).
+    expect(screen.getByTestId("live-demo-signup").getAttribute("href")).toBe(SESSION.signup_url);
     expect(window.location.pathname).toBe(`/applications/${APP_ID}/lenders`);
 
     const submits = real.mock.calls.filter(([u]) => String(u).includes("guided-submit"));
