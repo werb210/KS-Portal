@@ -32,10 +32,10 @@ export function press(el: Element | null | undefined): boolean {
   return true;
 }
 
-export function reveal(el: Element | null | undefined): void {
+export function reveal(el: Element | null | undefined, block: ScrollLogicalPosition = "nearest"): void {
   if (el && typeof (el as HTMLElement).scrollIntoView === "function") {
     try {
-      (el as HTMLElement).scrollIntoView({ block: "nearest", behavior: "smooth" });
+      (el as HTMLElement).scrollIntoView({ block, behavior: "smooth" });
     } catch {
       /* old browsers */
     }

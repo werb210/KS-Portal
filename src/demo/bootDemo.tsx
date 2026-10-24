@@ -3,6 +3,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import DemoShell from "./DemoShell";
+import PresenterStart from "./presenter/PresenterStart";
+import { isPresenterPath } from "./mode";
 import "./liveDemo.css";
 
 export { isDemoPath } from "./mode";
@@ -11,7 +13,7 @@ export function bootDemo(): void {
   document.title = "Keystone demo";
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-      <DemoShell />
+      {isPresenterPath(window.location.pathname) ? <PresenterStart /> : <DemoShell />}
     </React.StrictMode>,
   );
 }

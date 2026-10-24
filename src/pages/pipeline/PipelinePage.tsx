@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/api";
 import { useNavigate } from "react-router-dom";
 import RequestStepsModal from "./RequestStepsModal"; // BF_PORTAL_BLOCK_v793_REQUEST_STEPS
+import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
 
 // BF_PORTAL_FRAUD_HOLD_v34 - Fraud and Hold are parking columns. Neither
 // deletes anything; both take the file out of the reported numbers (Fraud from
@@ -448,6 +449,8 @@ function PipeCard({ card, stage, busy, onOpen, onMove, onDelete, onRefresh }: {
             )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+            {/* KS_PORTAL_v12_DEMO_FIXES - no real calls or deletes in the demo: the client's call comes from the demo itself. */}
+            {!isLiveDemo() && (<>
             <button type="button" aria-label="Call client" title={callBusy ? "Looking up phone…" : "Call client"}
               onClick={(e) => { e.stopPropagation(); void handleCall(); }}
               disabled={busy || callBusy}
@@ -458,6 +461,7 @@ function PipeCard({ card, stage, busy, onOpen, onMove, onDelete, onRefresh }: {
             </button>
             <button type="button" aria-label="Delete card" onClick={(e) => { e.stopPropagation(); onDelete(card.id); }} disabled={busy}
               style={{ border: 0, background: "transparent", color: "var(--ui-text-muted)", cursor: busy ? "default" : "pointer", fontSize: 18, lineHeight: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 44, minHeight: 44 }}>×</button>
+            </>)}
           </div>
         </div>
 

@@ -11,6 +11,8 @@ export type DemoSessionInfo = {
   expires_at: string;
   name: string;
   company: string;
+  /** KS_PORTAL_v12_DEMO_FIXES - the website's sign-up, pre-filled from this demo ({site}/signup#demo=<id>&k=<key>). */
+  signup_url?: string | null;
 };
 
 export type DemoLink = { demoId: string; token: string };

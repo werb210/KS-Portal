@@ -157,7 +157,6 @@ export default function DemoShell() {
               </div>
             ) : null}
           </div>
-          <p className="ksld-side-text ksld-side-muted">After the application, you switch sides: the file lands in your broker portal.</p>
         </aside>
       </main>
     </div>

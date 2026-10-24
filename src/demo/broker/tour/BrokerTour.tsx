@@ -16,6 +16,26 @@ import { CALL_TEXT, MAX_PICK, STEPS, appTab, pickedLenders, tickAndSend, type To
 
 const TOUR_KEY = "ks_live_demo_tour_v1";
 
+/**
+ * KS_PORTAL_v12_DEMO_FIXES - "Sign up" opens the website's sign-up pre-filled with this person's details. KS-Ops
+ * answers the demo's open with signup_url ({site}/signup#demo=<id>&k=<key>): the demo id and an HMAC key in the
+ * #fragment, no name or email, and the website swaps them for the details (POST /api/public/demo/prefill). Without it
+ * (an older session, or KS-Ops without the site address) the plain sign-up page.
+ */
+export function signupUrl(websiteUrl: string, fromOps: string | null | undefined): string {
+  const plain = `${websiteUrl}/signup`;
+  const raw = String(fromOps ?? "").trim();
+  if (!raw) return plain;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:" && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)) return plain;
+    if (!/\/signup\/?$/.test(u.pathname) || u.search) return plain;
+    return u.href;
+  } catch {
+    return plain;
+  }
+}
+
 function readIndex(max: number): number {
   try {
     const n = Number(JSON.parse(window.sessionStorage.getItem(TOUR_KEY) ?? "{}")?.index ?? 0);
@@ -269,7 +289,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
     body = (
       <>
         <span className="ksld-card-strong" data-testid="live-demo-sent">Sent - the lender package is on its way to {sub?.emailed_to ?? "your inbox"}.</span>
-        <span>In a few minutes you'll have the same package a lender receives. You took a phone application, reviewed the documents, caught a doctored statement, took the client's call and sent the file to {sub?.lenders?.length === 1 ? "a lender" : `${sub?.lenders?.length ?? "your"} lenders`} - without typing a thing.</span>
+        <span>It's the same package a lender receives. One phone application, every document named, a doctored statement caught, the client's call on file and {sub?.lenders?.length === 1 ? "one lender" : `${sub?.lenders?.length ?? "your"} lenders`} sent the lot - without re-typing anything.</span>
       </>
     );
   }
@@ -336,7 +356,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
           {step.key === "done" ? (
             <>
               <a className="ksld-btn ksld-btn--ghost" href={`mailto:${supportEmail}?subject=${encodeURIComponent("Keystone demo - let's talk")}`}>Talk to us</a>
-              <a className="ksld-btn ksld-btn--primary" href={`${websiteUrl}/signup`}>Sign up</a>
+              <a className="ksld-btn ksld-btn--primary" href={signupUrl(websiteUrl, keeper.session?.signup_url)} data-testid="live-demo-signup">Sign up</a>
             </>
           ) : (
             <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => void next()} disabled={busy || (step.key === "lenders" && !getState().submission && !pickOk)} data-testid="live-demo-next">

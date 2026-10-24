@@ -13,6 +13,7 @@ export function clampDockPercent(value: number): number {
   return Math.min(88, Math.max(12, value));
 }
 import { useDialer } from "../store";
+import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
 
 export default function FloatingDialerButton() {
   // BF_PORTAL_BLOCK_v308_DIALER_TOGGLE_v1
@@ -43,6 +44,9 @@ export default function FloatingDialerButton() {
 
   const live = status === "connected" || status === "ringing" || status === "dialing";
   const ringing = !!incoming || status === "ringing";
+  // KS_PORTAL_v12_DEMO_FIXES - the demo's call opens and closes the dialer itself; the docked button only covered the
+  // dialer's own hang-up button and the right-hand column of the screens.
+  if (isLiveDemo()) return null;
 
   return (
     <>
