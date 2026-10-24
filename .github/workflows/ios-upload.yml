@@ -45,7 +45,10 @@ jobs:
           xcode-version: latest-stable
       - run: xcodebuild -version
       - run: npm ci --include=optional
+      # KS_STAFF_DIRECTORY_v1 - the iPad app finds each staff member's brokerage through Keystone operations (KS-Ops).
       - run: npm run build
+        env:
+          VITE_KS_OPS_URL: ${{ vars.VITE_KS_OPS_URL || 'https://ks-ops-dev.azurewebsites.net' }}
       - name: Verify web artifact
         run: test -f dist/index.html
       - run: npx cap sync ios
