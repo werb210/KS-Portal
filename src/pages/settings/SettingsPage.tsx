@@ -23,6 +23,7 @@ import CollateralSettings from "./tabs/CollateralSettings"; // v694
 import LibraryPage from "@/pages/library/LibraryPage"; // BF_PORTAL_LIBRARY_IN_SETTINGS_v764
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
 import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
+import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
 import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 
@@ -57,6 +58,8 @@ const SettingsPage = () => {
       // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
       { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
       { id: "plan", label: "Plan", visible: true, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS
+      // KS_PORTAL_BETA_v1 - beta features the brokerage can try (join, leave, feedback). Admins only.
+      { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
