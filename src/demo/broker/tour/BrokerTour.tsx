@@ -10,6 +10,7 @@ import { BUSINESS, REQUEST, money } from "../fixture";
 import { getState } from "../state";
 import { exitLiveDemo } from "../session";
 import CallOverlay from "./CallOverlay";
+import { placeCard } from "./placement";
 import { CALLER, answer, getCall, resetCall, ring, skipAhead, subscribeCall } from "./callSim";
 import { reveal, sleep } from "./dom";
 import { CALL_TEXT, MAX_PICK, STEPS, appTab, pickedLenders, tickAndSend, type TourCtx, type TourStep } from "./steps";
@@ -57,6 +58,17 @@ type Rect = { top: number; left: number; width: number; height: number };
 const sameRect = (a: Rect | null, b: Rect | null) =>
   a === b || (!!a && !!b && Math.abs(a.top - b.top) < 1 && Math.abs(a.left - b.left) < 1 && Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1);
 
+/** One box around all of them (null when none can be seen). */
+export function unionRect(list: Array<{ top: number; left: number; width: number; height: number } | null>): Rect | null {
+  const rs = list.filter((r): r is NonNullable<typeof r> => Boolean(r && r.width > 0 && r.height > 0));
+  if (!rs.length) return null;
+  const top = Math.min(...rs.map((r) => r.top));
+  const left = Math.min(...rs.map((r) => r.left));
+  const bottom = Math.max(...rs.map((r) => r.top + r.height));
+  const right = Math.max(...rs.map((r) => r.left + r.width));
+  return { top, left, width: right - left, height: bottom - top };
+}
+
 /** The part of `el` that can be seen: clipped by every scrolling ancestor and the window. */
 export function visibleRect(el: Element): Rect | null {
   const r = el.getBoundingClientRect();
@@ -93,6 +105,8 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
+  // KS_PORTAL_v12_CARD_PLACEMENT - what the card must keep clear of when there is no spotlight (the ringing call).
+  const [avoid, setAvoid] = useState<Rect | null>(null);
   const [cardSize, setCardSize] = useState({ w: 360, h: 220 });
   const [viewport, setViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
   const call = useSyncExternalStore(subscribeCall, getCall, getCall);
@@ -149,7 +163,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
     if (step.key === "call" && call.phase === "ended") navigate(appTab("notes"));
   }, [call.phase, step.key, navigate]);
 
-  const target = useCallback((): Element | null => {
+  const target = useCallback((): Element | Element[] | null => {
     if (focusEl && focusEl.isConnected) return focusEl;
     if (step.key === "call") return call.phase === "ended" ? document.querySelector('[data-testid="notes-list"]') : null;
     return step.target?.() ?? null;
@@ -158,17 +172,28 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   // Follow the target as the page renders, scrolls and resizes.
   useEffect(() => {
     let last: Rect | null = null;
-    let revealed = false;
+    let lastAvoid: Rect | null = null;
+    let revealed: Element | null = null;
     const tick = () => {
-      const el = target();
-      if (el && !revealed) {
-        revealed = true;
-        reveal(el);
+      const got = target();
+      const els = (Array.isArray(got) ? got : got ? [got] : []).filter((e) => e.isConnected);
+      const el = els[0] ?? null;
+      if (el && revealed !== el) {
+        // KS_PORTAL_v12_CARD_PLACEMENT - bring the highlight into view first: centred when it fits, else its top.
+        revealed = el;
+        const span = unionRect(els.map((e) => e.getBoundingClientRect()));
+        reveal(el, span && span.height < window.innerHeight * 0.6 ? "center" : "start");
       }
-      const next = el ? visibleRect(el) : null;
+      const next = unionRect(els.map((e) => visibleRect(e)));
       if (!sameRect(last, next)) {
         last = next;
         setRect(next);
+      }
+      const callEl = document.querySelector(".ksld-call");
+      const nextAvoid = callEl ? visibleRect(callEl) : null;
+      if (!sameRect(lastAvoid, nextAvoid)) {
+        lastAvoid = nextAvoid;
+        setAvoid(nextAvoid);
       }
       const card = cardRef.current;
       if (card) {
@@ -297,22 +322,15 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   const statusLine = waking ? "Sending… the demo server is waking up - this can take up to a minute." : status;
 
   // ---------------------------------------------------------------- where the card goes
+  // KS_PORTAL_v12_CARD_PLACEMENT - beside the highlight on the side with the most room, else the corner that covers it
+  // least (src/demo/broker/tour/placement.ts). The spotlight's padding counts as part of the highlight.
   const narrow = viewport.w < 700;
   const pad = 8;
-  let cardStyle: CSSProperties;
-  if (narrow) cardStyle = { left: 8, right: 8, bottom: 8 };
-  else if ((step.placement === "bottom-left" && call.phase !== "ended") || !rect) cardStyle = step.placement === "bottom-left" ? { left: 24, bottom: 24 } : { right: 24, bottom: 24 };
-  else {
-    const { w, h } = cardSize;
-    const gap = 16;
-    const clampTop = (t: number) => Math.max(12, Math.min(viewport.h - h - 12, t));
-    const clampLeft = (l: number) => Math.max(12, Math.min(viewport.w - w - 12, l));
-    if (rect.top + rect.height + gap + h < viewport.h - 12) cardStyle = { top: rect.top + rect.height + gap, left: clampLeft(rect.left) };
-    else if (rect.top - gap - h > 12) cardStyle = { top: rect.top - gap - h, left: clampLeft(rect.left) };
-    else if (rect.left + rect.width + gap + w < viewport.w - 12) cardStyle = { top: clampTop(rect.top), left: rect.left + rect.width + gap };
-    else if (rect.left - gap - w > 12) cardStyle = { top: clampTop(rect.top), left: rect.left - gap - w };
-    else cardStyle = { right: 24, bottom: 24 };
-  }
+  const keepClear = (rect && !(step.key === "call" && call.phase !== "ended" && call.phase !== "idle"))
+    ? { top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }
+    : avoid;
+  const placed = placeCard(keepClear, cardSize, viewport);
+  const cardStyle: CSSProperties = { top: placed.top, left: placed.left, width: placed.width };
   const showCall = step.key === "call" && call.phase !== "idle" && call.phase !== "ended";
 
   return (
@@ -337,7 +355,7 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
           onDecline={() => declineIncoming()}
         />
       )}
-      <div ref={cardRef} className={`ksld-card${narrow ? " ksld-card--sheet" : ""}`} style={cardStyle} role="dialog" aria-modal="false" aria-labelledby="ksld-card-title" data-testid="live-demo-card">
+      <div ref={cardRef} className={`ksld-card${narrow ? " ksld-card--sheet" : ""}`} style={cardStyle} role="dialog" aria-modal="false" aria-labelledby="ksld-card-title" data-testid="live-demo-card" data-side={placed.side}>
         <div className="ksld-card-top">
           <span className="ksld-card-progress">Step {index + 1} of {steps.length}</span>
           <button type="button" className="ksld-card-exit" onClick={() => exitLiveDemo("/demo")}>Exit demo</button>

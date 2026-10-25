@@ -21,7 +21,8 @@ export type TourStep = {
   route: string;
   title: string;
   body: string;
-  target?: () => Element | null;
+  /** What the spotlight shows; several elements are lit as one box (KS_PORTAL_v12_CARD_PLACEMENT). */
+  target?: () => Element | Element[] | null;
   placement?: "auto" | "bottom-left";
   nextLabel?: string;
   action?: (ctx: TourCtx) => Promise<ActionResult>;
@@ -217,7 +218,15 @@ export const STEPS: TourStep[] = [
     route: appTab("lenders"),
     title: "Pick your lenders",
     body: `Every lender is scored against this file - ${strongLenders().map((l) => l.name).join(", ").replace(/, ([^,]*)$/, " and $1")} are strong fits. Tick 1 to ${MAX_PICK} lenders in the list, then Submit.`,
-    target: () => document.querySelector('[data-testid="lenders-tab"] table'),
+    // KS_PORTAL_v12_CARD_PLACEMENT - the header and the top three matches (the strong fits), not the whole table, so
+    // the card has room beside it on an iPad too.
+    target: () => {
+      const table = document.querySelector('[data-testid="lenders-tab"] table');
+      if (!table) return null;
+      const rows = Array.from(table.querySelectorAll("tbody tr")).slice(0, 3);
+      const head = table.querySelector("thead");
+      return rows.length ? [...(head ? [head] : []), ...rows] : table;
+    },
     nextLabel: "Submit",
   },
   {
