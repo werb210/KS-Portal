@@ -13,9 +13,13 @@ import CallOverlay from "./CallOverlay";
 import { placeCard } from "./placement";
 import { CALLER, answer, getCall, resetCall, ring, skipAhead, subscribeCall } from "./callSim";
 import { reveal, sleep } from "./dom";
+import { isCameraDemo, publishSnapshot, setBridgeHandlers, type BodyPart } from "./bridge";
 import { CALL_TEXT, MAX_PICK, STEPS, appTab, pickedLenders, tickAndSend, type TourCtx, type TourStep } from "./steps";
 
 const TOUR_KEY = "ks_live_demo_tour_v1";
+
+const callFacts = [BUSINESS.legal_name, "6 of 6 documents received", `Owner, ${BUSINESS.years_in_business} years in business`];
+const CALL_FLAG = "Fraud flag: September statement";
 
 /**
  * KS_PORTAL_v12_DEMO_FIXES - "Sign up" opens the website's sign-up pre-filled with this person's details. KS-Ops
@@ -169,8 +173,11 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
     return step.target?.() ?? null;
   }, [step, call.phase, focusEl]);
 
+  // KS_PORTAL_v13_PHONE_DEMO - in the phone's camera, a new highlighted element is news even when its box is the same.
+  const [, setElsSeen] = useState(0);
   // Follow the target as the page renders, scrolls and resizes.
   useEffect(() => {
+    let lastEls: Element[] = [];
     let last: Rect | null = null;
     let lastAvoid: Rect | null = null;
     let revealed: Element | null = null;
@@ -178,6 +185,10 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
       const got = target();
       const els = (Array.isArray(got) ? got : got ? [got] : []).filter((e) => e.isConnected);
       const el = els[0] ?? null;
+      if (isCameraDemo() && (els.length !== lastEls.length || els.some((e, i) => e !== lastEls[i]))) {
+        lastEls = els;
+        setElsSeen((n) => n + 1);
+      }
       if (el && revealed !== el) {
         // KS_PORTAL_v12_CARD_PLACEMENT - bring the highlight into view first: centred when it fits, else its top.
         revealed = el;
@@ -283,17 +294,21 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   // ---------------------------------------------------------------- what the card says
   let title = step.title;
   let body: React.ReactNode = step.body;
+  // KS_PORTAL_v13_PHONE_DEMO - the same words as plain parts, for the phone's bottom sheet.
+  let bodyParts: BodyPart[] = step.body ? [{ text: step.body }] : [];
   let nextLabel = step.nextLabel ?? "Next";
   if (step.key === "call") {
     const t = call.phase === "connected" ? CALL_TEXT.connected : call.phase === "declined" ? CALL_TEXT.declined : null;
     if (t) {
       title = t.title;
       body = t.body;
+      bodyParts = [{ text: t.body }];
       nextLabel = t.next;
     }
     if (call.phase === "ended") {
       title = CALL_TEXT.ended.title;
       nextLabel = CALL_TEXT.ended.next;
+      bodyParts = [{ text: CALL_TEXT.ended.body, strong: true }, { text: CALL_TEXT.ended.follow }];
       body = (
         <>
           <span className="ksld-card-strong">{CALL_TEXT.ended.body}</span>
@@ -311,6 +326,9 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
     : null;
   const sub = getState().submission;
   if (step.key === "done") {
+    const sentLine = `Sent - the lender package is on its way to ${sub?.emailed_to ?? "your inbox"}.`;
+    const restLine = `It's the same package a lender receives. One phone application, every document named, a doctored statement caught, the client's call on file and ${sub?.lenders?.length === 1 ? "one lender" : `${sub?.lenders?.length ?? "your"} lenders`} sent the lot - without re-typing anything.`;
+    bodyParts = [{ text: sentLine, strong: true, testId: "live-demo-sent" }, { text: restLine }];
     body = (
       <>
         <span className="ksld-card-strong" data-testid="live-demo-sent">Sent - the lender package is on its way to {sub?.emailed_to ?? "your inbox"}.</span>
@@ -333,6 +351,69 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
   const cardStyle: CSSProperties = { top: placed.top, left: placed.left, width: placed.width };
   const showCall = step.key === "call" && call.phase !== "idle" && call.phase !== "ended";
 
+  // ---------------------------------------------------------------- KS_PORTAL_v13_PHONE_DEMO: the phone's camera
+  // In the phone page's camera the card and the call are drawn by the phone page; this side publishes what they say.
+  const camera = isCameraDemo();
+  const nextDisabled = busy || (step.key === "lenders" && !getState().submission && !pickOk);
+  const nextText = busy ? (step.key === "lenders" ? "Sending…" : "Working…") : error && step.key === "lenders" ? "Try again" : nextLabel;
+  const actions = useRef({ next, back });
+  actions.current = { next, back };
+  useEffect(() => {
+    if (!camera) return;
+    setBridgeHandlers({
+      next: () => void actions.current.next(),
+      back: () => actions.current.back(),
+      answer: () => void answer(),
+      decline: () => declineIncoming(),
+    });
+  }, [camera]);
+  useEffect(() => {
+    if (!camera) return;
+    const got = target();
+    const els = (Array.isArray(got) ? got : got ? [got] : []).filter((e) => e.isConnected);
+    publishSnapshot({
+      key: step.key,
+      index,
+      total: steps.length,
+      title,
+      body: bodyParts,
+      status: statusLine,
+      hint: pickHint && !statusLine ? pickHint : null,
+      error,
+      nextLabel: nextText,
+      nextDisabled,
+      backDisabled: busy || index === 0,
+      busy,
+      done: step.key === "done",
+      signupHref: signupUrl(websiteUrl, keeper.session?.signup_url),
+      contactHref: `mailto:${supportEmail}?subject=${encodeURIComponent("Keystone demo - let's talk")}`,
+      rect: showCall ? null : rect,
+      els: showCall ? [] : els,
+      call: {
+        phase: call.phase,
+        lines: call.lines,
+        startedAt: call.startedAt,
+        caller: { name: CALLER.name, company: CALLER.company, deal: CALLER.deal },
+        facts: callFacts,
+        flag: CALL_FLAG,
+      },
+    });
+  });
+
+  if (camera) {
+    return (
+      <div className="ksld-tour" data-testid="live-demo-tour" data-step={step.key} data-camera="1">
+        {rect && !showCall && (
+          <div
+            className="ksld-spot"
+            aria-hidden="true"
+            style={{ top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="ksld-tour" data-testid="live-demo-tour" data-step={step.key}>
       {rect && !showCall && (
@@ -349,8 +430,8 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
           lines={call.lines}
           startedAt={call.startedAt}
           caller={CALLER}
-          facts={[BUSINESS.legal_name, "6 of 6 documents received", `Owner, ${BUSINESS.years_in_business} years in business`]}
-          flag="Fraud flag: September statement"
+          facts={callFacts}
+          flag={CALL_FLAG}
           onAnswer={() => void answer()}
           onDecline={() => declineIncoming()}
         />
@@ -377,8 +458,8 @@ export default function BrokerTour({ steps = STEPS, websiteUrl, supportEmail, on
               <a className="ksld-btn ksld-btn--primary" href={signupUrl(websiteUrl, keeper.session?.signup_url)} data-testid="live-demo-signup">Sign up</a>
             </>
           ) : (
-            <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => void next()} disabled={busy || (step.key === "lenders" && !getState().submission && !pickOk)} data-testid="live-demo-next">
-              {busy ? (step.key === "lenders" ? "Sending…" : "Working…") : error && step.key === "lenders" ? "Try again" : nextLabel}
+            <button type="button" className="ksld-btn ksld-btn--primary" onClick={() => void next()} disabled={nextDisabled} data-testid="live-demo-next">
+              {nextText}
             </button>
           )}
         </div>

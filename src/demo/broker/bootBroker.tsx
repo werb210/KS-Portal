@@ -13,7 +13,9 @@ import { applyTheme } from "@/theme/theme";
 import { SERVER_URL } from "@/config/licensee";
 import { DEMO_CONTACT_EMAIL, demoWebsiteUrl } from "../config";
 import { ensureSession, getKeeper, initKeeper, subscribeKeeper, trackDemo, waitForSession } from "../demoApi";
-import { isPresenterDemo, markLiveDemo, markPresenterDemo, readPresenter } from "../mode";
+import { PHONE_BROKER_PATH, framedByPhoneBroker, isPresenterDemo, markLiveDemo, markPresenterDemo, readPresenter } from "../mode";
+import { isPhoneViewport } from "../phone/phone";
+import { markCameraDemo } from "./tour/bridge";
 import { createShim, type Prospect, type Shim } from "./shim";
 import { installQuietBrowser } from "./quiet";
 import { enterBrokerAuth } from "./session";
@@ -106,6 +108,16 @@ export function BrokerDemoRoot({ realFetch, presenter = false }: { realFetch: ty
 
 export async function bootBroker(opts: { presenter?: boolean } = {}): Promise<void> {
   const presenter = Boolean(opts.presenter);
+  // KS_PORTAL_v13_PHONE_DEMO - on a phone the broker side is the camera page (/demo/broker), which runs this portal in a
+  // frame at a desktop width. The presenter mode is staff-only and stays as it is.
+  if (!presenter) {
+    if (framedByPhoneBroker()) {
+      markCameraDemo(true);
+    } else if (window.parent === window && isPhoneViewport()) {
+      window.location.replace(PHONE_BROKER_PATH);
+      return;
+    }
+  }
   const { realFetch } = setupBrokerDemo({ latencyMs: 180, presenter });
   // The light theme for a prospect with no saved choice (not saved, so the real portal keeps its own default).
   if (!hasSavedTheme()) applyTheme("light");

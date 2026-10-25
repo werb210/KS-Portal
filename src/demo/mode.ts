@@ -9,6 +9,23 @@ export const LIVE_DEMO_STORE_KEY = "ks_live_demo_v1";
 /** The fixed staff id inside the fake (unsigned) demo token. Never a real user. */
 export const DEMO_STAFF_ID = "6b1d5c3e-2f4a-4e8b-9c7d-0a1b2c3d4e5f";
 
+// KS_PORTAL_v13_PHONE_DEMO - /demo/broker: the broker side on a phone (the real portal zoomed like a camera).
+export const PHONE_BROKER_PATH = "/demo/broker";
+
+export function isPhoneBrokerPath(pathname: string): boolean {
+  return /^\/demo\/broker\/?$/.test(pathname);
+}
+
+/** This page is the portal inside the phone page's camera frame (same origin, framed by /demo/broker). */
+export function framedByPhoneBroker(win: Window = window): boolean {
+  try {
+    if (win.parent === win) return false;
+    return win.parent.location.origin === win.location.origin && isPhoneBrokerPath(win.parent.location.pathname);
+  } catch {
+    return false;
+  }
+}
+
 export function isDemoPath(pathname: string): boolean {
   return pathname === "/demo" || pathname.startsWith("/demo/");
 }

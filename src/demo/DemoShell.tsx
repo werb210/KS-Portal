@@ -7,20 +7,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { clientTourUrl, demoClientOrigin, demoWebsiteUrl } from "./config";
 import { parseClientMessage, sendClientCommand, type ClientCommand, type ClientMessage } from "./clientMessages";
 import { ensureSession, getKeeper, initKeeper, subscribeKeeper } from "./demoApi";
-import { requestBrokerMode } from "./broker/session";
 import StatusBar from "./StatusBar";
+import { goBroker, shellNav } from "./nav";
+import { isPhoneViewport } from "./phone/phone";
+import PhoneClient from "./phone/PhoneClient";
+
+export { shellNav };
 
 const FRAME = { w: 390, h: 844, bezel: 14 };
 
-/** Navigation, behind a seam so tests can watch it. */
-export const shellNav = { assign: (url: string) => window.location.assign(url) };
-
-function goBroker(): void {
-  requestBrokerMode();
-  shellNav.assign("/pipeline");
-}
-
-function KeystoneMark() {
+export function KeystoneMark() {
   return (
     <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
       <path d="M9 4h14l-3 11h-8z" fill="#f59e0b" />
@@ -49,6 +45,9 @@ export default function DemoShell() {
   // Decided once when the page opens: a computer shows the phone frame with the pop-up text and buttons beside it; a
   // phone shows the client app full screen with its own pop-ups.
   const [sidePanel] = useState(() => window.innerWidth >= 700);
+  // KS_PORTAL_v13_PHONE_DEMO - a phone (narrow, or a touch screen held sideways) gets the full-screen client app with a
+  // bottom sheet instead (src/demo/phone/PhoneClient.tsx). Decided once, like the side panel.
+  const [phone] = useState(() => isPhoneViewport());
   const [viewport, setViewport] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }));
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const clientOrigin = useMemo(() => demoClientOrigin(), []);
@@ -68,11 +67,12 @@ export default function DemoShell() {
   }, []);
 
   const onMessage = useCallback((e: MessageEvent) => {
+    if (phone) return; // PhoneClient listens for itself
     const m = parseClientMessage(e, clientOrigin, iframeRef.current?.contentWindow ?? null);
     if (!m) return;
     if (m.event === "client-done") goBroker();
     else setStep(m);
-  }, [clientOrigin]);
+  }, [clientOrigin, phone]);
 
   useEffect(() => {
     window.addEventListener("message", onMessage);
@@ -90,6 +90,7 @@ export default function DemoShell() {
 
   if (!ready) return null;
   if (!keeper.link && !keeper.session) return <NoDemoLink website={website} />;
+  if (phone) return <PhoneClient />;
 
   const narrow = !sidePanel;
   const iframe = (

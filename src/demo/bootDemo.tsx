@@ -4,7 +4,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import DemoShell from "./DemoShell";
 import PresenterStart from "./presenter/PresenterStart";
-import { isPresenterPath } from "./mode";
+import PhoneBroker from "./phone/PhoneBroker";
+import { isPhoneBrokerPath, isPresenterPath } from "./mode";
 import "./liveDemo.css";
 
 export { isDemoPath } from "./mode";
@@ -13,7 +14,7 @@ export function bootDemo(): void {
   document.title = "Keystone demo";
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>
-      {isPresenterPath(window.location.pathname) ? <PresenterStart /> : <DemoShell />}
+      {isPresenterPath(window.location.pathname) ? <PresenterStart /> : isPhoneBrokerPath(window.location.pathname) ? <PhoneBroker /> : <DemoShell />}
     </React.StrictMode>,
   );
 }
