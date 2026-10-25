@@ -5,6 +5,7 @@ import { api } from "@/api";
 import { useNavigate } from "react-router-dom";
 import RequestStepsModal from "./RequestStepsModal"; // BF_PORTAL_BLOCK_v793_REQUEST_STEPS
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
+import { fetchRetention, lockMessage, refusedDeleteMessage } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
 
 // BF_PORTAL_FRAUD_HOLD_v34 - Fraud and Hold are parking columns. Neither
 // deletes anything; both take the file out of the reported numbers (Fraud from
@@ -154,13 +155,16 @@ export default function PipelinePage() {
   useEffect(() => { load(); }, [load]);
 
   async function removeCard(cardId: string) {
+    // KS_PORTAL_v14_RETENTION - a file kept on record shows the lock and the date instead of asking to delete.
+    const kept = await fetchRetention("application", cardId);
+    if (kept?.locked) { window.alert(lockMessage(kept)); return; }
     if (!window.confirm("Delete this application card? This cannot be undone.")) return;
     setDeleting(cardId);
     try {
       await api.delete(`/api/portal/applications/${cardId}`);
       setCards((prev) => prev.filter((card) => card.id !== cardId));
-    } catch {
-      window.alert("Delete failed. Please try again.");
+    } catch (e) {
+      window.alert(refusedDeleteMessage(e) ?? "Delete failed. Please try again.");
     } finally {
       setDeleting(null);
     }

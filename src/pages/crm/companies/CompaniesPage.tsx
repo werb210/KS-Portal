@@ -9,6 +9,7 @@ import CreateCompanyModal from "./CreateCompanyModal";
 import CompaniesImportModal from "./CompaniesImportModal";
 import ColumnsMenu from "@/components/crm/ColumnsMenu";
 import { exportRowsToCsv } from "@/utils/csvExport";
+import { refusedDeleteMessage } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
 
 type SortCol = "name" | "industry" | "owner_name" | "created_at";
 
@@ -108,7 +109,7 @@ export default function CompaniesPage() {
       setSelected(new Set());
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      window.alert(`Mass delete failed: ${err instanceof Error ? err.message : String(err)}`);
+      window.alert(refusedDeleteMessage(err) ?? `Mass delete failed: ${err instanceof Error ? err.message : String(err)}`); // KS_PORTAL_v14_RETENTION
     } finally { setBusyMass(null); }
   }
   async function massTag() {
