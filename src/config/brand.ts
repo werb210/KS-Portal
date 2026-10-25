@@ -4,6 +4,7 @@
 // for loadBrand() before rendering. Nothing here ever throws.
 import { useSyncExternalStore } from "react";
 import { SERVER_URL } from "@/config/licensee";
+import { applyBrandTheme } from "@/config/brandTheme";
 
 export type Brand = {
   company_name: string;
@@ -20,6 +21,9 @@ export type Brand = {
   mailing_address: string;
   /** KS_PORTAL_v12_GOOGLE_WORKSPACE - m365 | google | both: which Connect buttons staff see (default m365). */
   workspace_provider: "m365" | "google" | "both";
+  /** KS_PORTAL_v14_BRAND_FONT - "" = the portal's own background / font. */
+  background_color: string;
+  font_family: string;
   urls: { server: string; portal: string; client: string; website: string };
 };
 
@@ -47,6 +51,8 @@ export function defaultBrand(): Brand {
     country: "",
     mailing_address: "",
     workspace_provider: "m365",
+    background_color: "",
+    font_family: "",
     urls: { server: "", portal: "", client: "", website: "" },
   };
 }
@@ -76,6 +82,8 @@ function normalize(raw: unknown): Brand {
     country: str(r.country),
     mailing_address: str(r.mailing_address),
     workspace_provider: ((v: string) => (v === "google" || v === "both" ? v : "m365"))(str(r.workspace_provider).toLowerCase()),
+    background_color: /^#[0-9a-f]{6}$/i.test(str(r.background_color)) ? str(r.background_color) : "",
+    font_family: /^[A-Za-z0-9][A-Za-z0-9 -]{0,59}$/.test(str(r.font_family)) ? str(r.font_family) : "",
     urls: { server: str(urls.server), portal: str(urls.portal), client: str(urls.client), website: str(urls.website) },
   };
 }
@@ -99,9 +107,11 @@ function writeCache(b: Brand): void {
 
 let current: Brand = readCache() ?? defaultBrand();
 const listeners = new Set<() => void>();
+try { applyBrandTheme(current); } catch { /* no DOM */ }
 
 function setBrand(next: Brand): void {
   current = next;
+  try { applyBrandTheme(next); } catch { /* no DOM */ }
   for (const l of listeners) {
     try { l(); } catch { /* a listener's failure must not stop the others */ }
   }
