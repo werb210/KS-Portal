@@ -40,6 +40,13 @@ export function isLandscape(v: { w: number; h: number }): boolean {
 /** The portal is laid out at this width (its desktop layout) and zoomed. */
 export const LAYOUT_W = 1280;
 export const MIN_LAYOUT_H = 720;
+/**
+ * KS_PORTAL_v13_PHONE_DEMO_FIX - never taller than a desktop screen. A phone-shaped 1280x2770 viewport centred the
+ * portal's dialogs (the document naming dialog) far below the rows being accepted, and when a dialog closed the camera
+ * was left looking at empty page. At a desktop height the portal scrolls itself as it does at a desk, and its rows and
+ * dialogs stay near the middle of the frame.
+ */
+export const MAX_LAYOUT_H = 900;
 /** Text in the framed region is drawn at least this big on the phone. */
 export const READABLE_PX = 16;
 export const MAX_SCALE = 2.4;
@@ -48,10 +55,10 @@ export const FRAME_PAD = 12;
 export type Box = { top: number; left: number; width: number; height: number };
 export type Camera = { scale: number; x: number; y: number };
 
-/** The portal's layout height for a phone: the phone's shape at the desktop width, never shorter than a laptop. */
+/** The portal's layout height for a phone: the phone's shape at the desktop width, between a laptop and a desktop. */
 export function layoutHeight(vw: number, vh: number): number {
   if (vw <= 0 || vh <= 0) return MIN_LAYOUT_H;
-  return Math.max(MIN_LAYOUT_H, Math.round((LAYOUT_W * vh) / vw));
+  return Math.min(MAX_LAYOUT_H, Math.max(MIN_LAYOUT_H, Math.round((LAYOUT_W * vh) / vw)));
 }
 
 /** The smallest zoom: the whole page in the stage. */

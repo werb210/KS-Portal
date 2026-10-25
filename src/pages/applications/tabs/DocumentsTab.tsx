@@ -140,6 +140,10 @@ export default function DocumentsTab({ applicationId }: Props) {
   // KS_PORTAL_v14_RETENTION - per-document retention lock (delete buttons show the lock and the date).
   const [retention, setRetention] = useState<Record<string, RetentionStatus>>({});
   const [loading, setLoading] = useState(true);
+  // KS_PORTAL_v13_PHONE_DEMO_FIX - the application whose documents are on screen. A refresh after accepting, rejecting
+  // or uploading keeps the list showing (no "Loading documents…" flash that empties the page between decisions); only
+  // the first load of an application shows the placeholder.
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
   const [working, setWorking] = useState<Record<string, "accept" | "reject" | undefined>>({});
   const [rejectDraft, setRejectDraft] = useState<Record<string, string>>({});
@@ -274,6 +278,7 @@ export default function DocumentsTab({ applicationId }: Props) {
       }
       setRetention((await fetchApplicationRetention(applicationId)).documents); // KS_PORTAL_v14_RETENTION
       setError(null);
+      setLoadedFor(applicationId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to load documents");
     } finally {
@@ -406,7 +411,7 @@ export default function DocumentsTab({ applicationId }: Props) {
   }
 
   if (!applicationId) return <div style={styles.placeholder}>Select an application to view documents.</div>;
-  if (loading)        return <div style={styles.placeholder}>Loading documents…</div>;
+  if (loading && loadedFor !== applicationId) return <div style={styles.placeholder}>Loading documents…</div>;
   if (error)          return <div style={styles.error}>{error}</div>;
 
   return (

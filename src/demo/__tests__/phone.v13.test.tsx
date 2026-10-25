@@ -76,8 +76,8 @@ describe("the camera", () => {
   const stage = { w: 390, h: 480 };
   const layout = { w: LAYOUT_W, h: layoutHeight(390, 844) };
 
-  it("lays the portal out at the desktop width, phone-shaped, never shorter than a laptop", () => {
-    expect(layout.h).toBe(Math.round((1280 * 844) / 390));
+  it("lays the portal out at the desktop width and a desktop height (720-900)", () => {
+    expect(layout.h).toBe(900); // a desktop screen's height, not phone-shaped (dialogs stay near the rows)
     expect(layoutHeight(844, 390)).toBe(720);
   });
 
@@ -253,5 +253,57 @@ describe("the broker tour inside the phone's camera", () => {
     act(() => bridge.next());
     await waitFor(() => expect(bridge.get()!.key).toBe("documents"), { timeout: 20_000 });
     expect(bridge.get()!.title).toBe("Everything Sam sent is here");
+  }, 60_000);
+});
+
+// KS_PORTAL_v13_PHONE_DEMO_FIX - accepting a document refreshes the Documents tab without emptying it first (the
+// phone's camera was left looking at a blank "Loading documents…" page between decisions; on a desk it flickered).
+describe("the Documents tab keeps its list while it refreshes", () => {
+  let setup: BrokerSetup | null = null;
+  afterEach(() => {
+    setup?.restore();
+    setup = null;
+  });
+
+  it("never shows 'Loading documents…' again after the first load", async () => {
+    localStorage.setItem(LIVE_DEMO_STORE_KEY, JSON.stringify({ link: { demoId: "d1", token: "t1" }, session: SESSION }));
+    sessionStorage.setItem(LIVE_DEMO_MODE_KEY, "broker");
+    sessionStorage.setItem("ks_live_demo_tour_v1", JSON.stringify({ index: 1 })); // the documents step
+    window.history.replaceState({}, "", "/pipeline");
+    const real = vi.fn(async () => new Response(null, { status: 204 }));
+    setup = setupBrokerDemo({ realFetch: real as unknown as typeof fetch });
+    render(<BrokerDemoRoot realFetch={real as unknown as typeof fetch} />);
+    const root = await waitFor(() => {
+      const el = document.querySelector('[data-testid="documents-drop-target"]');
+      expect(el).toBeTruthy();
+      return el as HTMLElement;
+    }, { timeout: 20_000 });
+    expect(root).toBeTruthy();
+    let flashed = false;
+    const mo = new MutationObserver(() => {
+      if ((document.body.textContent ?? "").includes("Loading documents")) flashed = true;
+    });
+    mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+    const accept = await waitFor(() => {
+      const b = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-testid="documents-drop-target"] button'))
+        .find((x) => x.textContent?.trim() === "Accept" && !x.disabled && !x.closest('[data-testid="accept-name-dialog"]'));
+      expect(b).toBeTruthy();
+      return b!;
+    }, { timeout: 10_000 });
+    const pendingAccepts = () => Array.from(document.querySelectorAll<HTMLButtonElement>('[data-testid="documents-drop-target"] button'))
+      .filter((x) => x.textContent?.trim() === "Accept" && !x.closest('[data-testid="accept-name-dialog"]')).length;
+    const before = pendingAccepts();
+    fireEvent.click(accept);
+    const confirm = await waitFor(() => {
+      const d = document.querySelector('[data-testid="accept-name-dialog"]');
+      const b = d && Array.from(d.querySelectorAll<HTMLButtonElement>("button")).find((x) => x.textContent?.trim() === "Accept" && !x.disabled);
+      expect(b).toBeTruthy();
+      return b!;
+    }, { timeout: 10_000 });
+    fireEvent.click(confirm);
+    await waitFor(() => expect(document.querySelector('[data-testid="accept-name-dialog"]')).toBeNull(), { timeout: 10_000 });
+    await waitFor(() => expect(pendingAccepts()).toBe(before - 1), { timeout: 10_000 });
+    mo.disconnect();
+    expect(flashed).toBe(false);
   }, 60_000);
 });

@@ -63,6 +63,7 @@ export default function PhoneBroker() {
   const anim = useRef(0);
   const fontRef = useRef(14);
   const setScroll = useRef({ x: 0, y: 0 });
+  const lastOnPage = useRef<{ rect: NonNullable<TourSnapshot["rect"]>; font: number } | null>(null);
   // When the person last touched, scrolled or clicked: only then is a scroll of the stage theirs. The portal's own
   // scrollIntoView (it brings rows into view inside the frame) also scrolls the stage around it; that is put back.
   const lastInput = useRef(0);
@@ -121,7 +122,16 @@ export default function PhoneBroker() {
       font = 14;
     }
     fontRef.current = font;
+    // Remember the last thing on the page itself (not a dialog over it): when a dialog closes, the camera goes back to
+    // it - the row that was just accepted - instead of staying on the empty spot the dialog covered.
+    const onDialog = s?.els.some((e) => e.closest?.('[role="dialog"]')) ?? false;
+    if (s?.rect && !onDialog) lastOnPage.current = { rect: s.rect, font };
     moveTo(frameRegion(s?.rect ?? null, stageSize(), layout, font));
+  }, [layout, moveTo]);
+
+  const frameLastOnPage = useCallback(() => {
+    const last = lastOnPage.current;
+    if (last) moveTo(frameRegion(last.rect, stageSize(), layout, last.font));
   }, [layout, moveTo]);
 
   // Find the tour inside the frame (it starts a moment after the frame loads, and again after a reload).
@@ -149,6 +159,7 @@ export default function PhoneBroker() {
   const stepKey = snap?.key;
   useEffect(() => {
     setManual(false);
+    lastOnPage.current = null;
   }, [stepKey, setManual]);
 
   // Follow the highlight as it moves (auto-play, scrolling inside the portal, the sheet opening or closing).
@@ -158,8 +169,10 @@ export default function PhoneBroker() {
   const hadRect = useRef(false);
   useLayoutEffect(() => {
     if (manualRef.current) return undefined;
-    // Between two auto-played rows the highlight is briefly gone: hold the shot rather than zoom out and back in.
+    // Between two auto-played rows the highlight is briefly gone: go back to the last row on the page (never the empty
+    // spot a closed dialog leaves) rather than zoom out and back in; zoom out only if nothing comes back.
     if (rectKey === "none" && hadRect.current) {
+      frameLastOnPage();
       const t = window.setTimeout(() => {
         hadRect.current = false;
         if (!manualRef.current) frame();
@@ -169,7 +182,7 @@ export default function PhoneBroker() {
     hadRect.current = rectKey !== "none";
     frame();
     return undefined;
-  }, [rectKey, elsKey, stepKey, collapsed, landscape, vp.w, vp.h, frame]);
+  }, [rectKey, elsKey, stepKey, collapsed, landscape, vp.w, vp.h, frame, frameLastOnPage]);
 
   useEffect(() => {
     const stage = stageRef.current;
