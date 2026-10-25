@@ -55,4 +55,31 @@ describe("Get help", () => {
     expect(screen.queryByTestId("help-tickets")).toBeNull();
     expect(screen.getByRole("button", { name: "Send request" })).toBeInTheDocument();
   });
+
+  // KS_PORTAL_v17_TICKET_REPLIES
+  it("sends a follow-up reply on a request to POST /api/support/tickets/:id/messages", async () => {
+    h.get.mockResolvedValue({ tickets: [existing] });
+    h.post.mockResolvedValueOnce({ ok: true, message: { id: "m1" }, relayed: true });
+    renderWithRole(<HelpPage />, "Staff");
+    await screen.findByTestId("ticket-t1");
+    fireEvent.click(screen.getByRole("button", { name: "Reply" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Write your reply first.");
+    expect(h.post).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText(/Your reply on/), { target: { value: "Still dropping today." } });
+    fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+    expect(await screen.findByText(/Reply sent\./)).toBeInTheDocument();
+    expect(h.post).toHaveBeenCalledWith("/api/support/tickets/t1/messages", { body: "Still dropping today." });
+  });
+
+  it("shows an error when the reply cannot be sent", async () => {
+    h.get.mockResolvedValue({ tickets: [existing] });
+    h.post.mockRejectedValueOnce(Object.assign(new Error("Not found"), { status: 404 }));
+    renderWithRole(<HelpPage />, "Admin");
+    await screen.findByTestId("ticket-t1");
+    fireEvent.click(screen.getByRole("button", { name: "Reply" }));
+    fireEvent.change(screen.getByLabelText(/Your reply on/), { target: { value: "Hello?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send reply" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Replies are not available yet");
+  });
 });

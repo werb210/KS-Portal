@@ -2,6 +2,8 @@
 // POST /api/support/tickets { subject, body, priority } -> { ok, ticket }
 // GET  /api/support/tickets -> { tickets: [...] } and, when the server supplies it, the vendor's support hours and
 // channels (`support: { hours?, channels?, text? }` or `support_info: "..."`). 404 = the server has no tickets yet.
+// KS_PORTAL_v17_TICKET_REPLIES - POST /api/support/tickets/:id/messages { body } -> { ok, message, relayed }: a
+// follow-up reply on one of the company's requests (KS-server relays it to the vendor).
 import { api } from "@/api";
 
 export type TicketPriority = "normal" | "urgent";
@@ -78,5 +80,18 @@ export async function createTicket(input: { subject: string; body: string; prior
     if (status === 400 && errs.length) return { ok: false, error: errs.join(" ") };
     const msg = str(d.message);
     return { ok: false, error: msg && !/^[a-z_]+$/.test(msg) ? msg : "Could not send your request. Please try again." };
+  }
+}
+
+// KS_PORTAL_v17_TICKET_REPLIES
+export async function replyToTicket(ticketId: string, body: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await api.post<unknown>(`/api/support/tickets/${encodeURIComponent(ticketId)}/messages`, { body });
+    return { ok: true };
+  } catch (e) {
+    const status = statusOf(e);
+    if (status === 404) return { ok: false, error: "Replies are not available yet. Please email your account contact." };
+    if (status === 403) return { ok: false, error: "Your account cannot send support requests." };
+    return { ok: false, error: "Could not send your reply. Please try again." };
   }
 }
