@@ -308,7 +308,8 @@ describe("the broker tour on the real portal", () => {
           fireEvent.click(await screen.findByLabelText(`Send to ${name}`));
         }
         await waitFor(() => expect((screen.getByTestId("live-demo-next") as HTMLButtonElement).disabled).toBe(false), { timeout: 10_000 });
-        expect(screen.getByTestId("live-demo-next").textContent).toBe("Submit to 2 lenders");
+        // The tour counts the ticks every 250 ms: wait for it to see both (it could still say "1 lender" here).
+        await waitFor(() => expect(screen.getByTestId("live-demo-next").textContent).toBe("Submit to 2 lenders"), { timeout: 5_000 });
       }
       fireEvent.click(screen.getByTestId("live-demo-next"));
       await waitFor(() => {

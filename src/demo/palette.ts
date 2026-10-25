@@ -45,4 +45,18 @@ export const TEXT_PAIRS: Array<[name: string, fg: string, bg: string]> = [
   ["Sam's words", "#ffffff", "#3a3a3c"],
   ["call note badge", "#ecfdf5", "#065f46"],
   ["watch subtitle", "#d4d4d8", "#000000"],
+  // KS_PORTAL_v13_PHONE_DEMO - the phone's sheet, start screen and call screen
+  ["sheet count", "#475569", "#ffffff"],
+  ["sheet hide", "#334155", "#ffffff"],
+  ["sheet text", "#1e293b", "#ffffff"],
+  ["sheet link", "#1d4ed8", "#ffffff"],
+  ["sheet emailed", "#065f46", "#ffffff"],
+  ["sheet email error", "#991b1b", "#ffffff"],
+  ["sheet ghost button", "#0f172a", "#ffffff"],
+  ["camera re-centre", "#ffffff", "#1d4ed8"],
+  ["camera loading", "#e2e8f0", "#0b1220"],
+  ["call screen text", "#e5e7eb", "#262b33"],
+  ["call file card", "#e5e7eb", "#3a3f47"],
+  ["call file card title", "#ffffff", "#3a3f47"],
+  ["call screen live", "#e5e7eb", "#1f2937"],
 ];

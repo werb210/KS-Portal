@@ -276,3 +276,43 @@ export async function trackDemo(s: DemoSessionInfo, name: string, step: string |
     /* analytics only */
   }
 }
+
+// ---------------------------------------------------------------- KS_PORTAL_v13_PHONE_DEMO: "Email me the link"
+
+export type EmailLinkResult = { sentTo: string };
+
+/**
+ * "Email me the link for my computer" (KS-Ops POST /api/public/demo/email-link). KS-Ops re-sends the demo email with a
+ * fresh link to the address the demo was asked for (rate-limited there) and answers the new token: this browser keeps
+ * it, so the link stored here keeps working. Throws a DemoApiError with a readable message.
+ */
+export async function emailDemoLink(fetchImpl: typeof fetch = (...a) => fetch(...a)): Promise<EmailLinkResult> {
+  const link = state.link;
+  if (!link) throw new DemoApiError(400, "no_demo_link", "Open your demo from the email we sent, then try again.");
+  const base = opsUrl();
+  if (!base) throw new DemoApiError(503, "demo_not_configured", "We can't send emails from this copy of the demo.");
+  let r: Response;
+  try {
+    r = await fetchImpl(`${base}/api/public/demo/email-link`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ demo_id: link.demoId, token: link.token }),
+    });
+  } catch {
+    throw new DemoApiError(0, "network", "We couldn't reach our server. Check your connection and try again.");
+  }
+  let body: { token?: unknown; sent_to?: unknown; error?: string; message?: string } = {};
+  try {
+    body = await r.json();
+  } catch {
+    /* not JSON */
+  }
+  // The link was rotated (even when the email itself failed): keep the new one.
+  if (typeof body.token === "string" && body.token.length > 8) {
+    const fresh = { demoId: link.demoId, token: body.token };
+    writeStored({ link: fresh, session: state.session });
+    set({ link: fresh });
+  }
+  if (!r.ok) throw new DemoApiError(r.status, body.error ?? `status_${r.status}`, body.message ?? "Something went wrong. Please try again.");
+  return { sentTo: typeof body.sent_to === "string" && body.sent_to ? body.sent_to : "your email" };
+}
