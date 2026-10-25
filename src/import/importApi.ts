@@ -1,4 +1,4 @@
-// KS_PORTAL_v14_DATA_IMPORT - the Import data wizard's API (KS-server /api/data-import, admins only). Shapes match
+// KS_PORTAL_v16_DATA_IMPORT - the Import data wizard's API (KS-server /api/data-import, admins only). Shapes match
 // src/routes/dataImport.ts there.
 import { api, rawApiFetch } from "@/api";
 
@@ -29,7 +29,7 @@ export type Batch = {
   error_count: number;
   dry_run: (Counts & { rows: number; error_rows: number; by_type?: Record<string, Counts> }) | null;
   run_summary: { by_type?: Record<string, Counts> } | null;
-  undo_summary: { removed: number; restored: number; kept: number; failed: number } | null;
+  undo_summary: { removed: number; restored: number; kept: number; held?: number; failed: number } | null;
   last_error: string | null;
   created_by_email: string | null;
   created_at: string;

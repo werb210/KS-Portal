@@ -1,4 +1,4 @@
-// KS_PORTAL_v14_DATA_IMPORT - "Moving to Keystone": a short guide to bringing records over, shown in Settings >
+// KS_PORTAL_v16_DATA_IMPORT - "Moving to Keystone": a short guide to bringing records over, shown in Settings >
 // Import data and in Help. Plain text on the portal's own surface colours, readable in both themes.
 import type { CSSProperties } from "react";
 
@@ -50,7 +50,7 @@ export default function MovingToKeystone() {
       <h4 style={h4}>4. Import, and undo if you need to</h4>
       <ul style={list}>
         <li>The import runs in the background; you can leave the page and come back to see its progress.</li>
-        <li>Undo removes the records the import added and puts back fields it changed. A field someone has edited since stays as it is.</li>
+        <li>Undo removes the records the import added and puts back fields it changed. A field someone has edited since stays as it is, and records under a legal hold are kept.</li>
         <li>Limits: CSV or Excel up to 50 MB, a .zip up to 200 MB, each document up to 25 MB, and up to 200,000 rows per file. Split larger exports into parts.</li>
       </ul>
     </section>

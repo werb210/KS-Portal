@@ -1,4 +1,4 @@
-// KS_PORTAL_v14_DATA_IMPORT - the Import data wizard: upload, column matching, preview with row problems and stage
+// KS_PORTAL_v16_DATA_IMPORT - the Import data wizard: upload, column matching, preview with row problems and stage
 // choices, the check (dry run), import, undo, problem downloads, and the Moving to Keystone guide.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, fireEvent, waitFor, within } from "@testing-library/react";

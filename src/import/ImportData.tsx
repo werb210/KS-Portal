@@ -1,4 +1,4 @@
-// KS_PORTAL_v14_DATA_IMPORT - Settings > Import data (Admins): bring records over from HubSpot, Salesforce,
+// KS_PORTAL_v16_DATA_IMPORT - Settings > Import data (Admins): bring records over from HubSpot, Salesforce,
 // Pipedrive, a spreadsheet or a Keystone export. Steps: upload, match columns, preview, check (dry run), import
 // (a background job with progress), and undo. The server does the work (KS-server /api/data-import).
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -564,6 +564,7 @@ function JobView({ batch, presets, busy, onRun, onUndo, onDownload, onBack }: {
             <div role="status" style={okBox} data-testid="import-undone">
               Undone: {batch.undo_summary.removed} records removed, {batch.undo_summary.restored} restored
               {batch.undo_summary.kept > 0 ? `, ${batch.undo_summary.kept} fields kept because they were edited after the import` : ""}
+              {(batch.undo_summary.held ?? 0) > 0 ? `, ${batch.undo_summary.held} kept because they are under a legal hold` : ""}
               {batch.undo_summary.failed > 0 ? `, ${batch.undo_summary.failed} could not be undone` : ""}.
             </div>
           )}

@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { createTicket, listTickets, type Ticket, type TicketPriority } from "@/support/supportApi";
 import { primaryButton, useRole } from "@/plans/ui";
-import MovingToKeystone from "@/import/MovingToKeystone"; // KS_PORTAL_v14_DATA_IMPORT
+import MovingToKeystone from "@/import/MovingToKeystone"; // KS_PORTAL_v16_DATA_IMPORT
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 4px", fontSize: 16, color: "var(--ui-text)" };
@@ -128,7 +128,7 @@ export default function HelpPage() {
         </form>
       </section>
 
-      {/* KS_PORTAL_v14_DATA_IMPORT - how to bring records over; the importer itself is Settings > Import data (Admins). */}
+      {/* KS_PORTAL_v16_DATA_IMPORT - how to bring records over; the importer itself is Settings > Import data (Admins). */}
       {role === "admin" && <MovingToKeystone />}
 
       {loaded && listAvailable && (
