@@ -3,6 +3,7 @@
 // admin can place a legal hold on an application, contact or company. Delete buttons show the lock and the date.
 import { useEffect, useState } from "react";
 import { api } from "@/api";
+import { isLiveDemo } from "@/demo/mode"; // the live demo has no real records: never ask the server
 
 export type HoldSummary = { id: string; target_type: string; target_id: string; target_label: string | null; reason: string; placed_at: string | null };
 
@@ -86,6 +87,7 @@ export function refusedDeleteMessage(e: unknown): string | null {
 }
 
 export async function fetchRetention(type: RetentionTarget, id: string): Promise<RetentionStatus | null> {
+  if (isLiveDemo()) return null;
   try {
     return parseStatus(await api.get<unknown>(`/api/retention/status?type=${type}&id=${encodeURIComponent(id)}`));
   } catch {
@@ -94,6 +96,7 @@ export async function fetchRetention(type: RetentionTarget, id: string): Promise
 }
 
 export async function fetchApplicationRetention(applicationId: string): Promise<{ application: RetentionStatus | null; documents: Record<string, RetentionStatus> }> {
+  if (isLiveDemo()) return { application: null, documents: {} };
   try {
     const r = obj(await api.get<unknown>(`/api/retention/applications/${encodeURIComponent(applicationId)}`));
     const docs: Record<string, RetentionStatus> = {};
