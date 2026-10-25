@@ -12,6 +12,7 @@ import {
 import { primaryButton, useIsAdmin } from "@/plans/ui";
 import FraudProtectionCard from "@/fraud/FraudProtectionCard"; // KS_PORTAL_v7_FRAUD
 import QuickBooksCard from "./QuickBooksCard"; // KS_PORTAL_v13_QUICKBOOKS
+import { FONT_NAME, contrast as bgContrast, fontStack, googleFontHref } from "@/config/brandTheme"; // KS_PORTAL_v14_BRAND_FONT
 import { WORKSPACE_MODE_LABEL, normalizeWorkspaceMode, type WorkspaceMode } from "@/lib/workspace"; // KS_PORTAL_v12_GOOGLE_WORKSPACE
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
@@ -55,6 +56,12 @@ export function validateCompany(form: CompanyForm): Errors {
   for (const f of ["primary_color", "accent_color"] as const) {
     if (form[f] && !HEX_COLOR.test(form[f])) e[f] = `${FIELD_LABEL[f]} must be a colour like #0B1F3A.`;
   }
+  // KS_PORTAL_v14_BRAND_FONT - the background carries dark text in the client app and the light portal theme.
+  if (form.background_color) {
+    if (!HEX_COLOR.test(form.background_color)) e.background_color = `${FIELD_LABEL.background_color} must be a colour like #F5F8FC.`;
+    else if (bgContrast(form.background_color, DARK_TEXT) < MIN_CONTRAST) e.background_color = `${FIELD_LABEL.background_color} is too dark for dark text (needs ${MIN_CONTRAST}:1). Choose a lighter colour.`;
+  }
+  if (form.font_family && !FONT_NAME.test(form.font_family)) e.font_family = "Choose a font from the list.";
   if (!e.primary_color && form.primary_color) {
     const why = primaryContrastProblem(form.primary_color);
     if (why) e.primary_color = why;
@@ -94,6 +101,67 @@ function ColorField({ field, value, onChange, error }: { field: "primary_color" 
             : `White text on this colour: ${ratio.toFixed(2)}:1 - too faint (needs ${MIN_CONTRAST}:1).`}
         </div>
       )}
+    </Field>
+  );
+}
+
+const DARK_TEXT = "#0B1F3A";
+const SYSTEM_FONTS = ["Arial", "Verdana", "Tahoma", "Trebuchet MS", "Georgia", "Times New Roman"];
+const GOOGLE_FONTS = [
+  "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Source Sans 3", "Nunito Sans", "Poppins", "Raleway", "Work Sans",
+  "IBM Plex Sans", "DM Sans", "Public Sans", "Figtree", "Merriweather", "Playfair Display", "Libre Baskerville", "Lora", "Source Serif 4",
+];
+
+/** KS_PORTAL_v14_BRAND_FONT - the background colour: dark text sits on it in the client app and the light theme. */
+function BackgroundField({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+  const valid = HEX_COLOR.test(value);
+  const ratio = valid ? bgContrast(value, DARK_TEXT) : null;
+  const id = "company-background_color";
+  return (
+    <Field id={id} label={FIELD_LABEL.background_color} error={error} hint="Page and panel background in your client app and the portal's light theme. Leave blank for the default.">
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <input type="color" aria-label={`${FIELD_LABEL.background_color} picker`} value={valid ? value.toLowerCase() : "#f5f8fc"} onChange={(ev) => onChange(ev.target.value)}
+          style={{ width: 44, height: 36, padding: 0, border: "1px solid var(--ui-border)", borderRadius: 8, background: "transparent", cursor: "pointer" }} />
+        <input id={id} type="text" value={value} maxLength={7} placeholder="Default" onChange={(ev) => onChange(ev.target.value.trim())} style={{ ...inputStyle, maxWidth: 120 }} />
+        {valid && (
+          <span data-testid="background_color-sample" style={{ padding: "6px 10px", borderRadius: 8, background: value, color: DARK_TEXT, fontSize: 13, fontWeight: 700, border: "1px solid var(--ui-border)" }}>
+            Sample text
+          </span>
+        )}
+      </div>
+      {ratio !== null && !error && (
+        <div data-testid="background-contrast" style={ratio >= MIN_CONTRAST ? okBox : errorBox}>
+          {ratio >= MIN_CONTRAST ? `Dark text on this colour: ${ratio.toFixed(2)}:1 - readable.` : `Dark text on this colour: ${ratio.toFixed(2)}:1 - too dark (needs ${MIN_CONTRAST}:1).`}
+        </div>
+      )}
+    </Field>
+  );
+}
+
+/** KS_PORTAL_v14_BRAND_FONT - the font for the client app and the portal: web-safe or Google fonts, with a preview. */
+function FontField({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+  const id = "company-font_family";
+  useEffect(() => {
+    const href = googleFontHref(value);
+    if (!href || document.querySelector(`link[data-font-preview="${value}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+    link.dataset.fontPreview = value;
+    document.head.appendChild(link);
+  }, [value]);
+  const known = !value || SYSTEM_FONTS.includes(value) || GOOGLE_FONTS.includes(value);
+  return (
+    <Field id={id} label={FIELD_LABEL.font_family} error={error} hint="Used for the text in your client app and this portal.">
+      <select id={id} value={value} onChange={(ev) => onChange(ev.target.value)} style={inputStyle}>
+        <option value="">Default</option>
+        {!known && <option value={value}>{value} (your website's font)</option>}
+        <optgroup label="On every device">{SYSTEM_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}</optgroup>
+        <optgroup label="Google Fonts">{GOOGLE_FONTS.map((f) => <option key={f} value={f}>{f}</option>)}</optgroup>
+      </select>
+      <div data-testid="font-sample" style={{ marginTop: 6, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--ui-border)", fontFamily: value && FONT_NAME.test(value) ? fontStack(value) : "inherit", fontSize: 15 }}>
+        Your application is in review. We&apos;ll let you know what comes next.
+      </div>
     </Field>
   );
 }
@@ -222,7 +290,7 @@ export default function CompanySettings() {
 
       <section style={card} data-testid="company-section-branding">
         <h3 style={h3}>Branding</h3>
-        <p style={muted}>Your logo and colours. The preview shows how the logo will look before you save.</p>
+        <p style={muted}>Your logo, colours and font. The preview shows how the logo will look before you save. Values chosen at sign-up arrive here automatically; once you change one, your choice is kept.</p>
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 10, border: "1px solid var(--ui-border)", marginBottom: 14 }} data-testid="logo-preview">
           <BrandLogo height={44} preview={{ logo_url: /^https:\/\/\S+$/i.test(form.logo_url) ? form.logo_url : "", primary_color: HEX_COLOR.test(form.primary_color) ? form.primary_color : undefined, company_name: form.company_name }} />
           <strong style={{ fontSize: 15 }}>{form.company_name || "Your company"}</strong>
@@ -233,6 +301,10 @@ export default function CompanySettings() {
         <div style={{ ...grid, marginTop: 14 }}>
           <ColorField field="primary_color" value={form.primary_color} onChange={set("primary_color")} error={errors.primary_color} />
           <ColorField field="accent_color" value={form.accent_color} onChange={set("accent_color")} error={errors.accent_color} />
+        </div>
+        <div style={{ ...grid, marginTop: 14 }}>
+          <BackgroundField value={form.background_color} onChange={set("background_color")} error={errors.background_color} />
+          <FontField value={form.font_family} onChange={set("font_family")} error={errors.font_family} />
         </div>
       </section>
 
