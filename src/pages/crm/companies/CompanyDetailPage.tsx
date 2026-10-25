@@ -9,6 +9,8 @@ import { CompanyBusinessFields } from "@/components/crm/ContactApplicationDetail
 import { AuthContext } from "@/auth/AuthContext";
 import { canDelete } from "@/auth/canDelete";
 import { EntityEditModal } from "@/components/EntityEditModal";
+import RetentionLock from "@/retention/RetentionLock"; // KS_PORTAL_v14_RETENTION
+import { refusedDeleteMessage, useRetention } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
 
 export default function CompanyDetailPage() {
   const { id = "" } = useParams();
@@ -18,6 +20,7 @@ export default function CompanyDetailPage() {
   const [company, setCompany] = useState<CompanyRow | null>(null);
   const [contacts, setContacts] = useState<ContactRow[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const retention = useRetention("company", canDelete(auth?.user?.role) ? id : null, refreshKey); // KS_PORTAL_v14_RETENTION
   const [err, setErr] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const canDeleteCompany = canDelete(auth?.user?.role);
@@ -78,7 +81,7 @@ export default function CompanyDetailPage() {
         <h2 style={{ marginTop: 0 }}>{company.name}</h2>
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <button type="button" onClick={() => setEditOpen(true)} style={actionBtn}>Edit</button>
-          {canDeleteCompany ? (
+          {canDeleteCompany && retention?.locked ? <RetentionLock status={retention} /> : canDeleteCompany ? (
             <button
               type="button"
               onClick={async () => {
@@ -87,7 +90,7 @@ export default function CompanyDetailPage() {
                   await api.delete(`/api/crm/companies/${id}`);
                   navigate("/crm/companies");
                 } catch (error: any) {
-                  setErr(error?.message ?? "Could not delete company.");
+                  setErr(refusedDeleteMessage(error) ?? error?.message ?? "Could not delete company.");
                 }
               }}
               style={{ ...actionBtn, borderColor: "#fecaca", color: "#b91c1c" }}
