@@ -137,6 +137,8 @@
 .ksld-call button { pointer-events: auto; }
 @media (max-height: 760px) { .ksld-call { transform: translate(-50%, -50%) scale(0.82); } }
 @media (max-height: 620px) { .ksld-call { transform: translate(-50%, -50%) scale(0.66); } }
+/* KS_PORTAL_v12_CARD_PLACEMENT - on an iPad in portrait the call sits at the top, leaving room under it for the card. */
+@media (min-width: 700px) and (max-width: 1099px) and (min-height: 761px) { .ksld-call { top: 24px; transform: translateX(-50%); } }
 @media (max-width: 699px) { .ksld-call { gap: 20px; transform: translate(-50%, -62%) scale(0.6); } }
 
 .ksld-callscreen { display: flex; flex-direction: column; color: #ffffff; background: radial-gradient(circle at 30% 18%, #5b6472 0%, #262b33 45%, #0b0d10 100%); }
