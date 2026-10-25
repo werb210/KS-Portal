@@ -1,8 +1,9 @@
 // KS_PORTAL_v6_SUPPORT - "Get help": Admins and Staff send a request to the software vendor's support team
 // (POST /api/support/tickets) and see their company's requests with their status. Replies go out by email.
 // Reached from the sidebar ("Get help") and Settings -> Help. A 404 from the server hides the request list.
+// KS_PORTAL_v17_TICKET_REPLIES - each request has a "Reply" button to add a follow-up (POST /api/support/tickets/:id/messages).
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import { createTicket, listTickets, type Ticket, type TicketPriority } from "@/support/supportApi";
+import { createTicket, listTickets, replyToTicket, type Ticket, type TicketPriority } from "@/support/supportApi";
 import { primaryButton, useRole } from "@/plans/ui";
 import MovingToKeystone from "@/import/MovingToKeystone"; // KS_PORTAL_v16_DATA_IMPORT
 
@@ -35,6 +36,55 @@ function formatDate(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+// KS_PORTAL_v17_TICKET_REPLIES - a follow-up reply on one request.
+function TicketReply({ ticket }: { ticket: Ticket }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+  const id = `reply-${ticket.id}`;
+  if (!open) {
+    return (
+      <div style={{ width: "100%" }}>
+        {sent && <div role="status" style={okBox}>Reply sent. We'll reply by email.</div>}
+        <button type="button" onClick={() => { setOpen(true); setSent(false); }} style={{ marginTop: 6, background: "none", border: "none", padding: 0, color: "var(--ui-link, var(--ui-text))", textDecoration: "underline", cursor: "pointer", fontSize: 13 }}>
+          Reply
+        </button>
+      </div>
+    );
+  }
+  const send = async () => {
+    const b = text.trim();
+    if (!b) {
+      setError("Write your reply first.");
+      return;
+    }
+    setError(null);
+    setSending(true);
+    const r = await replyToTicket(ticket.id, b);
+    setSending(false);
+    if (!r.ok) {
+      setError(r.error);
+      return;
+    }
+    setText("");
+    setOpen(false);
+    setSent(true);
+  };
+  return (
+    <div style={{ width: "100%", marginTop: 8 }}>
+      <label htmlFor={id} style={labelStyle}>Your reply on "{ticket.subject}"</label>
+      <textarea id={id} value={text} rows={3} maxLength={5000} onChange={(e) => setText(e.target.value)} style={{ ...inputStyle, resize: "vertical" }} />
+      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+        <button type="button" style={primaryButton} disabled={sending} onClick={() => void send()}>{sending ? "Sending…" : "Send reply"}</button>
+        <button type="button" onClick={() => { setOpen(false); setError(null); }} style={{ background: "none", border: "1px solid var(--ui-border)", borderRadius: 8, padding: "6px 12px", color: "var(--ui-text)", cursor: "pointer" }}>Cancel</button>
+      </div>
+      {error && <div role="alert" style={errorBox}>{error}</div>}
+    </div>
+  );
 }
 
 export default function HelpPage() {
@@ -148,6 +198,7 @@ export default function HelpPage() {
                   <span style={{ padding: "1px 8px", borderRadius: 999, fontSize: 12, fontWeight: 700, ...(STATUS_STYLE[t.status.toLowerCase()] ?? STATUS_STYLE.open) }}>
                     {statusLabel(t.status)}
                   </span>
+                  <TicketReply ticket={t} />
                 </li>
               ))}
             </ul>
