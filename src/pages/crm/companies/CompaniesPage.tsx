@@ -12,8 +12,11 @@ import { CrmBulkTagActions, CrmTagChips, CrmTagViewBy, useTagCatalogue } from "@
 import ColumnsMenu from "@/components/crm/ColumnsMenu";
 import { exportRowsToCsv } from "@/utils/csvExport";
 import { refusedDeleteMessage } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
+import CustomFieldFilters from "@/crmFields/CustomFieldFilters"; // KS_PORTAL_v20_CRM_FIELDS
+import { useCustomFieldColumns } from "@/crmFields/useCustomFieldColumns"; // KS_PORTAL_v20_CRM_FIELDS
+import { displayValue, filterParams, rowsWithCustomFields, type CustomFilter } from "@/crmFields/customFieldsApi"; // KS_PORTAL_v20_CRM_FIELDS
 
-type SortCol = "name" | "industry" | "owner_name" | "created_at";
+type SortCol = "name" | "industry" | "owner_name" | "created_at" | `cf_${string}`;
 
 
 export default function CompaniesPage() {
@@ -41,6 +44,10 @@ export default function CompaniesPage() {
   const [tagFilter, setTagFilter] = useState("");
   const [importOpen, setImportOpen] = useState(false);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  // KS_PORTAL_v20_CRM_FIELDS - custom field columns and filters.
+  const [cfFilters, setCfFilters] = useState<CustomFilter[]>([]);
+  const cf = useCustomFieldColumns("company");
+  const cfParamKey = JSON.stringify(cfFilters);
   const crmBackend = useBfCrmBackend(); // BF_PORTAL_v856_CRM_UNIFY
   const { catalogue: tagCatalogue, reload: reloadTags } = useTagCatalogue(crmBackend, refreshKey); // BF_PORTAL_v856_CRM_UNIFY
   const toggleCol = (k: string) => setHiddenCols((p) => { const n = new Set(p); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -61,6 +68,7 @@ export default function CompaniesPage() {
           sort: `${sort.col}:${sort.dir}`,
           page: crmPage, // BF_PORTAL_CRM_TOTALS_v1
           pageSize: COMPANIES_PAGE_SIZE,
+          ...filterParams(cfFilters), // KS_PORTAL_v20_CRM_FIELDS
         });
         if (!cancelled) { setRows(r.rows); setTotal(r.total); }
       } catch (e: any) {
@@ -70,10 +78,10 @@ export default function CompaniesPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [silo, q, sort.col, sort.dir, refreshKey, ownerId, tagFilter, crmPage]);
+  }, [silo, q, sort.col, sort.dir, refreshKey, ownerId, tagFilter, crmPage, cfParamKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // BF_PORTAL_CRM_TOTALS_v1 - a filter/sort change re-queries from page 1.
-  useEffect(() => { setCrmPage(1); }, [silo, q, sort.col, sort.dir, ownerId, tagFilter]);
+  useEffect(() => { setCrmPage(1); }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, cfParamKey]);
 
   const hasNext = crmPage * COMPANIES_PAGE_SIZE < total;
   const rangeStart = total === 0 ? 0 : (crmPage - 1) * COMPANIES_PAGE_SIZE + 1;
@@ -165,9 +173,10 @@ export default function CompaniesPage() {
       <td style={tdStyle}><CrmTagChips tags={(r as { tags?: string[] | null }).tags} catalogue={tagCatalogue} /></td>
       )}{/* BF_PORTAL_v856_CRM_UNIFY - Tags replace Types of financing */}
       {!hiddenCols.has("owner_name") && <td style={tdStyle}>{r.owner_name ?? "—"}</td>}
+      {cf.shown.map((f) => <td key={f.name} style={tdStyle}>{displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) || "—"}</td>)}
       <td style={tdStyle}>{new Date(r.created_at).toLocaleString()}</td>
     </tr>
-  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue]); // BF_PORTAL_v856_CRM_UNIFY
+  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue, cf.shown]); // BF_PORTAL_v856_CRM_UNIFY
 
   return (
     <div style={page}>
@@ -182,8 +191,8 @@ export default function CompaniesPage() {
           <option value="">All owners</option>
           {owners.map((o) => (<option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>))}
         </select>
-        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-companies.csv", rows as any)}>Export</button>
-        <ColumnsMenu options={[{ key: "industry", label: "Industry" }, { key: "tags", label: "Tags" }, { key: "owner_name", label: "Owner" }]} hidden={hiddenCols} onToggle={toggleCol} style={toolbarBtn} />
+        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-companies.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>
+        <ColumnsMenu options={[{ key: "industry", label: "Industry" }, { key: "tags", label: "Tags" }, { key: "owner_name", label: "Owner" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
         <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>
         <button
           onClick={() => setCreateOpen(true)}
@@ -193,6 +202,7 @@ export default function CompaniesPage() {
       {/* BF_PORTAL_v856_CRM_UNIFY - the shared View-by chips. */}
       <CrmTagViewBy backend={crmBackend} entity="company" value={tagFilter ? tagFilter.split(",") : []}
         onChange={(next) => setTagFilter(next.join(","))} catalogue={tagCatalogue} onCatalogueChanged={reloadTags} />
+      <CustomFieldFilters fields={cf.fields} value={cfFilters} onChange={setCfFilters} />{/* KS_PORTAL_v20_CRM_FIELDS */}
       {isAdmin && selected.size > 0 && (
         <div style={{ display: "flex", gap: 8, padding: 12, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 12, alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 13 }}>{selected.size} selected</span>
@@ -226,14 +236,15 @@ export default function CompaniesPage() {
             {!hiddenCols.has("industry") && <Th onClick={() => onSort("industry")}>Industry{sortIndicator("industry")}</Th>}
             {!hiddenCols.has("tags") && <Th>Tags</Th>}{/* BF_PORTAL_v856_CRM_UNIFY */}
             {!hiddenCols.has("owner_name") && <Th onClick={() => onSort("owner_name")}>Owner{sortIndicator("owner_name")}</Th>}
+            {cf.shown.map((f) => <Th key={f.name} onClick={() => onSort(`cf_${f.name}`)}>{f.label}{sortIndicator(`cf_${f.name}`)}</Th>)}
             <Th onClick={() => onSort("created_at")}>Create date{sortIndicator("created_at")}</Th>
           </tr>
         </thead>
         <tbody>
-          {loading && <tr><td colSpan={isAdmin ? 6 : 5} style={emptyCell}>Loading…</td></tr>}
-          {err && <tr><td colSpan={isAdmin ? 6 : 5} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
+          {loading && <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={emptyCell}>Loading…</td></tr>}
+          {err && <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
           {!loading && !err && rows.length === 0 && (
-            <tr><td colSpan={isAdmin ? 6 : 5} style={emptyCell}>No companies in this silo.</td></tr>
+            <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={emptyCell}>No companies in this silo.</td></tr>
           )}
           {!loading && !err && tableRows}
         </tbody>

@@ -16,11 +16,15 @@ export const FEATURES: FeatureInfo[] = [
   { key: "lender_portal", plan: "starter", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)", description: "The lender package goes to each lender by email or API. Lenders sign in to the portal to keep their contact details and products current, and to send you deals they can't place themselves." },
   // KS_PORTAL_v9_PGI - every plan.
   { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (20% referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner and you earn 20% of the partner's commission on every bound policy." },
+  // KS_PORTAL_v20_CRM_FIELDS - every plan.
+  { key: "custom_fields", plan: "starter", label: "Custom fields", description: "Add your own fields to contacts, companies and deals (licence numbers, renewal dates, equipment type), with lists, filters, exports and imports." },
   // KS_PORTAL_PLAN_FIXES - the iPad staff portal app on every plan; calls recorded on every plan, playback growth and up.
   { key: "ipad_app", plan: "starter", label: "iPad staff portal app", description: "Run the full staff portal as an app on iPad." },
   { key: "office_sync", plan: "starter", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", description: "Outlook (Microsoft 365) mail is read into each contact's timeline. Gmail can send email now; reading a Gmail inbox comes later." },
   { key: "call_recording", plan: "starter", label: "Call recording on every plan (playback on Growth and Pro)", description: "Every call is recorded on every plan. Playing recordings back from the contact's timeline is on Growth and Pro." },
   { key: "call_recording_playback", plan: "growth", label: "Call recording playback", description: "Play recorded calls back from the contact's timeline." },
+  // KS_PORTAL_v20_TEAMS - growth and up.
+  { key: "teams", plan: "growth", label: "Teams and record visibility", description: "Put people on teams and choose who sees all records, their team's records or only their own." },
   { key: "call_summaries", plan: "growth", label: "Call summaries", description: "The assistant writes a short summary and transcript of every recorded call." },
   { key: "voicemail_transcription", plan: "growth", label: "Voicemail transcription", description: "Voicemails turned into text you can read at a glance." },
   { key: "watch_app", plan: "growth", label: "Apple Watch app", description: "Take and place calls on Apple Watch." },
@@ -38,6 +42,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
+  // KS_PORTAL_v20_WEBHOOKS - pro.
+  { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
   // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they
   // are the hidden bank_connect add-on operations switches on per licensee (planStore hasAddon). Never listed here.

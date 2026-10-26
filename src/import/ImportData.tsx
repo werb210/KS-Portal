@@ -6,6 +6,7 @@ import {
   BUSY, EXPORT_PATH, downloadFrom, errorMessage, formatBytes, getBatch, getPresets, getPreview, listBatches, listMappings,
   problemsPath, removeBatch, saveMapping, setMapping, startDryRun, startRun, startUndo, statusText, templatePath, uploadImportFile,
   type Batch, type Counts, type Presets, type Preview, type RecordType, type SavedMapping, type Source,
+  createFieldsFromColumns,
 } from "./importApi";
 import MovingToKeystone from "./MovingToKeystone";
 
@@ -159,6 +160,20 @@ export default function ImportData() {
 
   const fields = useMemo(() => presets?.record_types.find((r) => r.key === (batch?.record_type ?? recordType))?.fields ?? [], [presets, batch, recordType]);
   const isKeystone = (batch?.record_type ?? (source === "keystone" ? "keystone" : recordType)) === "keystone";
+  // KS_PORTAL_v20_CRM_FIELDS - the record type's custom fields as mapping targets ("cf:<name>").
+  const customTargets = useMemo(() => presets?.custom_fields?.[(batch?.record_type ?? recordType) as RecordType] ?? [], [presets, batch, recordType]);
+  const canHaveCustom = ["contacts", "companies", "applications"].includes(String(batch?.record_type ?? recordType));
+  const [newFieldCols, setNewFieldCols] = useState<Record<string, string>>({}); // column -> field type ("" = guess)
+  const unusedColumns = useMemo(() => { const used = new Set(Object.values(mapping)); return columns.filter((c) => !used.has(c)); }, [columns, mapping]);
+  const doCreateFields = () => run(async () => {
+    if (!batch) return;
+    const cols = Object.entries(newFieldCols).map(([column, field_type]) => ({ column, ...(field_type ? { field_type } : {}) }));
+    if (!cols.length) throw new Error("Tick the columns to turn into custom fields.");
+    const r = await createFieldsFromColumns(batch.id, cols);
+    setBatch(r.batch); setMappingState(r.batch.mapping ?? {}); setNewFieldCols({});
+    setPresets(await getPresets());
+    setNotice(`${r.created.length} custom field${r.created.length === 1 ? "" : "s"} created and matched${r.problems.length ? `. Not created: ${r.problems.join(" ")}` : "."}`);
+  });
 
   const run = async (fn: () => Promise<void>) => {
     setError(null); setNotice(null); setBusy(true);
@@ -396,9 +411,57 @@ export default function ImportData() {
                     <td style={{ ...td, color: "var(--ui-text-muted)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis" }}>{mapping[f.key] ? show(sample[0]?.[mapping[f.key] ?? ""]) : ""}</td>
                   </tr>
                 ))}
+                {customTargets.length > 0 && (
+                  <tr><td colSpan={3} style={{ ...td, fontWeight: 700, background: "var(--ui-surface-muted)" }}>Custom fields</td></tr>
+                )}
+                {customTargets.map((f) => (
+                  <tr key={f.key}>
+                    <td style={td}><label htmlFor={`map-${f.key}`} style={{ fontWeight: 600 }}>{f.label}</label><div style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>{f.name}</div></td>
+                    <td style={td}>
+                      <select id={`map-${f.key}`} data-testid={`map-${f.key}`} value={mapping[f.key] ?? ""} style={input}
+                        onChange={(e) => setMappingState((m) => { const n = { ...m }; if (e.target.value) n[f.key] = e.target.value; else delete n[f.key]; return n; })}>
+                        <option value="">Not imported</option>
+                        {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </td>
+                    <td style={{ ...td, color: "var(--ui-text-muted)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis" }}>{mapping[f.key] ? show(sample[0]?.[mapping[f.key] ?? ""]) : ""}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
+          {canHaveCustom && unusedColumns.length > 0 && (
+            <details style={{ marginTop: 12 }} data-testid="import-unused-columns">
+              <summary style={{ cursor: "pointer", fontWeight: 600, color: "var(--ui-text)", fontSize: 14 }}>
+                {unusedColumns.length} column{unusedColumns.length === 1 ? "" : "s"} not imported{batch.source === "hubspot" ? " (HubSpot custom properties land here)" : ""}
+              </summary>
+              <p style={{ ...muted, marginTop: 8 }}>Tick a column to keep it as a new custom field. Its type is guessed from the values unless you choose one.</p>
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <tbody>
+                  {unusedColumns.map((c) => (
+                    <tr key={c}>
+                      <td style={td}>
+                        <label style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                          <input type="checkbox" checked={c in newFieldCols} onChange={(e) => setNewFieldCols((p) => { const n = { ...p }; if (e.target.checked) n[c] = ""; else delete n[c]; return n; })} />
+                          {c}
+                        </label>
+                      </td>
+                      <td style={td}>
+                        <select aria-label={`Type for ${c}`} style={input} value={newFieldCols[c] ?? ""} disabled={!(c in newFieldCols)} onChange={(e) => setNewFieldCols((p) => ({ ...p, [c]: e.target.value }))}>
+                          <option value="">Guess from the values</option>
+                          {(presets?.field_types ?? []).map((t) => <option key={t} value={t}>{t.replace(/_/g, " ")}</option>)}
+                        </select>
+                      </td>
+                      <td style={{ ...td, color: "var(--ui-text-muted)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>{show(sample[0]?.[c])}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button type="button" style={{ ...btn, marginTop: 8 }} disabled={busy || Object.keys(newFieldCols).length === 0} onClick={() => void doCreateFields()} data-testid="import-create-fields">
+                Create custom fields from the ticked columns
+              </button>
+            </details>
+          )}
           {(missingRequired.length > 0 || groups.length > 0) && (
             <div style={warnBox} data-testid="import-map-missing">
               {missingRequired.map((m) => <div key={m}>Choose a column for {m}.</div>)}
@@ -434,8 +497,11 @@ export default function ImportData() {
                         <td style={td}>{r.row_number}</td>
                         {isKeystone && <td style={td}>{typeLabel(presets, r.record_type)}</td>}
                         <td style={{ ...td, maxWidth: 520 }}>
-                          {Object.entries(r.values).filter(([, v]) => show(v) !== "").slice(0, 8).map(([k, v]) => (
+                          {Object.entries(r.values).filter(([k, v]) => k !== "custom_fields" && show(v) !== "").slice(0, 8).map(([k, v]) => (
                             <span key={k} style={{ display: "inline-block", marginRight: 10 }}><span style={{ color: "var(--ui-text-muted)" }}>{fields.find((f) => f.key === k)?.label ?? k}:</span> {show(v).slice(0, 80)}</span>
+                          ))}
+                          {Object.entries((r.values.custom_fields ?? {}) as Record<string, unknown>).slice(0, 6).map(([k, v]) => (
+                            <span key={`cf-${k}`} style={{ display: "inline-block", marginRight: 10 }}><span style={{ color: "var(--ui-text-muted)" }}>{customTargets.find((f) => f.name === k)?.label ?? k}:</span> {show(v).slice(0, 80)}</span>
                           ))}
                         </td>
                         <td style={td}>
