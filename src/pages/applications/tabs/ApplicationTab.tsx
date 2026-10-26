@@ -31,6 +31,7 @@ import { placeCall } from "@/native/dialerLauncher";
 type AnyRecord = Record<string, any>;
 import { maskSin } from "@/lib/sensitive";
 import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
+import CustomFieldsPanel from "@/crmFields/CustomFieldsPanel"; // KS_PORTAL_v20_CRM_FIELDS
 type Props = { application: AnyRecord | null };
 
 function asObject(v: unknown): AnyRecord {
@@ -396,6 +397,7 @@ export default function ApplicationTab({ application }: Props) {
     <div style={styles.page}>
       {legInfo && <LegBanner kind={legInfo.kind} parentId={legInfo.parentId} />}
       {application.id ? <ProductQuestionsPanel applicationId={String(application.id)} /> : null}
+      {application.id ? <CustomFieldsPanel object="application" recordId={String(application.id)} /> : null}{/* KS_PORTAL_v20_CRM_FIELDS */}
       <div style={styles.headerRow}>
         <div style={{ minWidth: 0 }}>
           <h2 style={styles.title}>{businessName}</h2>

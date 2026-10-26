@@ -37,6 +37,9 @@ import SurveySettings from "@/settingsPack/SurveySettings";
 import { BlockedNumbersSettings, LeadRotationSettings, NeverLogSettings } from "@/settingsPack/ListSettings";
 import SsoSettings from "./tabs/SsoSettings"; // KS_PORTAL_SSO_API_KEYS
 import ApiSettings from "./tabs/ApiSettings"; // KS_PORTAL_SSO_API_KEYS
+import PropertiesSettings from "@/crmFields/PropertiesSettings"; // KS_PORTAL_v20_CRM_FIELDS
+import TeamsSettings from "@/teams/TeamsSettings"; // KS_PORTAL_v20_TEAMS
+import WebhooksSettings from "@/webhooks/WebhooksSettings"; // KS_PORTAL_v20_WEBHOOKS
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
@@ -44,7 +47,7 @@ import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 // server refuses /api/templates too). Phone lines is open on every plan: each section of it is gated by its own feature
 // (business line on every plan, toll-free Growth, direct lines Pro).
 // KS_PORTAL_SSO_API_KEYS - single sign-on and the REST API are Pro.
-const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access", survey: "nps_survey" }; // KS_PORTAL_SETTINGS_PACK_v1_NPS - the client survey is Growth and Pro
+const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access", survey: "nps_survey", teams: "teams", webhooks: "webhooks" }; // KS_PORTAL_SETTINGS_PACK_v1_NPS (survey Growth+); KS_PORTAL_v20 teams, webhooks
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -63,6 +66,10 @@ const SettingsPage = () => {
       // KS_PORTAL_v6_COMPANY - the licensee's company details, branding and connections (Admins only).
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       { id: "users", label: "User Management", visible: isAdmin && !isBI, content: <UserManagement /> },
+      // KS_PORTAL_v20 - custom fields (every plan), teams and record visibility (growth+), webhooks and Zapier (pro). Admins only.
+      { id: "properties", label: "Properties", visible: isAdmin && !isBI, content: <PropertiesSettings /> },
+      { id: "teams", label: "Teams", visible: isAdmin && !isBI, content: <TeamsSettings /> },
+      { id: "webhooks", label: "Webhooks", visible: isAdmin && !isBI, content: <WebhooksSettings /> },
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
       // KS_PORTAL_SETTINGS_PACK_v1 - Admin settings: phone menu, booking pages, lead rotation, blocked numbers, never log,
       // security, privacy requests and the client survey.

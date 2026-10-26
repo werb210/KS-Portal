@@ -10,7 +10,11 @@ export type Presets = {
   record_types: Array<{ key: RecordType; label: string; fields: FieldDef[] }>;
   stages: string[];
   limits: { tableBytes: number; zipBytes: number; rows: number; documentBytes: number };
+  /** KS_PORTAL_v20_CRM_FIELDS - each record type's custom fields, mapped with the key "cf:<name>". */
+  custom_fields?: Partial<Record<RecordType, CustomFieldTarget[]>>;
+  field_types?: string[];
 };
+export type CustomFieldTarget = { key: string; name: string; label: string; field_type: string; required: boolean };
 export type Counts = { created: number; updated: number; skipped: number; errors: number; warnings?: number };
 export type Batch = {
   id: string;
@@ -75,6 +79,9 @@ export const startDryRun = async (id: string) => (await api.post<{ batch: Batch 
 export const startRun = async (id: string) => (await api.post<{ batch: Batch }>(`${BASE}/batches/${id}/run`)).batch;
 export const startUndo = async (id: string) => (await api.post<{ batch: Batch }>(`${BASE}/batches/${id}/undo`)).batch;
 export const removeBatch = (id: string) => api.delete(`${BASE}/batches/${id}`);
+/** KS_PORTAL_v20_CRM_FIELDS - make custom fields from unmatched columns (type guessed from the values unless given). */
+export const createFieldsFromColumns = (id: string, columns: Array<{ column: string; field_type?: string }>) =>
+  api.post<{ batch: Batch; created: Array<{ name: string; label: string; field_type: string }>; problems: string[] }>(`${BASE}/batches/${id}/custom-fields`, { columns });
 
 /** Downloads a file the server sends (template, problem list, data export) with the signed-in session. */
 export async function downloadFrom(path: string, fallbackName: string): Promise<void> {

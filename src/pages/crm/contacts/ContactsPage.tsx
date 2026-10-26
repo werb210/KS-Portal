@@ -15,8 +15,11 @@ import { useBfCrmBackend } from "@/components/crm/unified/crmUnifiedApi"; // BF_
 import { CrmBulkTagActions, CrmTagChips, CrmTagViewBy, useTagCatalogue } from "@/components/crm/unified/CrmTags"; // BF_PORTAL_v856_CRM_UNIFY
 import { exportRowsToCsv } from "@/utils/csvExport";
 import { refusedDeleteMessage } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
+import CustomFieldFilters from "@/crmFields/CustomFieldFilters"; // KS_PORTAL_v20_CRM_FIELDS
+import { useCustomFieldColumns } from "@/crmFields/useCustomFieldColumns"; // KS_PORTAL_v20_CRM_FIELDS
+import { displayValue, filterParams, rowsWithCustomFields, type CustomFilter } from "@/crmFields/customFieldsApi"; // KS_PORTAL_v20_CRM_FIELDS
 
-type SortCol = "name" | "company_name" | "lead_status" | "owner_name" | "created_at";
+type SortCol = "name" | "company_name" | "lead_status" | "owner_name" | "created_at" | `cf_${string}`;
 
 
 export default function ContactsPage() {
@@ -58,6 +61,10 @@ export default function ContactsPage() {
   const [busyMass, setBusyMass] = useState<"delete" | "tag" | "active" | "assign" | null>(null);
   const [assignOwnerId, setAssignOwnerId] = useState("");
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  // KS_PORTAL_v20_CRM_FIELDS - custom field columns (chosen in Columns) and filters.
+  const [cfFilters, setCfFilters] = useState<CustomFilter[]>(Array.isArray(savedFilters.cfFilters) ? (savedFilters.cfFilters as CustomFilter[]) : []);
+  const cf = useCustomFieldColumns("contact");
+  const cfParamKey = JSON.stringify(cfFilters);
   const crmBackend = useBfCrmBackend(); // BF_PORTAL_v856_CRM_UNIFY
   const { catalogue: tagCatalogue, reload: reloadTags } = useTagCatalogue(crmBackend, refreshKey); // BF_PORTAL_v856_CRM_UNIFY
   const toggleCol = (k: string) => setHiddenCols((p) => { const n = new Set(p); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -94,6 +101,7 @@ export default function ContactsPage() {
           tag: tagFilter || undefined, // BF_PORTAL_BLOCK_v806_TAG_FILTER
           page: crmPage, // BF_PORTAL_BF_CONTACTS_PAGER_v1
           pageSize: CONTACTS_PAGE_SIZE,
+          ...filterParams(cfFilters), // KS_PORTAL_v20_CRM_FIELDS
         });
         if (!cancelled) { setRows(r.rows); setTotal(r.total); }
       } catch (e: any) {
@@ -103,20 +111,20 @@ export default function ContactsPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, refreshKey, crmPage]);
+  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, refreshKey, crmPage, cfParamKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // BF_PORTAL_BF_CONTACTS_PAGER_v1 - any change to the filters/sort re-queries from
   // the top; staying on page 7 of a now-2-page result would render an empty table.
   // BF_PORTAL_CRM_FILTER_PERSIST_v1 - save the view on change, and don't clobber the
   // restored page on the initial mount (only reset to page 1 when filters actually change).
   useEffect(() => {
-    try { sessionStorage.setItem("crm.contacts.filters", JSON.stringify({ q, ownerId, tagFilter, sort, crmPage })); } catch { /* ignore */ }
-  }, [q, ownerId, tagFilter, sort, crmPage]);
+    try { sessionStorage.setItem("crm.contacts.filters", JSON.stringify({ q, ownerId, tagFilter, sort, crmPage, cfFilters })); } catch { /* ignore */ }
+  }, [q, ownerId, tagFilter, sort, crmPage, cfFilters]);
   const filtersMountRef = useRef(false);
   useEffect(() => {
     if (!filtersMountRef.current) { filtersMountRef.current = true; return; }
     setCrmPage(1);
-  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter]);
+  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, cfParamKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // BF_PORTAL_CRM_TOTALS_v1 - exact, from the server's total.
   const hasNext = crmPage * CONTACTS_PAGE_SIZE < total;
@@ -227,9 +235,10 @@ export default function ContactsPage() {
       )}</td>
       )}
       {!hiddenCols.has("owner_name") && <td style={tdStyle}>{r.owner_name ?? "—"}</td>}
+      {cf.shown.map((f) => <td key={f.name} style={tdStyle}>{displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) || "—"}</td>)}
       <td style={tdStyle}>{new Date(r.created_at).toLocaleString()}</td>
     </tr>
-  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue]); // BF_PORTAL_v856_CRM_UNIFY
+  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue, cf.shown]); // BF_PORTAL_v856_CRM_UNIFY
 
   return (
     <div style={page}>
@@ -258,8 +267,8 @@ export default function ContactsPage() {
             <option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>
           ))}
         </select>
-        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-contacts.csv", rows as any)}>Export</button>
-        <ColumnsMenu options={[{ key: "company_name", label: "Company" }, { key: "tags", label: "Tags" }, { key: "lead_status", label: "Lead status" }, { key: "owner_name", label: "Owner" }]} hidden={hiddenCols} onToggle={toggleCol} style={toolbarBtn} />
+        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-contacts.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>
+        <ColumnsMenu options={[{ key: "company_name", label: "Company" }, { key: "tags", label: "Tags" }, { key: "lead_status", label: "Lead status" }, { key: "owner_name", label: "Owner" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
         <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>
         <CrmSegmentBar current={{ q, ownerId, tagFilter, sort }} onApply={(f) => {
           if (typeof f.q === "string") setQ(f.q);
@@ -273,6 +282,7 @@ export default function ContactsPage() {
       {/* BF_PORTAL_v856_CRM_UNIFY - the shared View-by chips; several tags = any of them. */}
       <CrmTagViewBy backend={crmBackend} entity="contact" value={tagFilter ? tagFilter.split(",") : []}
         onChange={(next) => setTagFilter(next.join(","))} catalogue={tagCatalogue} onCatalogueChanged={reloadTags} />
+      <CustomFieldFilters fields={cf.fields} value={cfFilters} onChange={setCfFilters} />{/* KS_PORTAL_v20_CRM_FIELDS */}
       {isAdmin && selected.size > 0 && (
         <div style={{ display: "flex", gap: 8, padding: 12, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 12, alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 13 }}>{selected.size} selected</span>
@@ -310,14 +320,15 @@ export default function ContactsPage() {
             {!hiddenCols.has("tags") && <Th>Tags</Th>}{/* BF_PORTAL_BLOCK_v811_TAGS_COLUMN */}
             {!hiddenCols.has("lead_status") && <Th onClick={() => onSort("lead_status")}>Lead status{sortIndicator("lead_status")}</Th>}
             {!hiddenCols.has("owner_name") && <Th onClick={() => onSort("owner_name")}>Owner{sortIndicator("owner_name")}</Th>}
+            {cf.shown.map((f) => <Th key={f.name} onClick={() => onSort(`cf_${f.name}`)}>{f.label}{sortIndicator(`cf_${f.name}`)}</Th>)}
             <Th onClick={() => onSort("created_at")}>Create date{sortIndicator("created_at")}</Th>
           </tr>
         </thead>
         <tbody>
-          {loading && <tr><td colSpan={isAdmin ? 7 : 6} style={emptyCell}>Loading…</td></tr>}
-          {err && <tr><td colSpan={isAdmin ? 7 : 6} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
+          {loading && <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={emptyCell}>Loading…</td></tr>}
+          {err && <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
           {!loading && !err && rows.length === 0 && (
-            <tr><td colSpan={isAdmin ? 7 : 6} style={emptyCell}>No contacts in this silo.</td></tr>
+            <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={emptyCell}>No contacts in this silo.</td></tr>
           )}
           {!loading && !err && tableRows}
         </tbody>

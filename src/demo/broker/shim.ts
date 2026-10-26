@@ -445,6 +445,11 @@ export function createShim(opts: ShimOptions) {
     ["POST", new RegExp(`^/api/credit-collateral/${ID}/extract$`), () => ok({ documents: 0, skipped: [] })],
     ["POST", new RegExp(`^/api/credit-research/${ID}/refresh$`), () => ok({ found: 0, facts: [], notes: ["Research is switched off in the demo."] })],
 
+    // KS_PORTAL_v20 - the demo brokerage has no custom fields and no teams.
+    ["GET", /^\/api\/custom-fields\/(contact|company|application)$/, () => ok({ ok: true, fields: [] })],
+    ["GET", /^\/api\/custom-fields\/(contact|company|application)\/records\/[^/]+$/, () => ok({ ok: true, fields: [], values: {} })],
+    ["GET", /^\/api\/teams\/options$/, () => ok({ ok: true, teams: [] })],
+
     // fraud
     ["GET", new RegExp(`^/api/fraud/applications/${ID}$`), (_r, m) => ok(fraudOverview(m[1]!))],
     ["POST", new RegExp(`^/api/fraud/applications/${ID}/run$`), () => ok({ ok: true, queued: false })],
