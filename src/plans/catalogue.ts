@@ -32,6 +32,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "full_reports", plan: "growth", label: "Reports", description: "The Reports page: pipeline, team, money and marketing reports, goals and commission tracking. Starter keeps a basic dashboard." }, // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
+  // KS_PORTAL_SETTINGS_PACK_v1_NPS
+  { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
