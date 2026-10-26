@@ -10,6 +10,13 @@ vi.mock("@/auth/otpFlow", () => ({
   setOtpStartSucceeded: vi.fn(),
 }));
 
+// KS_PORTAL_SSO_API_KEYS - the sign-in page also asks which single sign-on buttons to show; none here, so the first
+// request is the text-code one these tests answer.
+vi.mock("@/auth/sso", async () => ({
+  ...(await vi.importActual<typeof import("@/auth/sso")>("@/auth/sso")),
+  fetchSsoConfig: async () => ({ microsoft: false, google: false, require_sso: false }),
+}));
+
 import { useDialer } from "../store";
 import DialerPanel from "../components/DialerPanel";
 import type { Conference } from "../types";

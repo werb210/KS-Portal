@@ -28,10 +28,13 @@ import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
 import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import ImportData from "@/import/ImportData"; // KS_PORTAL_v16_DATA_IMPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
+import SsoSettings from "./tabs/SsoSettings"; // KS_PORTAL_SSO_API_KEYS
+import ApiSettings from "./tabs/ApiSettings"; // KS_PORTAL_SSO_API_KEYS
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
 // Per-person direct numbers are the Pro "multiple lines" feature; templates are Growth.
-const TAB_FEATURE: Record<string, string | undefined> = { phone: "multiple_lines", templates: "templates" };
+// KS_PORTAL_SSO_API_KEYS - single sign-on and the REST API are Pro.
+const TAB_FEATURE: Record<string, string | undefined> = { phone: "multiple_lines", templates: "templates", sso: "sso", api: "api_access" };
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -63,6 +66,9 @@ const SettingsPage = () => {
       // KS_PORTAL_BETA_v1 - beta features the brokerage can try (join, leave, feedback). Admins only.
       { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
       { id: "retention", label: "Retention & legal holds", visible: isAdmin, content: <RetentionSettings /> }, // KS_PORTAL_v14_RETENTION
+      // KS_PORTAL_SSO_API_KEYS - Admins: Microsoft / Google sign-in for staff, and API keys with the REST API docs.
+      { id: "sso", label: "Single sign-on", visible: isAdmin && !isBI, content: <SsoSettings /> },
+      { id: "api", label: "API", visible: isAdmin && !isBI, content: <ApiSettings /> },
       // KS_PORTAL_v16_DATA_IMPORT - bring records over from another system (Admins only).
       { id: "import", label: "Import data", visible: isAdmin && !isBI, content: <ImportData /> },
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
