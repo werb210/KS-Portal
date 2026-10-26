@@ -4,6 +4,7 @@
 // signature is auto-appended server-side (v635) so we just show an
 // indicator. Server-side /api/o365/mail/send (v634/v645) now passes
 // attachments through to Graph as fileAttachment objects.
+import { requestFollowUp } from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { api } from "@/api";
@@ -695,6 +696,7 @@ export default function O365ComposeModal({
         },
       });
       if (draftId) await discardDraft(draftId);
+      if (logScope?.kind === "contact" && !scheduleIso) requestFollowUp("email", logScope.id); // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
       onClose();
       onSent?.();
     } catch (e: any) {

@@ -28,6 +28,13 @@ import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
 import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import ImportData from "@/import/ImportData"; // KS_PORTAL_v16_DATA_IMPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
+// KS_PORTAL_SETTINGS_PACK_v1 - HubSpot-parity settings.
+import PhoneMenuSettings from "@/settingsPack/PhoneMenuSettings";
+import BookingSettings from "@/settingsPack/BookingSettings";
+import PrivacySettings from "@/settingsPack/PrivacySettings";
+import SecuritySettings from "@/settingsPack/SecuritySettings";
+import SurveySettings from "@/settingsPack/SurveySettings";
+import { BlockedNumbersSettings, LeadRotationSettings, NeverLogSettings } from "@/settingsPack/ListSettings";
 import SsoSettings from "./tabs/SsoSettings"; // KS_PORTAL_SSO_API_KEYS
 import ApiSettings from "./tabs/ApiSettings"; // KS_PORTAL_SSO_API_KEYS
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
@@ -37,7 +44,7 @@ import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 // server refuses /api/templates too). Phone lines is open on every plan: each section of it is gated by its own feature
 // (business line on every plan, toll-free Growth, direct lines Pro).
 // KS_PORTAL_SSO_API_KEYS - single sign-on and the REST API are Pro.
-const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access" };
+const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access", survey: "nps_survey" }; // KS_PORTAL_SETTINGS_PACK_v1_NPS - the client survey is Growth and Pro
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -57,6 +64,16 @@ const SettingsPage = () => {
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       { id: "users", label: "User Management", visible: isAdmin && !isBI, content: <UserManagement /> },
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
+      // KS_PORTAL_SETTINGS_PACK_v1 - Admin settings: phone menu, booking pages, lead rotation, blocked numbers, never log,
+      // security, privacy requests and the client survey.
+      { id: "phone-menu", label: "Phone menu", visible: isAdmin && !isBI, content: <PhoneMenuSettings /> },
+      { id: "booking", label: "Booking pages", visible: isAdmin && !isBI, content: <BookingSettings /> },
+      { id: "lead-rotation", label: "Lead rotation", visible: isAdmin && !isBI, content: <LeadRotationSettings /> },
+      { id: "blocked-numbers", label: "Blocked numbers", visible: isAdmin && !isBI, content: <BlockedNumbersSettings /> },
+      { id: "never-log", label: "Never log", visible: isAdmin && !isBI, content: <NeverLogSettings /> },
+      { id: "security", label: "Security", visible: isAdmin, content: <SecuritySettings /> },
+      { id: "privacy", label: "Privacy requests", visible: isAdmin && !isBI, content: <PrivacySettings /> },
+      { id: "survey", label: "Client survey", visible: isAdmin && !isBI, content: <SurveySettings /> },
       { id: "ai-knowledge", label: "AI Knowledge", visible: isAdmin && !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : null },
       { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
       { id: "runtime", label: "Runtime Verification", visible: !isBI, content: <RuntimeSettings /> },

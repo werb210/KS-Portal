@@ -8,6 +8,7 @@ import { announceSavedCopy, cacheKeyFor, readOfflineCopy, saveOfflineCopy } from
 import { shouldLogoutOn401 } from "@/lib/apiAuth";
 import { assertSiloScoped } from "@/api/siloGuard"; // BF_PORTAL_v789_SILO_GUARD
 import { reportPlanRefusal } from "@/plans/upsell"; // KS_PORTAL_v3_PLANS
+import { reportStrongSignInRequired } from "@/settingsPack/strongSignIn"; // KS_PORTAL_SETTINGS_PACK_v1_SECURITY
 
 export type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -196,6 +197,7 @@ export async function apiFetch<T = any>(path: string, options: RequestOptions = 
     }
     // KS_PORTAL_v3_PLANS - 402 feature_not_in_plan: show the upsell dialog; the caller still gets the error.
     try { reportPlanRefusal(res.status, details, String(options.method ?? "GET")); } catch { /* never let the upsell break error handling */ }
+    try { reportStrongSignInRequired(res.status, details); } catch { /* KS_PORTAL_SETTINGS_PACK_v1_SECURITY */ }
     throw new ApiError({
       status: res.status,
       message,
@@ -355,6 +357,7 @@ export function apiForSilo(silo: "BF" | "BI" | "SLF"): ApiFn {
         // ignore
       }
       try { reportPlanRefusal(res.status, details, String(options.method ?? "GET")); } catch { /* KS_PORTAL_v3_PLANS */ }
+      try { reportStrongSignInRequired(res.status, details); } catch { /* KS_PORTAL_SETTINGS_PACK_v1_SECURITY */ }
       throw new ApiError({
         status: res.status,
         message,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { requestFollowUp } from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
 import { brandName, conferenceDialText } from "@/config/brand";
 import { PopupShell, popupInputStyle } from "./PopupShell";
 import { crmApi, type Scope } from "@/api/crm";
@@ -65,6 +66,7 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
       ...(contactId ? { contactId } : {}),
     });
     const told = describeMeetingDelivery(r.delivery);
+    if (contactId) requestFollowUp("meeting", contactId); // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
     setRoomResult({ ok: told.ok, text: "Conference room booked. Access code " + r.meeting.code + ". " + conferenceDialText() + " " + told.text + (r.refused ? " " + r.refused + " not added - a room holds 10 people." : "") });
     onCreated();
   }
