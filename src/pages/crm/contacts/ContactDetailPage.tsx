@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, type CSSProperties } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { crmApi, type ContactRow, type Scope } from "@/api/crm";
 import { api } from "@/api";
 import { ContactOneDrive } from "@/components/crm/ContactOneDrive"; // BF_PORTAL_CONTACT_ONEDRIVE_v1
@@ -14,7 +14,11 @@ import ContactJourney from "@/components/crm/ContactJourney"; // BF_PORTAL_VISIT
 import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 import ContactRecordTabs from "@/components/crm/ContactRecordTabs"; // BF_PORTAL_CONTACT_RECORD_TABS_v272
 import { ContactDocuments } from "@/components/crm/ContactDocuments"; // BF_PORTAL_CONTACT_DOCUMENTS_v1
-import { ContactDuplicates } from "@/components/crm/ContactDuplicates"; // BF_PORTAL_CONTACT_MERGE_v1
+import { crmUnified, useBfCrmBackend } from "@/components/crm/unified/crmUnifiedApi"; // BF_PORTAL_v856_CRM_UNIFY
+import { CrmContactApplications, contactRoleBadge } from "@/components/crm/unified/CrmContactPanel"; // BF_PORTAL_v856_CRM_UNIFY
+import { CrmTagEditor, useTagCatalogue } from "@/components/crm/unified/CrmTags"; // BF_PORTAL_v856_CRM_UNIFY
+import { CrmDuplicatesBanner } from "@/components/crm/unified/CrmDuplicates"; // BF_PORTAL_v856_CRM_UNIFY
+import { CrmAiSummary } from "@/components/crm/unified/CrmAiSummary"; // BF_PORTAL_v856_CRM_UNIFY
 import { NotifyContactButton } from "@/components/crm/NotifyContactButton"; // BF_PORTAL_NOTIFY_CONTACT_v627
 import RetentionLock from "@/retention/RetentionLock"; // KS_PORTAL_v14_RETENTION
 import { refusedDeleteMessage, useRetention } from "@/retention/retention"; // KS_PORTAL_v14_RETENTION
@@ -22,6 +26,10 @@ import { refusedDeleteMessage, useRetention } from "@/retention/retention"; // K
 export default function ContactDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const crmBackend = useBfCrmBackend(); // BF_PORTAL_v856_CRM_UNIFY
+  const location = useLocation(); // BF_PORTAL_v856_CRM_UNIFY - "you opened a record that was merged into this one"
+  const mergedFrom = (location.state as { mergedFrom?: string } | null)?.mergedFrom ?? null;
+  const { catalogue: tagCatalogue } = useTagCatalogue(crmBackend); // BF_PORTAL_v856_CRM_UNIFY
   // BF_PORTAL_BLOCK_v_APOLLO_BI_ONLY_HOTFIX1 — Apollo enrichment is BI-only. Read
   // silo without the throwing useSilo() so a missing provider (e.g. in unit tests
   // or non-silo mounts) yields non-BI rather than crashing the page.
@@ -52,13 +60,21 @@ export default function ContactDetailPage() {
     (async () => {
       try {
         const r = await crmApi.getContact(id);
+        // BF_PORTAL_v856_CRM_UNIFY - a merged record sends staff to the record it was merged into (following chains).
+        if ((r as any)?.merged_into_id) {
+          const s = await crmUnified(crmBackend).survivor(id).catch(() => null);
+          if (!cancelled && s?.merged && s.id && s.id !== id) {
+            navigate(`/crm/contacts/${s.id}`, { replace: true, state: { mergedFrom: r?.name ?? "That contact" } });
+            return;
+          }
+        }
         if (!cancelled) setContact(r);
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? "Could not load contact.");
       }
     })();
     return () => { cancelled = true; };
-  }, [id, refreshKey]);
+  }, [id, refreshKey, crmBackend, navigate]);
 
   if (err) return <div style={{ padding: 24, color: "#b00020" }}>{err}</div>;
   if (!contact) return <div style={{ padding: 24 }}>Loading…</div>;
@@ -71,7 +87,7 @@ export default function ContactDetailPage() {
           to="/crm/contacts"
           style={{ color: "var(--ui-accent-fg)", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 4, marginBottom: 12 }}
         >← Back to contacts</Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><h2 style={{ marginTop: 0, marginBottom: 0 }}>{contact.name}</h2><span style={roleBadge}>{formatRole(contact.role)}</span></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}><h2 style={{ marginTop: 0, marginBottom: 0 }}>{contact.name}</h2><span style={roleBadge} title={contactRoleBadge(contact as any).tip} data-testid="contact-role-badge">{contactRoleBadge(contact as any).label}</span></div>
         {contact.job_title && <div style={subtle}>{contact.job_title}</div>}
         {contact.email && (
           <a href={`mailto:${contact.email}`} style={{ color: "#0091ae" }}>{contact.email}</a>
@@ -105,6 +121,7 @@ export default function ContactDetailPage() {
           contactName={contact.name}
           onChanged={() => setRefreshKey(k => k + 1)}
         />
+        <CrmContactApplications backend={crmBackend} contactId={id} />{/* BF_PORTAL_v856_CRM_UNIFY - business, amount, product, stage, submitted, partners */}
         <ContactApplicantFields applicationIds={contact.applicationIds} />
         <div style={fieldsBlock}>
           <Field label="Email"   value={contact.email ?? null} />
@@ -117,17 +134,23 @@ export default function ContactDetailPage() {
           <Field label="Owner"   value={contact.owner_name ?? null} />
           <Field label="Created" value={contact.created_at ? new Date(contact.created_at).toLocaleString() : null} />
           {contact.source && <Field label="Source" value={contact.source} />}
-          {contact.tags && contact.tags.length > 0 && <Field label="Tags" value={contact.tags.join(", ")} />}
         </div>
+        <CrmTagEditor backend={crmBackend} entity="contact" id={id} tags={contact.tags} catalogue={tagCatalogue} onSaved={() => setRefreshKey((k) => k + 1)} />{/* BF_PORTAL_v856_CRM_UNIFY */}
       </aside>
 
       <main style={{ minWidth: 0 }}>
+        {mergedFrom && (
+          <div role="status" style={{ padding: "8px 12px", marginBottom: 12, borderRadius: 8, background: "#dbeafe", border: "1px solid #93c5fd", color: "#1e3a8a" }}>
+            {mergedFrom} was merged into this contact, so you are seeing the surviving record.
+          </div>
+        )}
+        <CrmDuplicatesBanner backend={crmBackend} entity="contact" id={id} />{/* BF_PORTAL_v856_CRM_UNIFY */}
         {/* BF_PORTAL_CONTACT_RECORD_TABS_v272 */}
         <ContactRecordTabs
           analytics={
             <>
+              <CrmAiSummary backend={crmBackend} entity="contact" id={id} />{/* BF_PORTAL_v856_CRM_UNIFY - above Stage history */}
               <ContactStageHistory contactId={id} showEmpty />
-              <ContactAiSummary contactId={id} />
               <FeatureGate feature="visitor_tracking" compact><ContactJourney contactId={id} /></FeatureGate> {/* BF_PORTAL_VISITOR_JOURNEY_v1 + KS_PORTAL_v3_PLANS */}
               {/* BF_PORTAL_APOLLO_RETIRED_v784 - the BI Apollo marketing header and tab
                   called /api/v1/bi/contacts/:id/marketing and /enrich, both retired. */}
@@ -151,9 +174,7 @@ export default function ContactDetailPage() {
         ) : (
           <div style={subtle}>No associated company.</div>
         )}
-        {/* BF_PORTAL_CONTACT_MERGE_v1 - the CRM is fragmenting live leads across duplicate
-            records; surface them where the rep is already looking. Hidden when there are none. */}
-        <ContactDuplicates contactId={id} onMerged={() => window.location.reload()} />
+        {/* BF_PORTAL_v856_CRM_UNIFY - possible duplicates now show as the banner at the top of the record. */}
         <ContactAdvisors applicationIds={contact.applicationIds} />
         {/* BF_PORTAL_CREDIT_READINESS_v1 - below Company and Advisors, hidden when empty */}
         <ContactCreditReadiness contactId={id} />
@@ -221,13 +242,5 @@ const fieldsBlock: CSSProperties = { marginTop: 16, paddingTop: 16, borderTop: "
 const fieldLabel: CSSProperties = { fontSize: 11, color: "var(--ui-text-muted)", textTransform: "uppercase" };
 const roleBadge: CSSProperties = { background: "var(--ui-surface-muted)", color: "var(--ui-text)", padding: "2px 8px", borderRadius: 999, fontSize: 12, fontWeight: 600 };
 
-function formatRole(role?: string | null) {
-  const value = String(role ?? "unknown").toLowerCase();
-  if (value === "applicant") return "Applicant";
-  if (value === "partner") return "Partner";
-  if (value === "guarantor") return "Guarantor";
-  if (value === "other") return "Other";
-  return "Unknown";
-}
 
 const actionBtn: CSSProperties = { border: "1px solid var(--ui-border)", background: "var(--ui-surface-strong)", color: "var(--ui-text)", borderRadius: 6, padding: "6px 12px", fontSize: 13, cursor: "pointer" };
