@@ -29,6 +29,8 @@ import PlanBanners from "@/plans/PlanBanners";
 import UpsellHost from "@/plans/UpsellHost";
 import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
+import FollowUpPrompt from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
+import StrongSignInGate from "@/settingsPack/StrongSignInGate"; // KS_PORTAL_SETTINGS_PACK_v1_SECURITY
 
 
 const TOPBAR_HEIGHT = 68;
@@ -252,6 +254,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
           <PlanBanners role={role} />{/* KS_PORTAL_v3_PLANS */}
           {children ?? <Outlet />}
         </main>
+        {!isLiveDemo() && <><FollowUpPrompt /><StrongSignInGate /></>}{/* KS_PORTAL_SETTINGS_PACK_v1 */}
       </div>
 
       {/* ── Mobile overlay nav ── */}

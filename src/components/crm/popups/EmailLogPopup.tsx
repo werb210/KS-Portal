@@ -1,5 +1,6 @@
 // BF_PORTAL_v789_BI_ACTIVITY - "Email" on a BI record logs an email that was sent or received
 // outside the portal. It is written to BI-Server only; BF-Server's mailbox is not involved.
+import { requestFollowUp } from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
 import { useState } from "react";
 import { PopupShell, popupInputStyle } from "./PopupShell";
 import type { Scope } from "@/api/crm";
@@ -24,6 +25,7 @@ export function EmailLogPopup({ scope, defaultEmail, onClose, onLogged }: {
         body: body.trim(),
         meta: { direction, address: address.trim(), subject: subject.trim() },
       });
+      if (scope.kind === "contact") requestFollowUp("email", scope.id); // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
       onLogged();
       onClose();
     } catch (e) {
