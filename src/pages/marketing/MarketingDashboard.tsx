@@ -22,6 +22,7 @@ import MobileAppsPanel from "./MobileAppsPanel"; // BF_PORTAL_v811_MOBILE_APPS
 import SiloContext from "@/context/SiloContext"; // BF_PORTAL_v811_MOBILE_APPS
 import { WEBSITE_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
+import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
@@ -1472,7 +1473,10 @@ const MarketingDashboard = () => {
   });
   // BF_PORTAL_v811_MOBILE_APPS - the Mobile apps tab is Boreal Financial's client app, so it shows in the BF silo only.
   const isBf = String(useContext(SiloContext)?.silo ?? "BF").toUpperCase() === "BF";
-  const tabs = MARKETING_TABS.filter((t) => t.id !== "apps" || isBf);
+  // KS_PORTAL_PLAN_FIXES - automations are Growth and up: the tab is hidden on Starter (the server refuses them too).
+  const planState = usePlan();
+  const hasAutomations = hasFeature("automations", planState);
+  const tabs = MARKETING_TABS.filter((t) => (t.id !== "apps" || isBf) && (t.id !== "automations" || hasAutomations));
   const [adsTab, setAdsTab] = useState<AdsTab>("story");
   const [adsService, setAdsService] = useState<AdsService>("google"); // BF_PORTAL_ADS_SERVICES_v709
 
@@ -1527,7 +1531,7 @@ const MarketingDashboard = () => {
       {tab === "links" && <LinkClicksPanel />}{/* BF_PORTAL_BF_LINKS_TAB_v15 */}
       {tab === "sms" && <SmsComposerPanel />}
       {tab === "sequences" && <SequencesPanel />}
-      {tab === "automations" && (<><AutomationsBuilder /><AutomationsPanel /></>)}
+      {tab === "automations" && hasAutomations && (<><AutomationsBuilder /><AutomationsPanel /></>)}
       {tab === "analytics" && (
         <div className="space-y-4">
           <AnalyticsFunnel />

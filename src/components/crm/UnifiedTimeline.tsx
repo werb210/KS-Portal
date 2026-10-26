@@ -239,7 +239,7 @@ function CallCard({ call, isOpen, onToggle }: { call: CallRow; isOpen: boolean; 
       <div style={{ fontSize: 14, color: "var(--ui-text)", textTransform: "capitalize" }}>
         {call.direction || "call"}{fmtDur(call.recording_duration_sec)}
       </div>
-      <FeatureGate feature="call_recording" compact>
+      <FeatureGate feature="call_recording_playback" compact>{/* KS_PORTAL_PLAN_FIXES - recorded on every plan; playback growth and up */}
       {call.recording_url ? (
         <AuthedAudio path={`/api/communications/recordings/by-conference/${encodeURIComponent(call.conference_id)}/media`} style={{ marginTop: 8 }} />
       ) : (

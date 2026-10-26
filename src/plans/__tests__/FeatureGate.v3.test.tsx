@@ -68,8 +68,8 @@ describe("FeatureGate", () => {
 
   it("compact gate renders a one-line note", () => {
     setPlan();
-    renderWithRole(<FeatureGate feature="call_recording" compact><div>audio</div></FeatureGate>, "Staff");
-    expect(screen.getByTestId("feature-locked-call_recording")).toHaveTextContent("Call recording");
+    renderWithRole(<FeatureGate feature="call_recording_playback" compact><div>audio</div></FeatureGate>, "Staff");
+    expect(screen.getByTestId("feature-locked-call_recording_playback")).toHaveTextContent("Call recording");
     expect(screen.queryByText("audio")).toBeNull();
   });
 

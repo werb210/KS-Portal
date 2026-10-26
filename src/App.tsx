@@ -106,6 +106,7 @@ import IncomingCallToast from "@/dialer/components/IncomingCallToast";
 import NativeCallBanner from "@/dialer/components/NativeCallBanner"; // BF_PORTAL_v817_IPAD_VOIP
 import ShareToDealProvider from "@/native/ShareToDealProvider"; // BF_PORTAL_BLOCK_v594
 import TeamNotifier from "@/components/team/TeamNotifier"; // BF_PORTAL_TEAM_NOTIFY_v644
+import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_PLAN_FIXES - automations are Growth and up
 
 // VoiceBootstrap removed in v225. The in-portal Twilio Voice SDK dialer
 // was ripped in v224; the no-op bootstrap stub had no remaining purpose.
@@ -196,7 +197,7 @@ const AppRoutes = () => {
         <Route path="/lender-portal/deals/:id" element={<Navigate to="/lender-portal" replace />} />
         <Route path="/lender-portal/products" element={<Navigate to="/lender-portal" replace />} />
         {/* BF_PORTAL_v786_WORKFLOW_BUILDER - full-screen workflow editor (no app shell) */}
-        <Route path="/automations/:id" element={token ? <ProtectedRoute><RequireRole roles={["Admin", "Marketing", "Staff"]}><WorkflowEditor /></RequireRole></ProtectedRoute> : <Navigate to="/login" replace />} /> {/* BF_PORTAL_v787_BUILDER_FIXES - Staff open it read-only */}
+        <Route path="/automations/:id" element={token ? <ProtectedRoute><RequireRole roles={["Admin", "Marketing", "Staff"]}><FeatureGate feature="automations"><WorkflowEditor /></FeatureGate></RequireRole></ProtectedRoute> : <Navigate to="/login" replace />} /> {/* BF_PORTAL_v787_BUILDER_FIXES - Staff open it read-only */}
         <Route element={token ? <AuthenticatedShell /> : <Navigate to="/login" replace />}>
           <Route path="/" element={<Navigate to="/portal" replace />} />
         <Route path="/applications" element={<Navigate to="/pipeline" replace />} />
@@ -237,7 +238,7 @@ const AppRoutes = () => {
         <Route path="/leads" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><Leads /></RequireRole></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><IssueInboxPage /></RequireRole></ProtectedRoute>} />
         {/* BF_PORTAL_DEAD_PAGES_v781 - /chat, /ai-chat and /ai-comms removed: in no menu, and they called server addresses that do not exist. */}
-        <Route path="/admin/automations" element={<ProtectedRoute><RequireRole roles={["Admin"]}><AutomationsPage /></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_AUTOMATIONS_UI_v1 */}
+        <Route path="/admin/automations" element={<ProtectedRoute><RequireRole roles={["Admin"]}><FeatureGate feature="automations"><AutomationsPage /></FeatureGate></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_AUTOMATIONS_UI_v1 */}
         {/* BF_PORTAL_BLOCK_v45_ADMIN_DEAD_ROUTE_REMOVAL_v1 -- five routes
             removed here (/admin/ai-knowledge, /admin/issue-reports,
             /admin/website-leads, /admin/live-chat, /admin/conversions)

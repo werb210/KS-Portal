@@ -14,7 +14,7 @@
 // Supersedes v618, v613 (which claimed a Merge button but never rendered
 // it), v612, v611, v606.
 import React, { useMemo, useState } from "react";
-import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_v3_PLANS - call recording is a Growth feature
+import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_v3_PLANS // KS_PORTAL_PLAN_FIXES - calls are recorded on every plan (call_recording is starter)
 import { brandName } from "@/config/brand";
 import { useDialer } from "../store";
 import { dialerApi } from "../api";

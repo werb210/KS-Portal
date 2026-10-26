@@ -30,11 +30,14 @@ import ImportData from "@/import/ImportData"; // KS_PORTAL_v16_DATA_IMPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 import SsoSettings from "./tabs/SsoSettings"; // KS_PORTAL_SSO_API_KEYS
 import ApiSettings from "./tabs/ApiSettings"; // KS_PORTAL_SSO_API_KEYS
+import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
-// Per-person direct numbers are the Pro "multiple lines" feature; templates are Growth.
+// KS_PORTAL_PLAN_FIXES (Todd, Oct 26) - Templates and Snippets are Growth and up: on Starter the tabs are hidden (the
+// server refuses /api/templates too). Phone lines is open on every plan: each section of it is gated by its own feature
+// (business line on every plan, toll-free Growth, direct lines Pro).
 // KS_PORTAL_SSO_API_KEYS - single sign-on and the REST API are Pro.
-const TAB_FEATURE: Record<string, string | undefined> = { phone: "multiple_lines", templates: "templates", sso: "sso", api: "api_access" };
+const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access" };
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -45,6 +48,8 @@ const SettingsPage = () => {
   const isAdmin = user?.role === "Admin";
   const isStaff = user?.role === "Staff"; // BF_PORTAL_BLOCK_v526
   const isBI = String(silo ?? "").toUpperCase() === "BI";
+  const planState = usePlan(); // KS_PORTAL_PLAN_FIXES
+  const hasTemplates = hasFeature("templates", planState);
 
   const tabs = useMemo(
     () => [
@@ -55,10 +60,10 @@ const SettingsPage = () => {
       { id: "ai-knowledge", label: "AI Knowledge", visible: isAdmin && !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : null },
       { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
       { id: "runtime", label: "Runtime Verification", visible: !isBI, content: <RuntimeSettings /> },
-      { id: "templates", label: "Templates", visible: !isBI, content: <TemplatesSettings /> }, // v694
+      { id: "templates", label: "Templates", visible: !isBI && hasTemplates, content: <TemplatesSettings /> }, // v694 // KS_PORTAL_PLAN_FIXES - Growth+
       // BF_PORTAL_SNIPPETS_TAB_v46 - visible in BI too: #pnw is as useful on a
       // PGI conversation as a lending one, and the server scopes by silo.
-      { id: "snippets", label: "Snippets", visible: true, content: <SnippetsSettings /> },
+      { id: "snippets", label: "Snippets", visible: hasTemplates, content: <SnippetsSettings /> }, // KS_PORTAL_PLAN_FIXES - Growth+
       { id: "collateral", label: "Collateral", visible: !isBI, content: <CollateralSettings /> }, // v694
       // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
       { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
@@ -74,7 +79,7 @@ const SettingsPage = () => {
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
-    [isAdmin, isStaff, isBI]
+    [isAdmin, isStaff, isBI, hasTemplates]
   );
 
   const safeTabs = Array.isArray(tabs) ? tabs : [];

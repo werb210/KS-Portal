@@ -11,20 +11,28 @@ export type FeatureInfo = { key: string; label: string; plan: PlanKey; descripti
 
 export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_v9_PORTAL_PLANS - lender portal on every plan; broker portal growth and up (Todd, Oct 22).
-  { key: "lender_portal", plan: "starter", label: "Lender portal (lenders can send you deals they can't place)", description: "Lenders sign in to see the files you send them, post their decisions, and send you deals they can't place themselves." },
+  // KS_PORTAL_PLAN_FIXES - lenders do not review files in the portal: the lender package goes to each lender by email
+  // or API. Lenders use the portal to keep their details and products current and to send you deals.
+  { key: "lender_portal", plan: "starter", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)", description: "The lender package goes to each lender by email or API. Lenders sign in to the portal to keep their contact details and products current, and to send you deals they can't place themselves." },
   // KS_PORTAL_v9_PGI - every plan.
   { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (20% referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner and you earn 20% of the partner's commission on every bound policy." },
-  { key: "call_recording", plan: "growth", label: "Call recording", description: "Record calls and play them back from the contact's timeline." },
+  // KS_PORTAL_PLAN_FIXES - the iPad staff portal app on every plan; calls recorded on every plan, playback growth and up.
+  { key: "ipad_app", plan: "starter", label: "iPad staff portal app", description: "Run the full staff portal as an app on iPad." },
+  { key: "office_sync", plan: "starter", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", description: "Outlook (Microsoft 365) mail is read into each contact's timeline. Gmail can send email now; reading a Gmail inbox comes later." },
+  { key: "call_recording", plan: "starter", label: "Call recording on every plan (playback on Growth and Pro)", description: "Every call is recorded on every plan. Playing recordings back from the contact's timeline is on Growth and Pro." },
+  { key: "call_recording_playback", plan: "growth", label: "Call recording playback", description: "Play recorded calls back from the contact's timeline." },
   { key: "call_summaries", plan: "growth", label: "Call summaries", description: "The assistant writes a short summary and transcript of every recorded call." },
   { key: "voicemail_transcription", plan: "growth", label: "Voicemail transcription", description: "Voicemails turned into text you can read at a glance." },
-  { key: "watch_ipad_apps", plan: "growth", label: "Apple Watch and iPad apps", description: "Take calls on Apple Watch and run the portal as an iPad app." },
-  { key: "templates", plan: "growth", label: "Templates", description: "Reusable email and text templates your whole team can send from." },
+  { key: "watch_app", plan: "growth", label: "Apple Watch app", description: "Take and place calls on Apple Watch." },
+  // KS_PORTAL_PLAN_FIXES - templates and snippets (one store) and automations are growth and up.
+  { key: "templates", plan: "growth", label: "Templates and snippets", description: "Reusable email and text templates, and #shortcut snippets your whole team can drop into any message." },
+  { key: "automations", plan: "growth", label: "Automations", description: "Workflows that send messages, create tasks and move deals when something happens." },
   { key: "referrer_portal", plan: "growth", label: "Referrer portal", description: "Give referral partners their own portal to send you deals and follow their progress." },
   { key: "broker_portal", plan: "growth", label: "Broker portal", description: "Partner brokers sign up, sign your broker agreement, upload client files and agree the commission split with you." },
   { key: "full_reports", plan: "growth", label: "Reports", description: "The Reports page: pipeline, team, money and marketing reports, goals and commission tracking. Starter keeps a basic dashboard." }, // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
-  { key: "multiple_lines", plan: "pro", label: "Multiple phone lines", description: "Give each person on your team their own direct phone number." },
+  { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
