@@ -8,7 +8,7 @@ describe("Marketing > Automations shows the builder", () => {
   const src = readFileSync("src/pages/marketing/MarketingDashboard.tsx", "utf8");
   it("mounts the builder above the built-in rules", () => {
     expect(src).toContain('import AutomationsBuilder from "@/pages/admin/AutomationsPage"');
-    expect(src).toContain('{tab === "automations" && (<><AutomationsBuilder /><AutomationsPanel /></>)}');
+    expect(src).toContain('{tab === "automations" && hasAutomations && (<><AutomationsBuilder /><AutomationsPanel /></>)}'); // KS_PORTAL_PLAN_FIXES - Growth+
   });
   it("no longer says a builder is coming", () => {
     expect(src).not.toContain("a builder to create your own is coming");

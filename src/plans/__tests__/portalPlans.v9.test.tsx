@@ -18,7 +18,7 @@ beforeEach(() => { __setPlanForTests(null); });
 
 describe("portal plans", () => {
   it("lender portal is a starter feature with the new label; broker portal is growth", () => {
-    expect(featureInfo("lender_portal")).toMatchObject({ plan: "starter", label: "Lender portal (lenders can send you deals they can't place)" });
+    expect(featureInfo("lender_portal")).toMatchObject({ plan: "starter", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)" }); // KS_PORTAL_PLAN_FIXES
     expect(featureInfo("broker_portal")).toMatchObject({ plan: "growth", label: "Broker portal" });
     __setPlanForTests(normalizePlan(planBody()));
     expect(hasFeature("lender_portal")).toBe(true);

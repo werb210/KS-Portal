@@ -53,8 +53,9 @@ describe("it is wired into settings", () => {
     expect(PAGE).toContain('id: "snippets"');
     expect(PAGE).toContain("<SnippetsSettings />");
   });
+  // KS_PORTAL_PLAN_FIXES - in BI as well as BF, but only when the plan includes templates (Growth and up).
   it("is available in BI as well as BF", () => {
-    expect(PAGE).toContain('{ id: "snippets", label: "Snippets", visible: true');
+    expect(PAGE).toContain('{ id: "snippets", label: "Snippets", visible: hasTemplates');
   });
 });
 
