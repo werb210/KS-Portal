@@ -10,6 +10,7 @@ import { loginWithPasskey, passkeysSupported } from "@/auth/passkey"; // BF_PORT
 // KS_STAFF_DIRECTORY_v1 - the iPad app finds the brokerage from the person's email or mobile number first.
 import { clearWorkspace, needsWorkspace, storedWorkspace, takePrefillPhone } from "@/config/workspace";
 import FindWorkspace from "./FindWorkspace";
+import SsoButtons from "@/auth/SsoButtons"; // KS_PORTAL_SSO_API_KEYS
 
 type StartError = string | null;
 
@@ -190,6 +191,8 @@ function PhoneLogin() {
             We{"'"}ll text you a one-time code to verify.
           </p>
         </form>
+        {/* KS_PORTAL_SSO_API_KEYS - Microsoft / Google buttons, only when this brokerage has switched them on. */}
+        <SsoButtons />
         {workspace ? (
           <p className="text-sm text-white/70 text-center" data-testid="workspace-line">
             Signing in to {workspace.name}.{" "}

@@ -15,6 +15,12 @@ vi.mock("@/auth/otpFlow", () => ({
   setOtpStartSucceeded: vi.fn(),
 }));
 vi.mock("@/config/api", () => ({ API_BASE: "https://server.test" }));
+// KS_PORTAL_SSO_API_KEYS - the sign-in page also asks which single sign-on buttons to show; none here, so the only
+// request these tests see is the text-code one.
+vi.mock("@/auth/sso", async () => ({
+  ...(await vi.importActual<typeof import("@/auth/sso")>("@/auth/sso")),
+  fetchSsoConfig: async () => ({ microsoft: false, google: false, require_sso: false }),
+}));
 
 import Login from "@/pages/Login";
 
