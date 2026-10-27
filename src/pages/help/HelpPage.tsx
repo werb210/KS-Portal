@@ -1,11 +1,13 @@
 // KS_PORTAL_v6_SUPPORT - "Get help": Admins and Staff send a request to the software vendor's support team
 // (POST /api/support/tickets) and see their company's requests with their status. Replies go out by email.
 // Reached from the sidebar ("Get help") and Settings -> Help. A 404 from the server hides the request list.
+// KS_PORTAL_KB_v1 - the Help Center (search, categories, articles, Ask Maya) sits above the request form.
 // KS_PORTAL_v17_TICKET_REPLIES - each request has a "Reply" button to add a follow-up (POST /api/support/tickets/:id/messages).
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { createTicket, listTickets, replyToTicket, type Ticket, type TicketPriority } from "@/support/supportApi";
 import { primaryButton, useRole } from "@/plans/ui";
 import MovingToKeystone from "@/import/MovingToKeystone"; // KS_PORTAL_v16_DATA_IMPORT
+import HelpCenter from "./HelpCenter"; // KS_PORTAL_KB_v1
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 4px", fontSize: 16, color: "var(--ui-text)" };
@@ -145,6 +147,9 @@ export default function HelpPage() {
   return (
     <div style={{ maxWidth: 860, color: "var(--ui-text)" }} data-testid="help-page">
       <h2 style={{ fontSize: 18, margin: "0 0 12px" }}>Get help</h2>
+
+      {/* KS_PORTAL_KB_v1 - help articles and Ask Maya first; the request form below is still there for anything else. */}
+      <HelpCenter canContact={canUse} />
 
       <section style={card}>
         <h3 style={h3}>Ask our support team</h3>
