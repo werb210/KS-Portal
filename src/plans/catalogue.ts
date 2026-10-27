@@ -49,6 +49,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
   // KS_PORTAL_v20_WEBHOOKS - pro.
+  // KS_HUBSPOT_GAPS_1_CALL_QUEUES - pro.
+  { key: "call_queues", plan: "pro", label: "Call queues", description: "Callers to your main line or a menu option wait in line with hold music and their place in line, and ring the person who has been free longest. Live queue panel for Admins." },
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
   // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they

@@ -45,6 +45,7 @@ import PaymentsSettings from "@/payments/PaymentsSettings"; // KS_HUBSPOT_GAPS_1
 import CallScriptsSettings from "@/callScripts/CallScriptsSettings"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
 import MeetingNotesSettings from "@/meetingNotes/MeetingNotesSettings"; // KS_HUBSPOT_GAPS_1_MEETING_NOTES
 import PipelinesSettings from "@/pipelines/PipelinesSettings"; // KS_HUBSPOT_GAPS_1_PIPELINES
+import CallQueuesSettings from "@/callQueues/CallQueuesSettings"; // KS_HUBSPOT_GAPS_1_CALL_QUEUES
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
@@ -52,7 +53,7 @@ import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 // server refuses /api/templates too). Phone lines is open on every plan: each section of it is gated by its own feature
 // (business line on every plan, toll-free Growth, direct lines Pro).
 // KS_PORTAL_SSO_API_KEYS - single sign-on and the REST API are Pro.
-const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access", survey: "nps_survey", teams: "teams", webhooks: "webhooks", payments: "payment_links", "call-scripts": "call_scripts", pipelines: "custom_pipelines" }; // KS_PORTAL_SETTINGS_PACK_v1_NPS (survey Growth+); KS_PORTAL_v20 teams, webhooks
+const TAB_FEATURE: Record<string, string | undefined> = { sso: "sso", api: "api_access", survey: "nps_survey", teams: "teams", webhooks: "webhooks", payments: "payment_links", "call-scripts": "call_scripts", pipelines: "custom_pipelines", "call-queues": "call_queues" }; // KS_PORTAL_SETTINGS_PACK_v1_NPS (survey Growth+); KS_PORTAL_v20 teams, webhooks
 
 const SettingsPage = () => {
   const [searchParams] = useSearchParams();
@@ -81,6 +82,7 @@ const SettingsPage = () => {
       { id: "payments", label: "Payments", visible: isAdmin && !isBI, content: <PaymentsSettings /> }, // Stripe Connect (growth+)
       { id: "call-scripts", label: "Call scripts", visible: isAdmin && !isBI, content: <CallScriptsSettings /> }, // playbooks (growth+)
       { id: "pipelines", label: "Pipelines", visible: isAdmin && !isBI, content: <PipelinesSettings /> }, // extra pipelines (growth 3, pro unlimited)
+      { id: "call-queues", label: "Call queues", visible: (isAdmin || isStaff) && !isBI, content: <CallQueuesSettings /> }, // pro: live panel (Admins), my availability
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
       // KS_PORTAL_SETTINGS_PACK_v1 - Admin settings: phone menu, booking pages, lead rotation, blocked numbers, never log,
       // security, privacy requests and the client survey.

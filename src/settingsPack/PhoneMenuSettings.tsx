@@ -9,7 +9,8 @@ type Target =
   | { type: "group"; userIds: string[]; strategy: "simultaneous" | "sequential" }
   | { type: "voicemail"; userId: string | null }
   | { type: "ai" }
-  | { type: "meeting" };
+  | { type: "meeting" }
+  | { type: "queue"; queueId: string }; // KS_HUBSPOT_GAPS_1_CALL_QUEUES
 type Prompt = { mode: "tts" | "audio"; text: string; audioId: string | null };
 type Option = { digit: string; label: string; keywords: string[]; target: Target };
 const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
@@ -21,25 +22,35 @@ type Menu = {
 };
 type User = { id: string; name: string };
 type Audio = { id: string; file_name: string | null };
-type Loaded = { menu: Menu; is_default: boolean; users: User[]; audio: Audio[]; stale_user_ids: string[]; time_zone: string; zone_label: string; open_now: boolean; spoken_greeting: string };
+type QueueRef = { id: string; name: string };
+type Loaded = { menu: Menu; is_default: boolean; users: User[]; audio: Audio[]; queues?: QueueRef[]; stale_user_ids: string[]; time_zone: string; zone_label: string; open_now: boolean; spoken_greeting: string };
 
 const TARGET_LABEL: Record<Target["type"], string> = {
   user: "Ring one person", group: "Ring a group", voicemail: "Voicemail", ai: "AI receptionist (caller says what they need)", meeting: "Meeting dial-in (access code)",
+  queue: "Call queue (callers wait for the next free person)", // KS_HUBSPOT_GAPS_1_CALL_QUEUES
 };
 
-function blankTarget(type: Target["type"], users: User[]): Target {
+function blankTarget(type: Target["type"], users: User[], queues: QueueRef[] = []): Target {
+  if (type === "queue") return { type, queueId: queues[0]?.id ?? "" };
   if (type === "user") return { type, userId: users[0]?.id ?? "" };
   if (type === "group") return { type, userIds: users.map((u) => u.id), strategy: "simultaneous" };
   if (type === "voicemail") return { type, userId: null };
   return { type } as Target;
 }
 
-function TargetEditor({ id, value, users, onChange, allow }: { id: string; value: Target; users: User[]; onChange: (t: Target) => void; allow: Target["type"][] }) {
+function TargetEditor({ id, value, users, onChange, allow, queues = [] }: { id: string; value: Target; users: User[]; onChange: (t: Target) => void; allow: Target["type"][]; queues?: QueueRef[] }) {
+  // KS_HUBSPOT_GAPS_1_CALL_QUEUES - "Call queue" is offered only when the plan has queues and one exists.
+  const types = allow.filter((t) => t !== "queue" || queues.length > 0 || value.type === "queue");
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <select id={id} aria-label="Where it goes" value={value.type} onChange={(e) => onChange(blankTarget(e.target.value as Target["type"], users))} style={input}>
-        {allow.map((t) => <option key={t} value={t}>{TARGET_LABEL[t]}</option>)}
+      <select id={id} aria-label="Where it goes" value={value.type} onChange={(e) => onChange(blankTarget(e.target.value as Target["type"], users, queues))} style={input}>
+        {types.map((t) => <option key={t} value={t}>{TARGET_LABEL[t]}</option>)}
       </select>
+      {value.type === "queue" && (
+        <select aria-label="Queue" value={value.queueId} onChange={(e) => onChange({ type: "queue", queueId: e.target.value })} style={input}>
+          {queues.map((q) => <option key={q.id} value={q.id}>{q.name}</option>)}
+        </select>
+      )}
       {value.type === "user" && (
         <select aria-label="Person" value={value.userId} onChange={(e) => onChange({ type: "user", userId: e.target.value })} style={input}>
           {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
@@ -155,7 +166,7 @@ export default function PhoneMenuSettings() {
                     </select>
                   </td>
                   <td style={cell}><input aria-label="Label" value={o.label} maxLength={80} onChange={(e) => setOption(i, { label: e.target.value })} style={input} /></td>
-                  <td style={cell}><TargetEditor id={`pm-opt-${i}`} value={o.target} users={users} allow={["user", "group", "voicemail", "ai", "meeting"]} onChange={(target) => setOption(i, { target })} /></td>
+                  <td style={cell}><TargetEditor id={`pm-opt-${i}`} value={o.target} users={users} allow={["user", "group", "voicemail", "ai", "meeting", "queue"]} queues={data.queues ?? []} onChange={(target) => setOption(i, { target })} /></td>
                   <td style={cell}><input aria-label="Keywords" value={o.keywords.join(", ")} onChange={(e) => setOption(i, { keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) })} style={input} placeholder="sales, apply" /></td>
                   <td style={cell}><button type="button" style={danger} onClick={() => set({ options: menu.options.filter((_, j) => j !== i) })}>Remove</button></td>
                 </tr>
@@ -171,7 +182,7 @@ export default function PhoneMenuSettings() {
           <input id="pm-ring" type="number" min={10} max={60} value={menu.noAnswer.ringSeconds} onChange={(e) => set({ noAnswer: { ...menu.noAnswer, ringSeconds: Number(e.target.value) } })} style={{ ...input, width: 100 }} />
         </Field>
         <Field id="pm-noanswer-target" label="Then">
-          <TargetEditor id="pm-noanswer-target" value={menu.noAnswer.target} users={users} allow={["voicemail", "user", "group", "ai"]} onChange={(target) => set({ noAnswer: { ...menu.noAnswer, target } })} />
+          <TargetEditor id="pm-noanswer-target" value={menu.noAnswer.target} users={users} allow={["voicemail", "user", "group", "ai", "queue"]} queues={data.queues ?? []} onChange={(target) => set({ noAnswer: { ...menu.noAnswer, target } })} />
         </Field>
       </Section>
 
