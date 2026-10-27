@@ -37,6 +37,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   // KS_PORTAL_SETTINGS_PACK_v1_NPS
+  // KS_HUBSPOT_GAPS_1_PAYMENTS - growth and up.
+  { key: "payment_links", plan: "growth", label: "Payment links and bank debit for fees (your own Stripe account)", description: "Send clients a link to pay a fee by card or Canadian pre-authorized debit. Money goes to your own Stripe account; paid fees are marked on the deal and in QuickBooks." },
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },

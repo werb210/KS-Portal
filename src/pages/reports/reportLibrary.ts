@@ -15,7 +15,13 @@ export const MOBILE_APPS_REPORT: LibraryEntry = {
   size: "full",
   description: "Client app use: active users, app vs web, devices, notifications and quick sign-in.",
 };
-const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT];
+// KS_HUBSPOT_GAPS_1 - fee payments (payment links, Growth+) as a Reports card. Money report: Admins.
+export const FEE_PAYMENTS_KEY = "fee_payments";
+export const FEE_PAYMENTS_REPORT: LibraryEntry = {
+  key: FEE_PAYMENTS_KEY, title: "Fee payments", silo: "BF", group: "money", size: "half",
+  description: "Broker fees collected by payment link: paid, bank debits processing and still waiting.",
+};
+const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT];
 
 // BF_PORTAL_v819_MOBILE_REPORT - mirrors BF-Server canSee(): Admin sees all, Marketing all but money, others operations.
 export function canSeeReportGroup(role: unknown, group: ReportGroup): boolean {
