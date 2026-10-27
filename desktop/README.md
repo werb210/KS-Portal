@@ -55,3 +55,37 @@ installers. Download them from that run's Artifacts ("Boreal-Staff-Portal-Mac"):
 arm64 .dmg for Apple-chip Macs, the x64 one for Intel. The app is not signed yet, so
 the first launch needs right-click > Open > Open. It cannot update itself until it is
 signed with Boreal's Apple Developer ID; install new versions by hand until then.
+
+## Native apps (KS_NATIVE_DESKTOP_v1) - replacing this Electron shell
+
+`desktop/native/` is the native app: Tauri 2, so the Mac app is a real WKWebView app and the Windows app uses
+WebView2. Being signed with the Apple Developer ID and carrying Associated Domains is what makes Mac passkeys
+(Touch ID / iCloud Keychain) and the Messages one-time-code AutoFill work; Windows Hello passkeys work in WebView2.
+Everything this Electron app does is kept: tray / menu-bar icon so the dialler stays connected and calls ring, start
+at login (hidden), one instance, incoming-call pop-up and unread badge (`window.borealDesktop`), native
+notifications, microphone asked up front on the Mac, Microsoft sign-in pop-ups in the app and every other link in the
+browser, the old offline cache cleared on launch, and automatic updates (now on the Mac too).
+
+Build: GitHub Actions > **Desktop apps (native)** > Run workflow. Licensee empty builds the Keystone app (staff type
+their work email or mobile number and the app finds their company, like the iPad app); a licensee code builds that
+brokerage's own app from its GitHub environment (`VITE_APP_URL`, `VITE_COMPANY_NAME`, `DESKTOP_BUNDLE_ID`, optional
+`DESKTOP_ICON_URL`). The .dmg (one app for Apple-chip and Intel Macs) and the Windows .exe / .msi are published to
+Releases (`desktop-<key>-v<version>`); the apps update from `desktop-latest/latest-<key>.json`. Raise `version` in
+`desktop/native/brands/keystone.json` (or set `DESKTOP_VERSION`) for each new release.
+
+Settings (repository secrets unless noted; a licensee's environment can override any of them):
+
+1. `APPLE_DEVELOPER_ID_CERT_P12` - the "Developer ID Application" certificate exported from Keychain Access as .p12,
+   base64 (`base64 -i cert.p12 | pbcopy`), and `APPLE_DEVELOPER_ID_CERT_PASSWORD`.
+2. Notarization: `APPLE_API_KEY_ID`, `APPLE_API_ISSUER_ID`, `APPLE_API_KEY_P8` (App Store Connect > Users and Access >
+   Integrations > Keys, "Developer" role; paste the .p8 text) - or `APPLE_ID` and `APPLE_APP_SPECIFIC_PASSWORD`.
+3. `APPLE_TEAM_ID` (secret or repository variable) - the 10-character Team ID from developer.apple.com > Membership.
+   The deploy workflow also uses the variable to publish `/.well-known/apple-app-site-association`.
+4. `MACOS_PROVISIONING_PROFILE` - for passkeys: register the App ID `financial.boreal.keystone.desktop` (and each
+   licensee's) with the Associated Domains capability, create a "Developer ID" provisioning profile for it, base64.
+5. Auto-update: run `npx tauri signer generate -w desktop.key` once; secret `TAURI_SIGNING_PRIVATE_KEY` (file contents)
+   and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, repository variable `TAURI_UPDATER_PUBKEY` (the .pub contents).
+6. Optional Windows signing: `WINDOWS_CERTIFICATE_PFX` (base64 .pfx) and `WINDOWS_CERTIFICATE_PASSWORD`.
+7. Optional: variable `DESKTOP_PASSKEY_DOMAINS` - licensee portal hosts the Keystone app should offer passkeys for.
+
+Anything missing is skipped with a notice; the build still works (ad-hoc signed, not notarized, no updates).

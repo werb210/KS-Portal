@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "local",
+  "description": "KS_NATIVE_DESKTOP_v1 - the app's own start page: find the company by work email or mobile number.",
+  "windows": ["main"],
+  "permissions": ["allow-find-company", "allow-choose-company"]
+}
