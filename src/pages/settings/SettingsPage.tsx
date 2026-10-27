@@ -43,6 +43,7 @@ import TeamsSettings from "@/teams/TeamsSettings"; // KS_PORTAL_v20_TEAMS
 import WebhooksSettings from "@/webhooks/WebhooksSettings"; // KS_PORTAL_v20_WEBHOOKS
 import PaymentsSettings from "@/payments/PaymentsSettings"; // KS_HUBSPOT_GAPS_1_PAYMENTS
 import CallScriptsSettings from "@/callScripts/CallScriptsSettings"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
+import MeetingNotesSettings from "@/meetingNotes/MeetingNotesSettings"; // KS_HUBSPOT_GAPS_1_MEETING_NOTES
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
@@ -91,6 +92,7 @@ const SettingsPage = () => {
       { id: "survey", label: "Client survey", visible: isAdmin && !isBI, content: <SurveySettings /> },
       { id: "ai-knowledge", label: "AI Knowledge", visible: isAdmin && !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : null },
       { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
+      { id: "meeting-notes", label: "Meeting notes", visible: !isBI, content: <MeetingNotesSettings /> }, // KS_HUBSPOT_GAPS_1_MEETING_NOTES - Zoom / Google Meet
       { id: "runtime", label: "Runtime Verification", visible: !isBI, content: <RuntimeSettings /> },
       { id: "templates", label: "Templates", visible: !isBI && hasTemplates, content: <TemplatesSettings /> }, // v694 // KS_PORTAL_PLAN_FIXES - Growth+
       // BF_PORTAL_SNIPPETS_TAB_v46 - visible in BI too: #pnw is as useful on a
