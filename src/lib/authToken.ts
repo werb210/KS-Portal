@@ -41,7 +41,7 @@ export function setRefreshToken(token: string) {
 }
 
 export function clearRefreshToken() {
-  removeSessionItem(REFRESH_STORAGE_KEY);
+  if (readSessionItem(REFRESH_STORAGE_KEY) !== null) removeSessionItem(REFRESH_STORAGE_KEY);
 }
 
 export function clearAuthToken() {
