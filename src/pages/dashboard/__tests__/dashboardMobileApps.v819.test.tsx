@@ -63,7 +63,8 @@ describe("v819 Mobile apps report in the Dashboard library", () => {
     expect(dedupeReports(SERVER_CATALOG).map((r) => r.key)).toEqual(["ads_story", "ads_dropoff"]);
     const fromServer = withPortalReports([...SERVER_CATALOG, MOBILE_APPS_REPORT], "Admin");
     expect(fromServer.filter((r) => r.key === MOBILE_APPS_KEY)).toHaveLength(1);
-    expect(fromServer).toHaveLength(3);
+    // KS_HUBSPOT_GAPS_1 - plus the two portal-drawn cards for Fee payments and Pipelines by stage.
+    expect(fromServer.map((r) => r.key)).toEqual(["ads_story", "ads_dropoff", MOBILE_APPS_KEY, "fee_payments", "pipelines_by_stage"]);
   });
 
   it("lists Mobile apps once and each report once in + Add report for an Admin", async () => {

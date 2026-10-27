@@ -449,6 +449,12 @@ export function createShim(opts: ShimOptions) {
     ["GET", /^\/api\/custom-fields\/(contact|company|application)$/, () => ok({ ok: true, fields: [] })],
     ["GET", /^\/api\/custom-fields\/(contact|company|application)\/records\/[^/]+$/, () => ok({ ok: true, fields: [], values: {} })],
     ["GET", /^\/api\/teams\/options$/, () => ok({ ok: true, teams: [] })],
+    // KS_HUBSPOT_GAPS_1 - the demo brokerage has no extra pipelines, Stripe, call scripts or queues.
+    ["GET", /^\/api\/pipelines$/, () => ok({ ok: true, feature: false, limit: 1, plan: "starter", can_create: false, pipelines: [] })],
+    ["GET", /^\/api\/pipelines\/application\/[^/]+$/, () => ok({ ok: true, pipeline_id: "lending", stage_id: null, stage: null })],
+    ["GET", /^\/api\/payments\/links$/, () => ok({ ok: true, connected: false, problem: "Online payments are off in the demo.", links: [] })],
+    ["GET", /^\/api\/call-scripts$/, () => ok({ ok: true, scripts: [], question_types: [], custom_fields: { contact: [], application: [] } })],
+    ["GET", /^\/api\/call-scripts\/runs$/, () => ok({ ok: true, runs: [] })],
 
     // fraud
     ["GET", new RegExp(`^/api/fraud/applications/${ID}$`), (_r, m) => ok(fraudOverview(m[1]!))],
