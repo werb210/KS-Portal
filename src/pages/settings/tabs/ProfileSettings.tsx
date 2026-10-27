@@ -496,39 +496,36 @@ const ProfileSettings = () => {
             A Microsoft connection made earlier stays visible so it can still be disconnected. */}
         <WorkspaceConnections microsoftConnected={Boolean(profile.microsoftConnected)} microsoft={
         <div className="connected-accounts__actions" data-testid="microsoft-connect">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleMicrosoftConnect}
-            disabled={!isMicrosoftConfigured || isLinkingMicrosoft || hideMicrosoftButton}
-            title={
-              !isMicrosoftConfigured || isLinkingMicrosoft || hideMicrosoftButton
-                ? microsoftDisabledReason
-                : undefined
-            }
-          >
-            {profile.microsoftConnected ? `✓ Connected: ${profile.microsoftAccountEmail ?? localProfile.email}` : "Connect Microsoft 365"}
-          </Button>
-          {/* v_O365_OAUTH_v1 - durable server-side connect: captures a refresh token so
-              email stays connected (no more daily reconnects). */}
+          {/* KS_PORTAL_M365_ONE_CLICK - one click: the server's connect (Keystone's app, the tenant your admin connected,
+              a refresh token so it stays connected). The browser-only MSAL sign-in stays as a fallback where this build
+              has its own Microsoft app (VITE_MSAL_CLIENT_ID). */}
           <Button
             type="button"
             variant="secondary"
             onClick={async () => {
+              setMicrosoftError(null);
               try {
                 const r = await api.get<{ url?: string }>("/api/o365-oauth/start");
                 if (r?.url) window.location.href = r.url;
-                else setMicrosoftError("Could not start Microsoft connection.");
-              } catch {
-                setMicrosoftError("Could not start Microsoft connection.");
+                else setMicrosoftError("Could not start the Microsoft 365 connection.");
+              } catch (err) {
+                setMicrosoftError(getErrorMessage(err as Error, "Could not start the Microsoft 365 connection."));
               }
             }}
-            title="Connect once and stay connected (recommended)"
+            data-testid="microsoft-connect-button"
           >
-            Stay connected (recommended)
+            {profile.microsoftConnected ? `✓ Connected: ${profile.microsoftAccountEmail ?? localProfile.email}` : "Connect Microsoft 365"}
           </Button>
-          {!isMicrosoftConfigured && (
-            <span className="text-xs text-slate-500">Microsoft OAuth is not configured.</span>
+          {isMicrosoftConfigured && !profile.microsoftConnected && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleMicrosoftConnect}
+              disabled={isLinkingMicrosoft || hideMicrosoftButton}
+              title={isLinkingMicrosoft || hideMicrosoftButton ? microsoftDisabledReason : undefined}
+            >
+              Connect in this browser instead
+            </Button>
           )}
           {hideMicrosoftButton && (
             <span className="text-xs text-amber-800">

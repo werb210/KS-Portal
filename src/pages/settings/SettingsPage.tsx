@@ -24,6 +24,7 @@ import LibraryPage from "@/pages/library/LibraryPage"; // BF_PORTAL_LIBRARY_IN_S
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
 import RetentionSettings from "./tabs/RetentionSettings"; // KS_PORTAL_v14_RETENTION
 import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
+import ConnectionsSettings from "./tabs/ConnectionsSettings"; // KS_PORTAL_M365_ONE_CLICK
 import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
 import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import ImportData from "@/import/ImportData"; // KS_PORTAL_v16_DATA_IMPORT
@@ -65,6 +66,8 @@ const SettingsPage = () => {
     () => [
       // KS_PORTAL_v6_COMPANY - the licensee's company details, branding and connections (Admins only).
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
+      // KS_PORTAL_M365_ONE_CLICK - Microsoft 365 (one click for the company) and Google Workspace status (Admins only).
+      { id: "connections", label: "Connections", visible: isAdmin && !isBI, content: <ConnectionsSettings /> },
       { id: "users", label: "User Management", visible: isAdmin && !isBI, content: <UserManagement /> },
       // KS_PORTAL_v20 - custom fields (every plan), teams and record visibility (growth+), webhooks and Zapier (pro). Admins only.
       { id: "properties", label: "Properties", visible: isAdmin && !isBI, content: <PropertiesSettings /> },

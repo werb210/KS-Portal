@@ -338,11 +338,14 @@ export default function CompanySettings() {
       {connections && (
         <section style={card} data-testid="company-section-connections">
           <h3 style={h3}>Connections</h3>
-          <p style={muted}>Accounts this copy uses for calls, ads and Microsoft 365 sign-in.</p>
+          <p style={muted}>
+            Accounts this copy uses for calls and ads. Microsoft 365 and Google Workspace are connected on the Connections tab
+            {/* KS_PORTAL_M365_ONE_CLICK - the tenant is saved by Microsoft's admin approval, never typed. */}
+            {" "}(one click, nothing to type).
+          </p>
           <div style={grid}>
             {text("twilio_main_number", { type: "tel", placeholder: "+15875550100" })}
             {text("google_ads_customer_id", { placeholder: "123-456-7890" })}
-            {text("office365_tenant_id")}
           </div>
         </section>
       )}

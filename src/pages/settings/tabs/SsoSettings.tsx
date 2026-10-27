@@ -21,7 +21,6 @@ const text: CSSProperties = { margin: "0 0 10px", fontSize: 13, lineHeight: 1.5,
 const label: CSSProperties = { display: "block", fontSize: 13, fontWeight: 600, color: "var(--ui-text)", margin: "10px 0 4px" };
 const input: CSSProperties = { padding: "8px 10px", borderRadius: 8, border: "1px solid var(--ui-border)", background: "var(--ui-surface)", color: "var(--ui-text)", fontSize: 13, width: "100%", maxWidth: 420, boxSizing: "border-box" };
 const check: CSSProperties = { display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14, fontWeight: 600, color: "var(--ui-text)", cursor: "pointer" };
-const code: CSSProperties = { fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 12, padding: "2px 6px", borderRadius: 6, background: "var(--ui-surface)", color: "var(--ui-text)", border: "1px solid var(--ui-border)", wordBreak: "break-all" };
 const button: CSSProperties = { padding: "8px 16px", borderRadius: 8, border: "1px solid #1d4ed8", background: "#1d4ed8", color: "#ffffff", fontSize: 14, fontWeight: 600, cursor: "pointer" };
 const notice: CSSProperties = { margin: "6px 0 0", padding: "8px 10px", borderRadius: 8, background: "#fef3c7", color: "#78350f", fontSize: 13 };
 const errorBox: CSSProperties = { marginTop: 10, padding: "8px 10px", borderRadius: 8, background: "#fee2e2", color: "#7f1d1d", fontSize: 13 };
@@ -47,9 +46,7 @@ function ProviderSection({ name, status, enabled, onEnabled, restrictLabel, rest
           <label htmlFor={inputId} style={label}>{restrictLabel}</label>
           <input id={inputId} style={input} value={restrict} placeholder={restrictPlaceholder} onChange={(e) => onRestrict(e.target.value)} />
           <p style={{ ...text, marginTop: 6 }}>{restrictHelp}</p>
-          {status.redirect_uri ? (
-            <p style={text}>Redirect address registered with {name}: <span style={code}>{status.redirect_uri}</span></p>
-          ) : null}
+          {/* KS_PORTAL_M365_ONE_CLICK - Keystone registers the redirect address itself; nothing for the company to copy. */}
         </>
       )}
     </section>
@@ -99,7 +96,7 @@ export default function SsoSettings() {
       <ProviderSection
         name="Microsoft" status={p.microsoft} enabled={form.microsoft_enabled} onEnabled={(v) => set({ microsoft_enabled: v })}
         restrictLabel="Only allow this Microsoft tenant (directory ID, optional)" restrictPlaceholder="e.g. 3f2504e0-4f89-11d3-9a0c-0305e82c3301"
-        restrictHelp="Find it in Microsoft Entra admin center > Overview > Tenant ID. When set, accounts from other organisations are refused."
+        restrictHelp="Usually not needed: once Microsoft 365 is connected (Settings > Connections), only accounts from your organisation can sign in. When set, accounts from other organisations are refused."
         restrict={form.microsoft_tenant_id} onRestrict={(v) => set({ microsoft_tenant_id: v.trim() })} inputId="sso-ms-tenant"
       />
       <ProviderSection
