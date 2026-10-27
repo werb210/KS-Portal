@@ -7,6 +7,7 @@
 // fetch directly (the api client refuses to send a request without a session).
 import { API_BASE } from "@/config/api";
 import { setAuthToken } from "@/lib/authToken";
+import { captureRefreshToken } from "@/auth/sessionRefresh"; // KS_NATIVE_DESKTOP_v1_SLIDING_REFRESH
 
 export type SsoProvider = "microsoft" | "google";
 export type SsoConfig = { microsoft: boolean; google: boolean; require_sso: boolean };
@@ -68,8 +69,9 @@ export async function exchangeSsoCode(code: string, fetchImpl: typeof fetch = fe
   } catch {
     throw new Error("Couldn't reach the server to finish signing in. Please try again.");
   }
-  const body = (await res.json().catch(() => null)) as { data?: { token?: string }; message?: string } | null;
+  const body = (await res.json().catch(() => null)) as { data?: { token?: string; refreshToken?: string }; message?: string } | null;
   const token = body?.data?.token;
   if (!res.ok || !token) throw new Error(body?.message || "That sign-in link has expired. Please sign in again.");
   setAuthToken(token);
+  captureRefreshToken(body);
 }

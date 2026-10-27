@@ -50,6 +50,9 @@ jobs:
           echo "VITE_DEMO_SERVER_URL=${{ vars.VITE_DEMO_SERVER_URL || 'https://ks-demo-server.azurewebsites.net' }}" >> .env
           # KS_PORTAL_v11_LIVE_DEMO - the client app whose /tour the /demo page shows in its phone frame (also frame-src)
           echo "VITE_CLIENT_URL=${{ vars.VITE_CLIENT_URL || 'https://wonderful-island-0b68ae310.5.azurestaticapps.net' }}" >> .env
+          # KS_NATIVE_DESKTOP_v1 - /.well-known/apple-app-site-association names the desktop apps (scripts/desktop-aasa.mjs).
+          echo "APPLE_TEAM_ID=${{ vars.APPLE_TEAM_ID }}" >> .env
+          echo "DESKTOP_BUNDLE_IDS=${{ vars.DESKTOP_BUNDLE_IDS || 'financial.boreal.keystone.desktop' }}" >> .env
 
       # ❌ REMOVE ALL previous "verify env" steps — they are wrong
 
@@ -143,6 +146,9 @@ jobs:
       VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
       VITE_COMPANY_NAME: ${{ vars.VITE_COMPANY_NAME }}
       VITE_ASSISTANT_NAME: ${{ vars.VITE_ASSISTANT_NAME }}
+      # KS_NATIVE_DESKTOP_v1 - the Keystone desktop app and, when the licensee has one, its own desktop app.
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      DESKTOP_BUNDLE_IDS: financial.boreal.keystone.desktop,${{ vars.DESKTOP_BUNDLE_ID }}
     steps:
       - name: Check the licensee's settings
         env:
@@ -184,7 +190,8 @@ jobs:
             echo "VITE_CLIENT_APP_URL=$VITE_CLIENT_APP_URL"
             echo "VITE_JWT_STORAGE_KEY=auth_token"
             for name in VITE_MSAL_CLIENT_ID VITE_MSAL_TENANT_ID VITE_MSAL_REDIRECT_URI VITE_MSAL_SCOPES \
-                        VITE_WEBSITE_URL VITE_SUPPORT_EMAIL VITE_COMPANY_NAME VITE_ASSISTANT_NAME; do
+                        VITE_WEBSITE_URL VITE_SUPPORT_EMAIL VITE_COMPANY_NAME VITE_ASSISTANT_NAME \
+                        APPLE_TEAM_ID DESKTOP_BUNDLE_IDS; do
               if [ -n "${!name}" ]; then echo "$name=${!name}"; fi
             done
           } >> .env

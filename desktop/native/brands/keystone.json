@@ -1,0 +1,12 @@
+{
+  "$comment": "KS_NATIVE_DESKTOP_v1 - the Keystone staff-portal desktop app. portal_url empty: staff type their work email or mobile number and the app finds their company (like the iPad app). A licensee build sets DESKTOP_PORTAL_URL, DESKTOP_COMPANY_NAME and DESKTOP_BUNDLE_ID from its GitHub environment instead (see .github/workflows/desktop-native.yml).",
+  "key": "keystone",
+  "app_name": "Keystone Staff Portal",
+  "bundle_id": "financial.boreal.keystone.desktop",
+  "portal_url": "",
+  "ops_url": "https://ks-ops-dev.azurewebsites.net",
+  "passkey_domains": [],
+  "icon": "../../../public/icons/icon-512x512.png",
+  "release_repo": "werb210/ks-portal",
+  "version": "2.0.0"
+}

@@ -2,6 +2,7 @@
 import { startRegistration, startAuthentication, browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { setAuthToken } from "@/lib/authToken";
 import { api } from "@/api";
+import { captureRefreshToken } from "@/auth/sessionRefresh"; // KS_NATIVE_DESKTOP_v1_SLIDING_REFRESH
 
 export function passkeysSupported(): boolean {
   try { return browserSupportsWebAuthn(); } catch { return false; }
@@ -27,6 +28,7 @@ export async function loginWithPasskey(): Promise<void> {
   const token = data?.data?.token ?? data?.token ?? null;
   if (!token) throw new Error("No token returned from server");
   setAuthToken(token);
+  captureRefreshToken(data);
 }
 
 export async function registerPasskey(): Promise<void> {

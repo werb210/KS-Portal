@@ -126,7 +126,8 @@ describe("lazyWithRetry", () => {
   // top-level side effect and cannot be imported in a test; reloadOnceForChunkError itself is tested above.
   it("index.html is never cached, hashed assets are, in both static web app configs", () => {
     for (const cfg of [rootConfig, publicConfig]) {
-      const byRoute = Object.fromEntries(cfg.routes.map((r: { route: string; headers?: Record<string, string> }) => [r.route, r.headers?.["Cache-Control"]]));
+      const routes = cfg.routes as Array<{ route: string; headers?: Record<string, string> }>; // KS_NATIVE_DESKTOP_v1 - routes differ in headers
+      const byRoute = Object.fromEntries(routes.map((r) => [r.route, r.headers?.["Cache-Control"]]));
       expect(byRoute["/"]).toBe("no-cache, no-store, must-revalidate");
       expect(byRoute["/index.html"]).toBe("no-cache, no-store, must-revalidate");
       expect(byRoute["/assets/*"]).toBe("public, max-age=31536000, immutable");
