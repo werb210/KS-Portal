@@ -21,7 +21,13 @@ export const FEE_PAYMENTS_REPORT: LibraryEntry = {
   key: FEE_PAYMENTS_KEY, title: "Fee payments", silo: "BF", group: "money", size: "half",
   description: "Broker fees collected by payment link: paid, bank debits processing and still waiting.",
 };
-const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT];
+// KS_HUBSPOT_GAPS_1_PIPELINES - any pipeline's open deals by stage (custom_pipelines). Operations report.
+export const PIPELINES_KEY = "pipelines_by_stage";
+export const PIPELINES_REPORT: LibraryEntry = {
+  key: PIPELINES_KEY, title: "Pipelines by stage", silo: "BF", group: "operations", size: "half",
+  description: "Open deals, amount and weighted amount by stage for Lending or any other pipeline.",
+};
+const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT, PIPELINES_REPORT];
 
 // BF_PORTAL_v819_MOBILE_REPORT - mirrors BF-Server canSee(): Admin sees all, Marketing all but money, others operations.
 export function canSeeReportGroup(role: unknown, group: ReportGroup): boolean {

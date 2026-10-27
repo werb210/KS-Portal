@@ -34,6 +34,7 @@ import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import CustomFieldsPanel from "@/crmFields/CustomFieldsPanel"; // KS_PORTAL_v20_CRM_FIELDS
 import PaymentLinksPanel from "@/payments/PaymentLinksPanel"; // KS_HUBSPOT_GAPS_1_PAYMENTS
 import CallScriptsPanel from "@/callScripts/CallScriptDock"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
+import PipelineMover from "@/pipelines/PipelineMover"; // KS_HUBSPOT_GAPS_1_PIPELINES
 type Props = { application: AnyRecord | null };
 
 function asObject(v: unknown): AnyRecord {
@@ -400,6 +401,7 @@ export default function ApplicationTab({ application }: Props) {
       {legInfo && <LegBanner kind={legInfo.kind} parentId={legInfo.parentId} />}
       {application.id ? <ProductQuestionsPanel applicationId={String(application.id)} /> : null}
       {application.id ? <CustomFieldsPanel object="application" recordId={String(application.id)} /> : null}{/* KS_PORTAL_v20_CRM_FIELDS */}
+      {application.id ? <PipelineMover applicationId={String(application.id)} /> : null}{/* KS_HUBSPOT_GAPS_1_PIPELINES */}
       {application.id ? <PaymentLinksPanel applicationId={String(application.id)} /> : null}{/* KS_HUBSPOT_GAPS_1_PAYMENTS */}
       {application.id ? <CallScriptsPanel applicationId={String(application.id)} /> : null}{/* KS_HUBSPOT_GAPS_1_CALL_SCRIPTS */}
       <div style={styles.headerRow}>

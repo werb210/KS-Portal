@@ -41,6 +41,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "payment_links", plan: "growth", label: "Payment links and bank debit for fees (your own Stripe account)", description: "Send clients a link to pay a fee by card or Canadian pre-authorized debit. Money goes to your own Stripe account; paid fees are marked on the deal and in QuickBooks." },
   // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS - growth and up.
   { key: "call_scripts", plan: "growth", label: "Call scripts (playbooks)", description: "Scripts with talking points and questions beside the dialler and on records; answers go on the timeline and into your custom fields." },
+  // KS_HUBSPOT_GAPS_1_PIPELINES - growth (3 pipelines in all) and pro (unlimited).
+  { key: "custom_pipelines", plan: "growth", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", description: "Add pipelines such as Renewals or Equipment with their own stages, colours and win probability. Lending keeps its built-in stages." },
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
