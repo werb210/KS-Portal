@@ -50,7 +50,7 @@ describe("Single sign-on tab", () => {
     expect(h.get).not.toHaveBeenCalled();
   });
 
-  it("a provider not set up on the server can't be switched on; the redirect address is shown for the one that is", async () => {
+  it("a provider not set up on the server can't be switched on; no redirect address to register is shown (Keystone registers it)", async () => {
     h.get.mockResolvedValueOnce(SSO_BODY);
     wrap(<SsoSettings />);
     const ms = await screen.findByTestId("sso-section-microsoft");
@@ -58,7 +58,8 @@ describe("Single sign-on tab", () => {
     expect(within(ms).getByText(/isn.t set up on this server yet/i)).toBeInTheDocument();
     const g = screen.getByTestId("sso-section-google");
     expect(within(g).getByRole("checkbox")).toBeChecked();
-    expect(within(g).getByText("https://server.test/api/auth/sso/google/callback")).toBeInTheDocument();
+    // KS_PORTAL_M365_ONE_CLICK - nothing for the company to register with Microsoft or Google.
+    expect(within(g).queryByText("https://server.test/api/auth/sso/google/callback")).not.toBeInTheDocument();
   });
 
   it("saves the form, including the domain restriction and the require switch", async () => {
