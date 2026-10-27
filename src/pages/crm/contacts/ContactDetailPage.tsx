@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext, type CSSProperties } from "react";
 import CustomFieldsPanel from "@/crmFields/CustomFieldsPanel"; // KS_PORTAL_v20_CRM_FIELDS
 import PaymentLinksPanel from "@/payments/PaymentLinksPanel"; // KS_HUBSPOT_GAPS_1_PAYMENTS
+import CallScriptsPanel from "@/callScripts/CallScriptDock"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { crmApi, type ContactRow, type Scope } from "@/api/crm";
 import { api } from "@/api";
@@ -140,6 +141,7 @@ export default function ContactDetailPage() {
         <CrmTagEditor backend={crmBackend} entity="contact" id={id} tags={contact.tags} catalogue={tagCatalogue} onSaved={() => setRefreshKey((k) => k + 1)} />{/* BF_PORTAL_v856_CRM_UNIFY */}
         <CustomFieldsPanel object="contact" recordId={id} />{/* KS_PORTAL_v20_CRM_FIELDS */}
         <PaymentLinksPanel contactId={id} />{/* KS_HUBSPOT_GAPS_1_PAYMENTS */}
+        <CallScriptsPanel contactId={id} />{/* KS_HUBSPOT_GAPS_1_CALL_SCRIPTS */}
       </aside>
 
       <main style={{ minWidth: 0 }}>
