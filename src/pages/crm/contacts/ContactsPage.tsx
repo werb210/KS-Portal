@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { LeadScoreBadge, useLeadScores } from "@/components/marketing/LeadScore"; // KS_PORTAL_MARKETING_ADDON
 import { CrmSegmentBar } from "@/components/crm/CrmSegmentBar"; // BF_PORTAL_CRM_SEGMENTS_v1
 import { Link } from "react-router-dom";
 import { api } from "@/api";
@@ -207,6 +208,9 @@ export default function ContactsPage() {
     } finally { setBusyMass(null); }
   }
 
+  // KS_PORTAL_MARKETING_ADDON - lead scores next to each name (Marketing add-on; nothing shown without it).
+  const scoreIds = useMemo(() => rows.map((r) => r.id), [rows]);
+  const leadScores = useLeadScores(scoreIds);
   const tableRows = useMemo(() => rows.map(r => (
     <tr key={r.id} style={trStyle}>
       {isAdmin && (
@@ -216,6 +220,7 @@ export default function ContactsPage() {
       )}
       <td style={tdStyle}>
         <Link to={`/crm/contacts/${r.id}`} style={linkStyle}>{contactDisplayName(r.name, { company: r.company_name, email: r.email })}</Link>
+        {leadScores[r.id] && <> <LeadScoreBadge score={leadScores[r.id]!} /></>}
       </td>
       {!hiddenCols.has("company_name") && <td style={tdStyle}>{r.company_name ?? "—"}</td>}
       {!hiddenCols.has("tags") && (
@@ -238,7 +243,7 @@ export default function ContactsPage() {
       {cf.shown.map((f) => <td key={f.name} style={tdStyle}>{displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) || "—"}</td>)}
       <td style={tdStyle}>{new Date(r.created_at).toLocaleString()}</td>
     </tr>
-  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue, cf.shown]); // BF_PORTAL_v856_CRM_UNIFY
+  )), [isAdmin, rows, selected, hiddenCols, tagCatalogue, cf.shown, leadScores]); // BF_PORTAL_v856_CRM_UNIFY
 
   return (
     <div style={page}>

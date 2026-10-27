@@ -15,6 +15,9 @@ export const FEATURES: FeatureInfo[] = [
   // or API. Lenders use the portal to keep their details and products current and to send you deals.
   { key: "lender_portal", plan: "starter", label: "Lender portal (lenders keep their details and products current and send you deals they can't place)", description: "The lender package goes to each lender by email or API. Lenders sign in to the portal to keep their contact details and products current, and to send you deals they can't place themselves." },
   // KS_PORTAL_v9_PGI - every plan.
+  // KS_PORTAL_MARKETING_ADDON - every plan markets to its own client list; Google Ads and LinkedIn Ads results everywhere.
+  { key: "marketing", plan: "starter", label: "Marketing to your own client list: email and text campaigns, sequences, templates and a website lead form", description: "Email and text campaigns, drip sequences, campaign templates, a lead form for your website and a campaign report, within your plan's monthly limits." },
+  { key: "ads_results", plan: "starter", label: "Google Ads and LinkedIn Ads results, Google Analytics connection", description: "See what your Google Ads and LinkedIn Ads spend and bring in, and connect Google Analytics." },
   { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (20% referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner and you earn 20% of the partner's commission on every bound policy." },
   // KS_PORTAL_v20_CRM_FIELDS - every plan.
   { key: "custom_fields", plan: "starter", label: "Custom fields", description: "Add your own fields to contacts, companies and deals (licence numbers, renewal dates, equipment type), with lists, filters, exports and imports." },
@@ -34,7 +37,10 @@ export const FEATURES: FeatureInfo[] = [
   { key: "referrer_portal", plan: "growth", label: "Referrer portal", description: "Give referral partners their own portal to send you deals and follow their progress." },
   { key: "broker_portal", plan: "growth", label: "Broker portal", description: "Partner brokers sign up, sign your broker agreement, upload client files and agree the commission split with you." },
   { key: "full_reports", plan: "growth", label: "Reports", description: "The Reports page: pipeline, team, money and marketing reports, goals and commission tracking. Starter keeps a basic dashboard." }, // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
-  { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
+  // KS_PORTAL_MARKETING_ADDON - visitor tracking on every plan (history by plan, full with the Marketing add-on); session
+  // replay Growth and up (and with the add-on).
+  { key: "visitor_tracking", plan: "starter", label: "Website visitor tracking (30 days on Starter, 90 days on Growth, 12 months on Pro)", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
+  { key: "session_replay", plan: "growth", label: "Session replay of website visits", description: "Watch a recording of a visitor's time on your website (Microsoft Clarity). Also comes with the Marketing add-on." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   // KS_PORTAL_SETTINGS_PACK_v1_NPS
   // KS_HUBSPOT_GAPS_1_PAYMENTS - growth and up.
@@ -45,7 +51,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "custom_pipelines", plan: "growth", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", description: "Add pipelines such as Renewals or Equipment with their own stages, colours and win probability. Lending keeps its built-in stages." },
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
-  { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
+  // KS_PORTAL_MARKETING_ADDON - Starter and Growth see Google Ads results; the full tools are Pro (or the add-on).
+  { key: "ad_attribution", plan: "pro", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", description: "See which ads and keywords brought in each lead and funded deal, find wasted spend, send your client list to Google, and get a Monday ads email and suggestions. Also comes with the Marketing add-on." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
   // KS_PORTAL_v20_WEBHOOKS - pro.
@@ -101,7 +108,8 @@ export const PLAN_ALLOWANCES: Record<PlanKey, { minutes: number; texts: number; 
 export const STORAGE_BLOCK_GB = 50;
 export const STORAGE_BLOCK_PRICE_TEXT = "$10/month";
 // KS_PORTAL_v6_USAGE - overage prices (never blocked, billed): per extra call minute and per extra text.
-export const OVERAGE_PRICE = { minutes: 0.04, texts: 0.03 } as const;
+// KS_PORTAL_MARKETING_ADDON - each signing over the 4 included; campaign emails over the allowance with the add-on.
+export const OVERAGE_PRICE = { minutes: 0.04, texts: 0.03, signings: 2.5, campaignEmailBlock: 10 } as const;
 
 /** 1536 -> "1.5 KB", 12.3e9 -> "12.3 GB" (decimal units, as storage is sold). */
 export function formatBytes(bytes: number): string {

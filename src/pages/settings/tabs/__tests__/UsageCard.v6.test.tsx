@@ -57,6 +57,6 @@ describe("usage card", () => {
 
   it("works out overage from the allowance when the server leaves it out", () => {
     const p = normalizePlan(planBody({ usage: usage({ overage: undefined, texts: 130 }) }));
-    expect(p?.usage?.overage).toEqual({ minutes: 12, texts: 30 });
+    expect(p?.usage?.overage).toEqual({ minutes: 12, texts: 30, signings: 0, campaign_emails: 0, campaign_email_blocks: 0 }); // KS_PORTAL_MARKETING_ADDON: signings and campaign emails too
   });
 });

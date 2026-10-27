@@ -2,7 +2,7 @@
 // not in the left nav. Two previous attempts filed it in sidebar groups.
 // BF_PORTAL_MARKETING_FUNNEL_LIVE_v1 — Analytics tab renders the live
 // application funnel from GET /api/marketing/funnel (respondOk envelope).
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { brandName, assistantName } from "@/config/brand";
 import { api } from "@/api";
 import BrandedEmailComposer from "@/components/marketing/BrandedEmailComposer"; // BF_PORTAL_BRANDED_EMAIL_COMPOSER_MOUNT_v1
@@ -23,11 +23,16 @@ import SiloContext from "@/context/SiloContext"; // BF_PORTAL_v811_MOBILE_APPS
 import { WEBSITE_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
+// KS_PORTAL_MARKETING_ADDON - the Marketing add-on's tools, and the new campaign report, website kit and lead scoring.
+import { AddonBadge, AddonGate, serverMessage, type MarketingTool } from "@/plans/marketing";
+import CampaignReportPanel from "@/components/marketing/CampaignReportPanel";
+import WebsiteKitPanel from "@/components/marketing/WebsiteKitPanel";
+import LeadScoringPanel from "@/components/marketing/LeadScoringPanel";
 
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
 // data, two different places to look for it. BF now gets the tab too.
-type MarketingTab = "analytics" | "automations" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps"; // BF_PORTAL_v811_MOBILE_APPS - apps
+type MarketingTab = "analytics" | "automations" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps" | "report" | "kit" | "scoring"; // BF_PORTAL_v811_MOBILE_APPS - apps // KS_PORTAL_MARKETING_ADDON - report, kit, scoring
 // BF_PORTAL_GOOGLE_ADS_ANALYTICS_v707
 // BF_PORTAL_ADS_SERVICES_v709 - "Ads" section: one sub-tab per ad service
 // (Google, Microsoft, LinkedIn); every Google report sits under Google.
@@ -41,14 +46,29 @@ const ADS_TABS: Array<[AdsTab, string]> = [
 
 // KS_PORTAL_v3_PLANS - the plan feature behind each tab / Google Ads report (shown with a badge when locked).
 // Referrers is gated inside ReferrersAndBrokers (its Brokers sub-tab stays open on every plan).
-const MARKETING_TAB_FEATURE: Partial<Record<MarketingTab, string>> = { ads: "ad_attribution" };
-const ADS_TAB_FEATURE: Record<AdsTab, string> = {
-  story: "ad_attribution", campaigns: "ad_attribution", negatives: "ad_attribution", audiences: "ad_attribution", health: "ad_attribution",
-  visitors: "visitor_tracking", dropoff: "visitor_tracking", website: "visitor_tracking",
+// KS_PORTAL_MARKETING_ADDON - Google Ads results (Campaigns & Keywords, Website) are on every plan, and so is visitor
+// tracking; the rest of the Google Ads tools are Pro or the Marketing add-on.
+const MARKETING_TAB_FEATURE: Partial<Record<MarketingTab, string>> = {};
+const MARKETING_TAB_TOOL: Partial<Record<MarketingTab, MarketingTool>> = { scoring: "lead_scoring" };
+const ADS_TAB_TOOL: Partial<Record<AdsTab, MarketingTool>> = {
+  story: "google_ads_full", negatives: "google_ads_full", audiences: "google_ads_full", health: "google_ads_full",
 };
+const ADS_TAB_FEATURE: Partial<Record<AdsTab, string>> = { visitors: "visitor_tracking", dropoff: "visitor_tracking" };
+
+/** The plan feature or add-on tool behind a Google Ads sub-tab (nothing for the results every plan sees). */
+function AdsTabGate({ tab, children }: { tab: AdsTab; children: ReactNode }) {
+  const tool = ADS_TAB_TOOL[tab];
+  const feature = ADS_TAB_FEATURE[tab];
+  if (tool) return <AddonGate tool={tool}>{children}</AddonGate>;
+  if (feature) return <FeatureGate feature={feature}>{children}</FeatureGate>;
+  return <>{children}</>;
+}
 
 const MARKETING_TABS: { id: MarketingTab; label: string }[] = [
   { id: "analytics", label: "Analytics" },
+  { id: "report", label: "Campaign report" }, // KS_PORTAL_MARKETING_ADDON
+  { id: "kit", label: "Website kit" }, // KS_PORTAL_MARKETING_ADDON
+  { id: "scoring", label: "Lead scoring" }, // KS_PORTAL_MARKETING_ADDON
   { id: "automations", label: "Automations" },
   { id: "referrers", label: "Referrers" },
   { id: "sequences", label: "Sequences" },
@@ -790,11 +810,16 @@ function SmsComposerPanel() {
   // audience (consent, Canadian mobiles, one text per phone), from the same
   // planner the send uses; the segment list counts contacts, not texts.
   const [exact, setExact] = useState<number | null>(null);
+  const [perSend, setPerSend] = useState<number | null>(null); // KS_PORTAL_MARKETING_ADDON - people per text-to-many send
   const loadExact = useCallback(() => {
     setExact(null);
     const q = tag === "__all__" ? "" : `?tag=${encodeURIComponent(tag)}`;
-    api.get<{ data?: { n?: number }; n?: number }>(`/api/marketing/sms/audience-count${q}`)
-      .then((res) => setExact(Number(res?.data?.n ?? res?.n ?? 0)))
+    api.get<{ data?: { n?: number; limit?: number }; n?: number; limit?: number }>(`/api/marketing/sms/audience-count${q}`)
+      .then((res) => {
+        setExact(Number(res?.data?.n ?? res?.n ?? 0));
+        const lim = Number(res?.data?.limit ?? res?.limit);
+        setPerSend(Number.isFinite(lim) && lim > 0 ? lim : null);
+      })
       .catch(() => setExact(null));
   }, [tag]);
   useEffect(() => { loadExact(); }, [loadExact]);
@@ -818,10 +843,11 @@ function SmsComposerPanel() {
       else if (r?.test) setMsg(r.ok ? "Test sent." : `Test failed${r ? "" : ""}.`);
       else if (r?.queued) { void pollSendJob(String(r.jobId), Number(r.total ?? count), setMsg); }
       else setMsg(`SMS: ${r?.smsSent ?? 0}${r?.failed ? `, failed: ${r.failed}` : ""}.`);
-    } catch {
+    } catch (e) {
       // BF_PORTAL_SMS_SEND_SAFETY_v710 - nothing is sent when this fails (the
       // server queues or refuses); re-read the audience before another try.
-      setMsg("Not sent. The audience may have changed - check the number and send again.");
+      // KS_PORTAL_MARKETING_ADDON - the plan's people-per-send limit explains itself.
+      setMsg(serverMessage(e, "Not sent. The audience may have changed - check the number and send again."));
       loadExact();
     } finally { setBusy(false); }
   };
@@ -871,7 +897,14 @@ function SmsComposerPanel() {
             <input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="+1..." className="block border rounded px-2 py-1 text-sm mt-1" style={{ color: "var(--ui-text)", background: "var(--ui-surface-strong)", borderColor: "var(--ui-border)" }} />
           </label>
           <button type="button" disabled={busy || !body || !testTo} onClick={() => void post(testTo)} className="ui-button ui-button--secondary">Send test</button>
-          <button type="button" disabled={busy || !body || !count || exact === null} onClick={() => { if (window.confirm(`Send this SMS to ${count} people (one text per phone number)? It goes out in 5 minutes and you can cancel until then.`)) void post(); }} className="ui-button ui-button--primary">{busy ? "Queuing..." : exact === null ? "Counting..." : `Send to ${count}`}</button>
+          {perSend !== null && (
+            <p data-testid="sms-per-send-limit" style={{ margin: 0, fontSize: 12, color: count > perSend ? "#b91c1c" : "var(--ui-text-muted)", fontWeight: count > perSend ? 700 : 400 }}>
+              {count > perSend
+                ? `This audience is ${count.toLocaleString()} people. One text can go to at most ${perSend.toLocaleString()} on your plan: choose a smaller audience, or ask an Admin about the Marketing add-on (1,000 per send).`
+                : `Your plan sends one text to up to ${perSend.toLocaleString()} people at a time.`}
+            </p>
+          )}
+          <button type="button" disabled={busy || !body || !count || exact === null || (perSend !== null && count > perSend)} onClick={() => { if (window.confirm(`Send this SMS to ${count} people (one text per phone number)? It goes out in 5 minutes and you can cancel until then.`)) void post(); }} className="ui-button ui-button--primary">{busy ? "Queuing..." : exact === null ? "Counting..." : `Send to ${count}`}</button>
         </div>
         <SendStatus msg={msg} onCancel={(id) => { void cancelSendJob(id).then((ok) => setMsg(ok ? "Canceled - nothing was sent." : "Too late to cancel - already sending.")); }} />
       </div>
@@ -939,7 +972,7 @@ function SequencesPanel() {
   const activate = async (id: string) => {
     setMsg(null);
     try { const r = await api.post<{ data?: { enrolled?: number }; enrolled?: number }>(`/api/marketing/sequences/${id}/activate`, {}); setMsg(`Activated - ${r?.data?.enrolled ?? r?.enrolled ?? 0} contacts enrolled.`); }
-    catch { setMsg("Activate failed."); }
+    catch (e) { setMsg(serverMessage(e, "Activate failed.")); } // KS_PORTAL_MARKETING_ADDON - e.g. the plan's running-sequence limit
     load();
   };
   const pause = async (id: string) => { try { await api.post(`/api/marketing/sequences/${id}/pause`, {}); } catch { /* noop */ } load(); };
@@ -1492,6 +1525,7 @@ const MarketingDashboard = () => {
           >
             {entry.label}
             {MARKETING_TAB_FEATURE[entry.id] && <LockedBadge feature={MARKETING_TAB_FEATURE[entry.id]!} />}
+            {MARKETING_TAB_TOOL[entry.id] && <AddonBadge tool={MARKETING_TAB_TOOL[entry.id]!} />}
           </button>
         ))}
       </div>
@@ -1507,22 +1541,22 @@ const MarketingDashboard = () => {
           <div className="space-y-4">
           <div className="flex flex-wrap gap-2" data-testid="ads-google-tabs">
             {ADS_TABS.map(([id, label]) => (
-              <button key={id} type="button" className={`ui-button ${adsTab === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setAdsTab(id)}>{label}<LockedBadge feature={ADS_TAB_FEATURE[id]} /></button>
+              <button key={id} type="button" className={`ui-button ${adsTab === id ? "ui-button--primary" : "ui-button--secondary"}`} onClick={() => setAdsTab(id)}>{label}{ADS_TAB_FEATURE[id] && <LockedBadge feature={ADS_TAB_FEATURE[id]!} />}{ADS_TAB_TOOL[id] && <AddonBadge tool={ADS_TAB_TOOL[id]!} />}</button>
             ))}
           </div>
-          <FeatureGate key={adsTab} feature={ADS_TAB_FEATURE[adsTab]}>{/* KS_PORTAL_v3_PLANS */}
+          <AdsTabGate key={adsTab} tab={adsTab}>{/* KS_PORTAL_v3_PLANS // KS_PORTAL_MARKETING_ADDON */}
           {adsTab === "story" && <AdsStoryPanel />}
-          {adsTab === "campaigns" && <div className="space-y-4"><GoogleAdsPanel /><MayaSuggestionsPanel /><DiagnosticsPanel only={["ads"]} /><UtmBuilderPanel /></div>}
+          {adsTab === "campaigns" && <div className="space-y-4"><GoogleAdsPanel /><AddonGate tool="google_ads_full" compact><MayaSuggestionsPanel /><DiagnosticsPanel only={["ads"]} /></AddonGate><UtmBuilderPanel /></div>}
           {adsTab === "negatives" && <NegativesPanel />}
           {adsTab === "visitors" && (<div className="space-y-4"><VisitorsPanel /><ClicksPanel /></div>)}
           {adsTab === "dropoff" && (<div className="space-y-4"><DropoffPanel /><AbandonedPanel /></div>)}
           {adsTab === "audiences" && (<div className="space-y-4"><AudiencesNote /><CustomerMatchPanel /><IcpBuilderPanel /></div>)}{/* BF_PORTAL_CUSTOMER_MATCH_LISTS_v711 */}
-          {adsTab === "website" && (<div className="space-y-4"><Ga4Panel /><ClarityPanel /></div>)}
+          {adsTab === "website" && (<div className="space-y-4"><Ga4Panel /><AddonGate tool="session_replay" compact><ClarityPanel /></AddonGate></div>)}
           {adsTab === "health" && (<div className="space-y-4"><GoogleHealthPanel /><AdsConversionStatus /><AdsConversionsPanel /><DiagnosticsPanel only={["queue", "funnel", "failures"]} /></div>)}
-          </FeatureGate>
+          </AdsTabGate>
           </div>
           )}
-          {adsService === "linkedin" && (<FeatureGate feature="ad_attribution"><div className="space-y-4"><LinkedInAdsPanel /><LinkedInSuggestionsPanel /><LinkedInConversionsPanel /><LinkedInAudiencePanel /></div></FeatureGate>)}
+          {adsService === "linkedin" && (<div className="space-y-4"><LinkedInAdsPanel /><AddonGate tool="google_ads_full" compact><LinkedInSuggestionsPanel /><LinkedInConversionsPanel /><LinkedInAudiencePanel /></AddonGate></div>)}
           {adsService === "microsoft" && <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>Microsoft Ads - coming soon.</div>}
         </div>
       )}
@@ -1532,6 +1566,9 @@ const MarketingDashboard = () => {
       {tab === "sms" && <SmsComposerPanel />}
       {tab === "sequences" && <SequencesPanel />}
       {tab === "automations" && hasAutomations && (<><AutomationsBuilder /><AutomationsPanel /></>)}
+      {tab === "report" && <CampaignReportPanel />}{/* KS_PORTAL_MARKETING_ADDON */}
+      {tab === "kit" && <WebsiteKitPanel />}
+      {tab === "scoring" && <AddonGate tool="lead_scoring"><LeadScoringPanel /></AddonGate>}
       {tab === "analytics" && (
         <div className="space-y-4">
           <AnalyticsFunnel />

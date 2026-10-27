@@ -11,6 +11,7 @@ import { trialFeaturesText, trialOfferText, featureLabel, hasFeature, requestUpg
 import { TRIAL_CTA } from "@/plans/FeatureGate";
 import { daysLeftText } from "@/plans/PlanBanners";
 import { PlanBadge, primaryButton, secondaryButton, useIsAdmin } from "@/plans/ui";
+import { AddonRequestButton, ADDON_ADDS, MARKETING_ADDON_PRICE, MARKETING_SEATS, PLAN_MARKETING_LIMITS, SIGNINGS_INCLUDED } from "@/plans/marketing"; // KS_PORTAL_MARKETING_ADDON
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 10px", fontSize: 16, color: "var(--ui-text)" };
@@ -43,8 +44,8 @@ const money = (v: number): string => `$${v.toFixed(2)}`;
 const priceText = (v: number): string => `$${v.toFixed(2)}`;
 
 /** "12 extra minutes at $0.04 = $0.48". */
-export function overageLine(extra: number, unit: "minutes" | "texts"): string {
-  const singular = unit === "minutes" ? "minute" : "text";
+export function overageLine(extra: number, unit: "minutes" | "texts" | "signings"): string {
+  const singular = unit === "minutes" ? "minute" : unit === "texts" ? "text" : "signing";
   const rate = OVERAGE_PRICE[unit];
   return `${extra.toLocaleString()} extra ${extra === 1 ? singular : unit} at ${priceText(rate)} = ${money(Math.round(extra * rate * 100) / 100)}`;
 }
@@ -91,9 +92,13 @@ export function UsageCard({ usage }: { usage: PlanUsage | null }) {
   const a = usage.allowances;
   const count = (v: number) => v.toLocaleString();
   const when = periodLabel(usage.period);
+  const blocks = usage.overage.campaign_email_blocks;
   const extra = [
     usage.overage.minutes > 0 ? overageLine(usage.overage.minutes, "minutes") : "",
     usage.overage.texts > 0 ? overageLine(usage.overage.texts, "texts") : "",
+    // KS_PORTAL_MARKETING_ADDON
+    usage.overage.signings > 0 ? overageLine(usage.overage.signings, "signings") : "",
+    blocks > 0 ? `${usage.overage.campaign_emails.toLocaleString()} extra campaign emails: ${blocks} × ${priceText(OVERAGE_PRICE.campaignEmailBlock)} per 10,000 = ${money(blocks * OVERAGE_PRICE.campaignEmailBlock)}` : "",
   ].filter(Boolean);
   return (
     <section style={card} data-testid="plan-usage">
@@ -102,6 +107,9 @@ export function UsageCard({ usage }: { usage: PlanUsage | null }) {
       <UsageRow id="texts" label="Texts" used={usage.texts} allowance={a.texts} format={count} />
       <UsageRow id="assistant_chats" label="Assistant chats" used={usage.assistant_chats} allowance={a.assistant_chats} format={count} />
       <UsageRow id="storage" label="Document storage" used={usage.storage_bytes} allowance={a.storage_bytes} format={formatBytes} />
+      {/* KS_PORTAL_MARKETING_ADDON - per brokerage: e-signings (4 included) and campaign emails. */}
+      {usage.signings !== null && <UsageRow id="signings" label="E-signings" used={usage.signings} allowance={a.signings} format={count} />}
+      {usage.campaign_emails !== null && <UsageRow id="campaign_emails" label="Campaign emails" used={usage.campaign_emails} allowance={a.campaign_emails} format={count} />}
       {extra.length > 0 && (
         <ul data-testid="plan-usage-overage" style={{ margin: "4px 0 0", paddingLeft: 18, fontSize: 14, lineHeight: 1.7 }}>
           {extra.map((line) => <li key={line}>{line}</li>)}
@@ -110,6 +118,10 @@ export function UsageCard({ usage }: { usage: PlanUsage | null }) {
       <p style={{ ...muted, margin: "8px 0 0" }}>
         Minutes and texts are shared by your whole team. Calls and texts are never cut off: anything over the allowance is
         added to your bill at {priceText(OVERAGE_PRICE.minutes)} a minute and {priceText(OVERAGE_PRICE.texts)} a text.
+        {usage.signings !== null && <>{" "}Signings are never blocked: each one over the {a.signings ?? SIGNINGS_INCLUDED} included is {priceText(OVERAGE_PRICE.signings)} on next month&apos;s bill. A signing is one signature request sent to one signer.</>}
+        {usage.campaign_emails !== null && (usage.marketing_addon
+          ? <>{" "}With the Marketing add-on, extra campaign emails are {priceText(OVERAGE_PRICE.campaignEmailBlock)} per 10,000.{a.bonus_marketing_texts > 0 ? ` Up to ${a.bonus_marketing_texts.toLocaleString()} marketing texts a month do not count against your texts.` : ""}</>
+          : <>{" "}Campaign emails pause at the allowance until the 1st; the Marketing add-on adds 10,000 a month.</>)}
       </p>
     </section>
   );
@@ -162,6 +174,29 @@ function StorageMeter({ state, isAdmin }: { state: PlanState; isAdmin: boolean }
   );
 }
 
+// KS_PORTAL_MARKETING_ADDON - the Marketing add-on: on, on through a trial, or what it would add (and the request).
+function MarketingAddonCard({ state }: { state: PlanState }) {
+  const m = state.marketing!;
+  const status = m.addon.purchased
+    ? "On"
+    : m.addon.active ? "On during your free trial" : "Not added";
+  return (
+    <section style={card} data-testid="plan-marketing-addon">
+      <h3 style={h3}>Marketing add-on: {status}</h3>
+      <p style={{ margin: "0 0 8px", fontSize: 14 }}>
+        ${m.addon.price || MARKETING_ADDON_PRICE} a month for your whole brokerage, on any plan. Every plan can already market
+        to its own client list; the add-on raises the limits and adds the advanced tools, used by Admins and up to{" "}
+        {m.addon.marketing_seats || MARKETING_SEATS} people with the Marketing role.
+      </p>
+      <ul style={{ margin: "0 0 10px", paddingLeft: 18, fontSize: 14, lineHeight: 1.7 }}>
+        {(m.addon.adds.length ? m.addon.adds : ADDON_ADDS).map((line) => <li key={line}>{line}</li>)}
+      </ul>
+      {!m.addon.purchased && <AddonRequestButton />}
+      {m.addon.via === "trial" && <p style={{ ...muted, margin: "8px 0 0" }}>It switches off when the trial ends unless you add it.</p>}
+    </section>
+  );
+}
+
 const isFraudFeature = (key: string) => /^fraud_\d+$/.test(key); // KS_PORTAL_v7_FRAUD
 
 function ComparisonTable({ state }: { state: PlanState }) {
@@ -172,6 +207,7 @@ function ComparisonTable({ state }: { state: PlanState }) {
     </th>
   );
   const chats = (p: PlanKey) => (PLAN_ALLOWANCES[p].chats === null ? "Unlimited" : PLAN_ALLOWANCES[p].chats!.toLocaleString());
+  const mk = (p: PlanKey) => state.marketing?.plan_limits[p] ?? PLAN_MARKETING_LIMITS[p];
   return (
     <section style={card}>
       <h3 style={h3}>Compare plans</h3>
@@ -200,6 +236,12 @@ function ComparisonTable({ state }: { state: PlanState }) {
             <tr><td style={cell}>Call minutes per seat</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{PLAN_ALLOWANCES[p].minutes.toLocaleString()}</td>)}</tr>
             <tr><td style={cell}>Texts per seat</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{PLAN_ALLOWANCES[p].texts.toLocaleString()}</td>)}</tr>
             <tr><td style={cell}>Document storage per seat (shared)</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{`${PLAN_ALLOWANCES[p].storageGb} GB`}</td>)}</tr>
+            {/* KS_PORTAL_MARKETING_ADDON */}
+            <tr><td style={cell}>E-signings per month (per brokerage)</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{SIGNINGS_INCLUDED}</td>)}</tr>
+            <tr><td style={cell}>Campaign emails per month</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{mk(p).campaign_emails.toLocaleString()}</td>)}</tr>
+            <tr><td style={cell}>People per text-to-many send</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{mk(p).text_to_many.toLocaleString()}</td>)}</tr>
+            <tr><td style={cell}>Sequences running at once</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{mk(p).sequences ?? "Unlimited"}</td>)}</tr>
+            <tr><td style={cell}>Visitor history</td>{PLAN_ORDER.map((p) => <td key={p} style={cell}>{mk(p).visitor_history_days === 365 ? "12 months" : `${mk(p).visitor_history_days} days`}</td>)}</tr>
           </tbody>
         </table>
       </div>
@@ -294,9 +336,22 @@ export default function PlanSettings() {
             </li>
             <li>Assistant chats: {a.assistant_chats === null ? "Unlimited" : `${a.assistant_chats.toLocaleString()} per month`}</li>
             {a.storage_gb_per_seat !== null && <li>Document storage: {a.storage_gb_per_seat} GB per seat, shared by the team</li>}
+            {/* KS_PORTAL_MARKETING_ADDON */}
+            {state.signings && <li>E-signings: {state.signings.included} a month for the brokerage, then {priceText(state.signings.overage_price)} each</li>}
+            {state.marketing && (
+              <>
+                <li>Campaign emails: {state.marketing.limits.campaign_emails.toLocaleString()} a month</li>
+                <li>Send one text to many: up to {state.marketing.limits.text_to_many.toLocaleString()} people per send</li>
+                <li>Sequences running at once: {state.marketing.limits.sequences === null ? "Unlimited" : state.marketing.limits.sequences}</li>
+                <li>Visitor history: {state.marketing.limits.visitor_history_days === null ? "Full history" : `${state.marketing.limits.visitor_history_days} days`}</li>
+                <li>Website lead forms: {state.marketing.limits.lead_forms === null ? "Unlimited" : state.marketing.limits.lead_forms}</li>
+              </>
+            )}
           </ul>
         </section>
       )}
+
+      {state.source === "server" && state.marketing && <MarketingAddonCard state={state} />}
 
       {state.source === "server" && <UsageCard usage={state.usage} />}
 
