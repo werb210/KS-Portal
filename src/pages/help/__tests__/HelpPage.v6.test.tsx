@@ -5,6 +5,8 @@ import { renderWithRole } from "@/plans/__tests__/renderWithRole";
 
 const h = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 vi.mock("@/api", () => ({ api: { get: h.get, post: h.post } }));
+// KS_PORTAL_KB_v1 - the Help Center has its own tests (HelpCenter.kb.test.tsx); here only the request form.
+vi.mock("../HelpCenter", () => ({ default: () => null }));
 
 import HelpPage from "../HelpPage";
 
