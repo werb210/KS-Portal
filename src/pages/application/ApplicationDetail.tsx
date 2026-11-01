@@ -19,6 +19,7 @@ import IdVerificationTab from "@/kyc/IdVerificationTab"; // KS_PORTAL_v22_KYC
 import QuotesTab from "@/quotes/QuotesTab"; // KS_PORTAL_v23_QUOTES
 import FileForecastPanel from "@/forecast/FileForecastPanel"; // KS_PORTAL_v23_FORECAST
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
+import BrokerToolsTab, { BROKER_TOOL_TABS } from "@/brokerTools/BrokerToolsTab"; // KS_BROKER_TOOLS
 
 const TABS = [
   { key: "application", label: "Application" },
@@ -33,6 +34,7 @@ const TABS = [
   { key: "id-verification", label: "ID verification" }, // KS_PORTAL_v22_KYC
   { key: "fraud", label: "Fraud check" }, // KS_PORTAL_v7_FRAUD - before lender submission
   { key: "pgi", label: "PGI insurance" }, // KS_PORTAL_v9_PGI - referral to the insurance partner
+  ...BROKER_TOOL_TABS, // KS_BROKER_TOOLS - Funding (conditions) and Deal desk
   // BF_PORTAL_SBA_SIGNING_TAB_v146 - expose signing status and resend.
   { key: "sba-signing", label: "SBA Signing" },
 ] as const;
@@ -88,6 +90,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
     fraud: <FraudTab applicationId={applicationId} />, // KS_PORTAL_v7_FRAUD
     "id-verification": <IdVerificationTab applicationId={applicationId} />, // KS_PORTAL_v22_KYC
     pgi: <PgiTab applicationId={applicationId} />, // KS_PORTAL_v9_PGI
+    funding: <BrokerToolsTab tab="funding" applicationId={applicationId} />, // KS_BROKER_TOOLS
   }[activeTab];
 
   return (

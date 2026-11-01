@@ -28,6 +28,7 @@ const STAGE_MAP: Record<string, (typeof BF_STAGES)[number]> = {
   "Off to Lender": "Off to Lender",
   "Offer": "Offer",
   "Accepted": "Funded",
+  "Funded": "Funded", // KS_BROKER_TOOLS_1_FUNDING_CONDITIONS - the stage after Accepted
   "Rejected": "Rejected",
 };
 
