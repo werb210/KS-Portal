@@ -17,6 +17,7 @@ import FraudTab from "@/fraud/FraudTab"; // KS_PORTAL_v7_FRAUD
 import PgiTab from "@/pgi/PgiTab"; // KS_PORTAL_v9_PGI
 import IdVerificationTab from "@/kyc/IdVerificationTab"; // KS_PORTAL_v22_KYC
 import QuotesTab from "@/quotes/QuotesTab"; // KS_PORTAL_v23_QUOTES
+import FileForecastPanel from "@/forecast/FileForecastPanel"; // KS_PORTAL_v23_FORECAST
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
 
 const TABS = [
@@ -148,6 +149,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
       </div>
 
       <ApplicationOriginPanel applicationId={applicationId} />{/* BF_PORTAL_v828_APPLICATION_ORIGIN - lender, broker or referrer */}
+      {!isLiveDemo() ? <FileForecastPanel applicationId={applicationId} /> : null}{/* KS_PORTAL_v23_FORECAST - expected close date and category */}
 
       <nav
         style={{
