@@ -26,7 +26,7 @@ describe("funding gate", () => {
     patch.mockRejectedValueOnce(conflict(false));
     const ui = { alert: vi.fn(), prompt: vi.fn() };
     await expect(patchStatusWithFundingGate("a1", { status: "Funded" }, ui)).resolves.toBe(false);
-    expect(ui.alert.mock.calls[0][0]).toContain("Void cheque (Client, Open)");
+    expect(ui.alert.mock.calls[0]?.[0]).toContain("Void cheque (Client, Open)");
     expect(ui.prompt).not.toHaveBeenCalled();
   });
 
@@ -34,7 +34,7 @@ describe("funding gate", () => {
     patch.mockRejectedValueOnce(conflict(true)).mockResolvedValueOnce({ ok: true });
     const ui = { alert: vi.fn(), prompt: vi.fn().mockReturnValue(" Lender confirmed ") };
     await expect(patchStatusWithFundingGate("a1", { status: "Funded" }, ui)).resolves.toBe(true);
-    expect(patch.mock.calls[1][1]).toEqual({ status: "Funded", override_reason: "Lender confirmed" });
+    expect(patch.mock.calls[1]?.[1]).toEqual({ status: "Funded", override_reason: "Lender confirmed" });
   });
 
   it("stops when the Admin cancels or gives no reason", async () => {
