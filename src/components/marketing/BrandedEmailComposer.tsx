@@ -7,6 +7,8 @@ import { describeSchedule, localInputMax, localInputMin, toIsoInstant } from "./
 // BF_PORTAL_SCHEDULED_SENDS_v23
 import { formatSendAt, pendingSends, sendJobCancelPath, sendJobsPath, type ScheduledSend } from "./scheduledSends";
 import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
+import CampaignSendOptions, { CampaignEmailAllowance, DEFAULT_SEND_OPTIONS, sendOptionsPayload, type SendOptions } from "./CampaignSendOptions"; // KS_PORTAL_MARKETING_ADDON
+import { serverMessage } from "@/plans/marketing"; // KS_PORTAL_MARKETING_ADDON
 
 // BF_PORTAL_EMAIL_PREVIEW_WIDTH_v1 - render at the email's desktop width and
 // scale the canvas, rather than triggering its mobile breakpoint in the pane.
@@ -268,6 +270,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
 
   // BF_PORTAL_SEND_LATER_v21 - empty means send now, preserving the old behaviour.
   const [sendAtLocal, setSendAtLocal] = useState("");
+  const [sendOptions, setSendOptions] = useState<SendOptions>(DEFAULT_SEND_OPTIONS); // KS_PORTAL_MARKETING_ADDON
   // BF_PORTAL_SCHEDULED_SENDS_v23 - staff can now inspect and cancel queued sends.
   const [scheduled, setScheduled] = useState<ScheduledSend[]>([]);
   const [scheduledBusy, setScheduledBusy] = useState(false);
@@ -318,6 +321,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
         // BF_PORTAL_SEND_LATER_v21 - a test send is always immediate.
         const iso = toIsoInstant(sendAtLocal);
         if (iso) payload.sendAt = iso;
+        Object.assign(payload, sendOptionsPayload(sendOptions)); // KS_PORTAL_MARKETING_ADDON
       }
       const res = await api.post<{ data?: Record<string, unknown> } & Record<string, unknown>>(`${apiBase}/email/send-template`, payload);
       const r = (res?.data ?? res) as { test?: boolean; ok?: boolean; sent?: number; failed?: number; configured?: boolean; error?: string; queued?: boolean; jobId?: string; total?: number; scheduled?: boolean };
@@ -338,7 +342,8 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
     } catch (e) {
       const status = typeof e === "object" && e !== null && "status" in e ? String(e.status) : "";
       const error = e instanceof Error ? e.message : String(e);
-      setMsg(`Send failed${status ? ` (${status})` : ""}: ${error}`);
+      // KS_PORTAL_MARKETING_ADDON - the server's plain-English reason (campaign email allowance, add-on tools) first.
+      setMsg(serverMessage(e, `Send failed${status ? ` (${status})` : ""}: ${error}`));
     }
     finally { setBusy(false); }
   };
@@ -474,6 +479,8 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
 
       <p className="mt-2" style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>Merge fields: {"{{first_name}}"}, {"{{name}}"}, {"{{company}}"}, {"{{email}}"}. Logo, colours and footer are fixed.</p>
 
+      <CampaignSendOptions value={sendOptions} onChange={setSendOptions} subjectA={subject} inputStyle={inputStyle} labelStyle={labelStyle} />
+      <CampaignEmailAllowance audience={count} />
       <div className="flex flex-wrap gap-2 items-end mt-2">
         <button type="button" disabled={saving} onClick={() => void save()} className="ui-button ui-button--secondary">{saving ? "Saving..." : "Save draft"}</button>
         <input value={libName} onChange={(e) => setLibName(e.target.value)} placeholder="Template name" className="block border rounded px-2 py-1 text-sm" style={inputStyle} />

@@ -7,6 +7,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { api } from "@/api";
 import { FEATURES, featureInfo, isPlanKey, planRank, type PlanKey } from "@/plans/catalogue";
+import { normalizeMarketing, type MarketingState } from "@/plans/marketingData"; // KS_PORTAL_MARKETING_ADDON
 
 export type TrialStatus = "available" | "active" | "used" | "not_offered";
 
@@ -35,6 +36,11 @@ export type PlanState = {
   /** KS_PORTAL_BANK_CONNECT_ADDON - add-ons Keystone operations switched on for this licensee (only true ones).
    *  Not plan features: an add-on that is off is never shown, locked or offered. Empty in the fallback. */
   addons: Record<string, true>;
+  /** KS_PORTAL_MARKETING_ADDON - the Marketing add-on and marketing limits; null when the server does not send them
+   *  (then no marketing tool is locked). */
+  marketing: MarketingState | null;
+  /** KS_PORTAL_MARKETING_ADDON - e-signings included a month (per brokerage) and the price of each one over. */
+  signings: { included: number; overage_price: number } | null;
 };
 
 export type PlanUsage = {
@@ -44,8 +50,17 @@ export type PlanUsage = {
   assistant_chats: number;
   storage_bytes: number;
   /** Pooled totals for the period; null = unlimited (or not reported). */
-  allowances: { minutes: number | null; texts: number | null; assistant_chats: number | null; storage_bytes: number | null };
-  overage: { minutes: number; texts: number };
+  allowances: {
+    minutes: number | null; texts: number | null; assistant_chats: number | null; storage_bytes: number | null;
+    /** KS_PORTAL_MARKETING_ADDON - null when not reported. */
+    campaign_emails: number | null; signings: number | null; bonus_marketing_texts: number;
+  };
+  overage: { minutes: number; texts: number; signings: number; campaign_emails: number; campaign_email_blocks: number };
+  /** KS_PORTAL_MARKETING_ADDON - null when the server does not report them (the rows are hidden). */
+  campaign_emails: number | null;
+  marketing_texts: number;
+  signings: number | null;
+  marketing_addon: boolean;
 };
 
 export function fallbackPlan(): PlanState {
@@ -61,6 +76,8 @@ export function fallbackPlan(): PlanState {
     storage: null,
     usage: null,
     addons: {},
+    marketing: null,
+    signings: null,
   };
 }
 
@@ -112,6 +129,12 @@ export function normalizePlan(raw: unknown): PlanState | null {
     storage: normalizeStorage(r.storage),
     usage: normalizeUsage(r.usage),
     addons: normalizeAddons(r.addons),
+    marketing: normalizeMarketing(r.marketing, plan),
+    signings: (() => {
+      const g = obj(r.signings);
+      const included = num(g.included);
+      return included === null ? null : { included, overage_price: num(g.overage_price) ?? 2.5 };
+    })(),
   };
 }
 
@@ -136,8 +159,13 @@ export function normalizeUsage(raw: unknown): PlanUsage | null {
   const o = obj(u.overage);
   const nn = (v: number | null) => Math.max(0, v ?? 0);
   const allowance = (v: unknown) => { const x = num(v); return x === null || x < 0 ? null : x; };
-  const al = { minutes: allowance(a.minutes), texts: allowance(a.texts), assistant_chats: allowance(a.assistant_chats), storage_bytes: allowance(a.storage_bytes) };
+  const al = {
+    minutes: allowance(a.minutes), texts: allowance(a.texts), assistant_chats: allowance(a.assistant_chats), storage_bytes: allowance(a.storage_bytes),
+    campaign_emails: allowance(a.campaign_emails), signings: allowance(a.signings), bonus_marketing_texts: Math.max(0, num(a.bonus_marketing_texts) ?? 0),
+  };
   const over = (used: number, server: number | null, cap: number | null) => Math.max(0, server ?? (cap === null ? 0 : used - cap));
+  const signings = num(u.signings);
+  const campaign = num(u.campaign_emails);
   return {
     period: str(u.period) ?? "",
     minutes: nn(minutes),
@@ -145,7 +173,18 @@ export function normalizeUsage(raw: unknown): PlanUsage | null {
     assistant_chats: nn(chats),
     storage_bytes: nn(storage),
     allowances: al,
-    overage: { minutes: over(nn(minutes), num(o.minutes), al.minutes), texts: over(nn(texts), num(o.texts), al.texts) },
+    overage: {
+      minutes: over(nn(minutes), num(o.minutes), al.minutes),
+      texts: over(nn(texts), num(o.texts), al.texts),
+      signings: signings === null ? 0 : over(signings, num(o.signings), al.signings),
+      // Campaign emails are only billed with the add-on: the server says how many went over.
+      campaign_emails: Math.max(0, num(o.campaign_emails) ?? 0),
+      campaign_email_blocks: Math.max(0, num(o.campaign_email_blocks) ?? 0),
+    },
+    campaign_emails: campaign === null ? null : Math.max(0, campaign),
+    marketing_texts: Math.max(0, num(u.marketing_texts) ?? 0),
+    signings: signings === null ? null : Math.max(0, signings),
+    marketing_addon: u.marketing_addon === true,
   };
 }
 

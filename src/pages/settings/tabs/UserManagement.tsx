@@ -8,6 +8,7 @@ import Table from "@/components/ui/Table";
 import { api } from "@/api";
 import { useSettingsStore, type AdminUser, type AdminUserRole } from "@/state/settings.store";
 import { getErrorMessage } from "@/utils/errors";
+import { usePlan } from "@/plans/planStore"; // KS_PORTAL_MARKETING_ADDON
 import UserDetailsFields from "../components/UserDetailsFields";
 
 const UserManagement = () => {
@@ -219,6 +220,9 @@ const UserManagement = () => {
     }
   };
 
+  const planState = usePlan();
+  const marketingAddonOn = planState.marketing?.addon.active === true;
+  const marketingSeats = planState.marketing?.addon.marketing_seats ?? 3;
   return (
     <section className="settings-panel" aria-label="User management">
       <header>
@@ -226,6 +230,13 @@ const UserManagement = () => {
         <p>
           Add users, set roles, and manage access. Admins add a user, and the user logs in via OTP to finish their
           profile.
+        </p>
+        {/* KS_PORTAL_MARKETING_ADDON */}
+        <p data-testid="marketing-role-note">
+          Marketing users are normal paid seats switched to the Marketing role.
+          {marketingAddonOn
+            ? ` With the Marketing add-on, up to ${marketingSeats} people can have the Marketing role (Admins are not counted); they and the Admins use the add-on's advanced tools.`
+            : " They use the marketing tools your plan includes."}
         </p>
       </header>
 
