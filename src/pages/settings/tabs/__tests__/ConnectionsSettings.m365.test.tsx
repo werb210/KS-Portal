@@ -136,7 +136,9 @@ describe("Settings > Connections", () => {
     wrap(<ConnectionsSettings />);
     const g = await screen.findByTestId("connections-google");
     expect(within(g).getByTestId("google-headline")).toHaveTextContent("2 people are connected to prairie.example.");
-    expect(within(g).getByText(/does not read the inbox yet/)).toBeInTheDocument();
+    // KS_PORTAL_GMAIL_INBOX - until Google's security review (CASA) is done.
+    expect(within(g).getByTestId("gmail-pending")).toHaveTextContent("Gmail inbox reading is pending Google's security review.");
+    expect(within(g).getByTestId("gmail-reading")).toHaveTextContent("pending Google's security review");
   });
 
   it("is an Admin-only tab", () => {

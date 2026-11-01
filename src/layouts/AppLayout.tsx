@@ -25,6 +25,7 @@ import UpdatePromptBanner from "@/components/UpdatePromptBanner";
 import { buildStampLabel } from "@/lib/buildInfo";
 // KS_PORTAL_v3_PLANS - plan/trial store, the trial and storage bars, and the 402 upsell dialog.
 import { usePlanBootstrap } from "@/plans/planStore";
+import { can, usePermissions, usePermissionsBootstrap, type Area } from "@/roles/permissionStore"; // KS_PORTAL_CUSTOM_ROLES
 import PlanBanners from "@/plans/PlanBanners";
 import UpsellHost from "@/plans/UpsellHost";
 import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v5_NO_REPORTS_ON_STARTER
@@ -34,6 +35,19 @@ import StrongSignInGate from "@/settingsPack/StrongSignInGate"; // KS_PORTAL_SET
 
 
 const TOPBAR_HEIGHT = 68;
+
+// KS_PORTAL_CUSTOM_ROLES - the permission area behind each nav section (by label, as the role filter below is).
+const NAV_AREA: Record<string, Area> = {
+  pipeline: "applications",
+  crm: "contacts",
+  communications: "communications",
+  marketing: "marketing",
+  outreach: "marketing",
+  lenders: "lenders",
+  lender: "lenders",
+  "pgi referrals": "applications",
+  reports: "reports",
+};
 
 type NavItem = { label: string; path: string; roles: string[]; capability?: string };
 
@@ -98,6 +112,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const { user } = useAuth();
   usePushRegistration(Boolean(user) && !isLiveDemo()); // KS_PORTAL_v11_LIVE_DEMO - no push in the demo
   usePlanBootstrap(Boolean(user)); // KS_PORTAL_v3_PLANS
+  usePermissionsBootstrap(Boolean(user) && !isLiveDemo()); // KS_PORTAL_CUSTOM_ROLES
+  const perms = usePermissions(); // KS_PORTAL_CUSTOM_ROLES
   const { silo } = useSilo();
   const role = (user as { role?: string } | null)?.role ?? "";
   const capabilities = (((user as { capabilities?: string[] } | null)?.capabilities) ?? []) as string[];
@@ -125,6 +141,9 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   };
 
   const navItems = (SILO_NAV[activeSilo] ?? BF_NAV).filter((item) => {
+    // KS_PORTAL_CUSTOM_ROLES - a section the person's role cannot view is not shown (the server refuses it anyway).
+    const area = NAV_AREA[item.label.toLowerCase()];
+    if (area && !can(area, "view", perms)) return false;
     if (activeSilo === "BI" && capabilities.length > 0) {
       if (item.label === "Dashboard") return capabilities.length > 0;
       if (item.label === "CRM") return hasCap("crm:read");

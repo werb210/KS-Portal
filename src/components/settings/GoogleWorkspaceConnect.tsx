@@ -2,9 +2,12 @@
 // The server runs the OAuth flow (authorization code + PKCE, offline access) and keeps the tokens encrypted;
 // this card starts it, shows the connected address, and disconnects (the server revokes the grant at Google).
 // When Google is not set up on the server the button is disabled with a short explanation; nothing else changes.
+import { GMAIL_READ_PENDING } from "@/gmail/gmailApi"; // KS_PORTAL_GMAIL_INBOX
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import { disconnectGoogle, fetchGoogleStatus, showsGoogle, showsMicrosoft, startGoogleConnect, useWorkspaceMode, type GoogleStatus } from "@/lib/workspace";
+
+const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 
 // Dark text on light tints: at least 7:1 on both portal themes' card backgrounds.
 const note: CSSProperties = { fontSize: 13, color: "var(--ui-text-muted)", margin: "6px 0 0" };
@@ -106,6 +109,14 @@ export default function GoogleWorkspaceConnect() {
       )}
       {configured && !connected && !needsReconnect && (
         <p style={note}>Send email from Gmail and use Google Calendar, Google Tasks and Google Drive from the portal.</p>
+      )}
+      {/* KS_PORTAL_GMAIL_INBOX - inbox reading: pending Google's review, or one more approval to allow it. */}
+      {connected && !status?.gmailReadEnabled && <p style={note} data-testid="gmail-read-pending">{GMAIL_READ_PENDING}</p>}
+      {connected && status?.gmailReadEnabled && !status.scopes.includes(GMAIL_READONLY_SCOPE) && (
+        <div style={{ ...note, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }} data-testid="gmail-read-allow">
+          <span>Let Keystone read your inbox so client email and documents reach the CRM.</span>
+          <Button type="button" variant="secondary" onClick={() => void connect()} disabled={busy}>Allow inbox reading</Button>
+        </div>
       )}
       {needsReconnect && (
         <div role="alert" style={warnBox} data-testid="google-reconnect">Google stopped accepting this connection (the access was removed or expired). Connect again to keep using Gmail and Google Calendar.</div>

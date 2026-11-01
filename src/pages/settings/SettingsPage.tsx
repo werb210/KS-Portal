@@ -14,7 +14,8 @@ import MayaTuning from "@/features/ai/MayaTuning";
 import SettingsSectionLayout from "./components/SettingsSectionLayout";
 import ProfileSettings from "./tabs/ProfileSettings";
 import RuntimeSettings from "./tabs/RuntimeSettings";
-import UserManagement from "./tabs/UserManagement";
+import UsersAndRoles from "@/roles/UsersAndRoles"; // KS_PORTAL_CUSTOM_ROLES - people and roles
+import { can, usePermissions } from "@/roles/permissionStore"; // KS_PORTAL_CUSTOM_ROLES
 import PhoneLines from "./tabs/PhoneLines"; // BF_PORTAL_PHONE_LINES_v689
 import SettingsOverview from "./tabs/SettingsOverview";
 import TemplatesSettings from "./tabs/TemplatesSettings"; // v694
@@ -61,7 +62,12 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { silo } = useSilo();
-  const isAdmin = user?.role === "Admin";
+  // KS_PORTAL_CUSTOM_ROLES - an Admin on a custom role (built from Admin) sees only the admin sections the role allows.
+  const perms = usePermissions();
+  const isAdminRole = user?.role === "Admin";
+  const isAdmin = isAdminRole && can("settings", "view", perms);
+  const canUsers = isAdminRole && can("users", "view", perms);
+  const canBilling = can("billing", "view", perms);
   const isStaff = user?.role === "Staff"; // BF_PORTAL_BLOCK_v526
   const isBI = String(silo ?? "").toUpperCase() === "BI";
   const planState = usePlan(); // KS_PORTAL_PLAN_FIXES
@@ -73,10 +79,10 @@ const SettingsPage = () => {
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       // KS_PORTAL_M365_ONE_CLICK - Microsoft 365 (one click for the company) and Google Workspace status (Admins only).
       { id: "connections", label: "Connections", visible: isAdmin && !isBI, content: <ConnectionsSettings /> },
-      { id: "users", label: "User Management", visible: isAdmin && !isBI, content: <UserManagement /> },
+      { id: "users", label: "Users & roles", visible: canUsers && !isBI, content: <UsersAndRoles /> }, // KS_PORTAL_CUSTOM_ROLES
       // KS_PORTAL_v20 - custom fields (every plan), teams and record visibility (growth+), webhooks and Zapier (pro). Admins only.
       { id: "properties", label: "Properties", visible: isAdmin && !isBI, content: <PropertiesSettings /> },
-      { id: "teams", label: "Teams", visible: isAdmin && !isBI, content: <TeamsSettings /> },
+      { id: "teams", label: "Teams", visible: canUsers && !isBI, content: <TeamsSettings /> },
       { id: "webhooks", label: "Webhooks", visible: isAdmin && !isBI, content: <WebhooksSettings /> },
       // KS_HUBSPOT_GAPS_1 - HubSpot-parity gaps.
       { id: "payments", label: "Payments", visible: isAdmin && !isBI, content: <PaymentsSettings /> }, // Stripe Connect (growth+)
@@ -105,7 +111,7 @@ const SettingsPage = () => {
       { id: "collateral", label: "Collateral", visible: !isBI, content: <CollateralSettings /> }, // v694
       // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
       { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
-      { id: "plan", label: "Plan", visible: true, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS
+      { id: "plan", label: "Plan", visible: canBilling, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS // KS_PORTAL_CUSTOM_ROLES
       // KS_PORTAL_BETA_v1 - beta features the brokerage can try (join, leave, feedback). Admins only.
       { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
       { id: "retention", label: "Retention & legal holds", visible: isAdmin, content: <RetentionSettings /> }, // KS_PORTAL_v14_RETENTION
@@ -117,7 +123,7 @@ const SettingsPage = () => {
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
-    [isAdmin, isStaff, isBI, hasTemplates]
+    [isAdmin, isStaff, isBI, hasTemplates, canUsers, canBilling]
   );
 
   const safeTabs = Array.isArray(tabs) ? tabs : [];

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/api";
 import { crmApi, type CompanyRow } from "@/api/crm";
 import { canDelete } from "@/auth/canDelete";
+import { useCan } from "@/roles/permissionStore"; // KS_PORTAL_CUSTOM_ROLES
 import { useSilo } from "@/hooks/useSilo";
 import { useAuth } from "@/hooks/useAuth";
 import CreateCompanyModal from "./CreateCompanyModal";
@@ -22,7 +23,8 @@ type SortCol = "name" | "industry" | "owner_name" | "created_at" | `cf_${string}
 export default function CompaniesPage() {
   const { silo } = useSilo();
   const { user } = useAuth();
-  const showDelete = canDelete(user?.role as any);
+  const roleCan = { create: useCan("companies", "create"), del: useCan("companies", "delete"), exp: useCan("companies", "export") }; // KS_PORTAL_CUSTOM_ROLES
+  const showDelete = canDelete(user?.role as any) && roleCan.del;
   const isAdmin = user?.role === "Admin";
   const [rows, setRows] = useState<CompanyRow[]>([]);
   const [q, setQ] = useState("");
@@ -191,9 +193,9 @@ export default function CompaniesPage() {
           <option value="">All owners</option>
           {owners.map((o) => (<option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>))}
         </select>
-        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-companies.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>
+        {roleCan.exp && <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-companies.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>}
         <ColumnsMenu options={[{ key: "industry", label: "Industry" }, { key: "tags", label: "Tags" }, { key: "owner_name", label: "Owner" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
-        <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>
+        {roleCan.create && <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>}
         <button
           onClick={() => setCreateOpen(true)}
           style={{ background: "var(--accent)", color: "white", padding: "8px 14px", borderRadius: 8, fontWeight: 600, border: 0 }}

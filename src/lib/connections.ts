@@ -40,6 +40,9 @@ export type GoogleConnection = {
   first_connected_at: string | null;
   permissions: Array<{ name: string; label: string }>;
   gmail_reading: boolean;
+  /** KS_PORTAL_GMAIL_INBOX - plain words: pending Google's security review, or who still has to reconnect. */
+  gmail_reading_note?: string;
+  gmail_reading_reconnect?: number;
   last_sync_at: string | null;
 };
 
