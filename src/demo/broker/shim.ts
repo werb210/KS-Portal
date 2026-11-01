@@ -455,6 +455,8 @@ export function createShim(opts: ShimOptions) {
     ["GET", /^\/api\/payments\/links$/, () => ok({ ok: true, connected: false, problem: "Online payments are off in the demo.", links: [] })],
     ["GET", /^\/api\/call-scripts$/, () => ok({ ok: true, scripts: [], question_types: [], custom_fields: { contact: [], application: [] } })],
     ["GET", /^\/api\/call-scripts\/runs$/, () => ok({ ok: true, runs: [] })],
+    // KS_PORTAL_LENDER_API - no lender is connected by API in the demo; packages go by email.
+    ["GET", new RegExp(`^/api/lender-connections/applications/${ID}$`), () => ok({ ok: true, in_plan: true, buckets: {}, lenders: [] })],
 
     // fraud
     ["GET", new RegExp(`^/api/fraud/applications/${ID}$`), (_r, m) => ok(fraudOverview(m[1]!))],

@@ -57,6 +57,8 @@ export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_v23_QUOTES / KS_PORTAL_v23_FORECAST - growth and up.
   { key: "quotes", plan: "growth", label: "Quotes: compare lender offers for the client, branded PDF and acceptance in the client app", description: "Turn the lender offers on a file into one branded quote with payments, fees and total cost of borrowing; the client accepts in the client app." },
   { key: "forecasting", plan: "growth", label: "Revenue forecast: weighted pipeline, commit and best case per rep and team, against goals", description: "Commission forecast per person and team by month or quarter, from each file's stage and expected close date, next to everyone's goals." },
+  // KS_PORTAL_LENDER_API - growth and up.
+  { key: "lender_api", plan: "growth", label: "Lender API connections", description: "Send the lender package through a lender's broker API and pull status, offers, conditions and document requests back into the file automatically. Email stays the fallback." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   // KS_PORTAL_MARKETING_ADDON - Starter and Growth see Google Ads results; the full tools are Pro (or the add-on).
   { key: "ad_attribution", plan: "pro", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", description: "See which ads and keywords brought in each lead and funded deal, find wasted spend, send your client list to Google, and get a Monday ads email and suggestions. Also comes with the Marketing add-on." },
