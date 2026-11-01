@@ -55,6 +55,7 @@ const BF_NAV: NavItem[] = [
   { label: "Dashboard",      path: "/portal",         roles: ["Admin", "Staff", "Ops"] },
   { label: "Pipeline",       path: "/pipeline",        roles: ["Admin", "Staff", "Ops"] },
   { label: "CRM",            path: "/crm/contacts",    roles: ["Admin", "Staff"] },
+  { label: "Active Contracts", path: "/crm/active-contracts", roles: ["Admin", "Staff"] }, // KS_PORTAL_ACTIVE_CONTRACTS
   { label: "Communications", path: "/communications",  roles: ["Admin", "Staff"] },
   { label: "Calendar",       path: "/calendar",        roles: ["Admin", "Staff", "Ops"] },
   { label: "Marketing",      path: "/marketing",       roles: ["Admin"] },
@@ -135,7 +136,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const canSee = (item: NavItem) => {
     const label = item.label.toLowerCase();
     if (isAdmin) return true;
-    if (isMarketing) return label !== "lenders" && label !== "get help"; // KS_PORTAL_v6_SUPPORT
+    if (isMarketing) return label !== "lenders" && label !== "get help" && label !== "active contracts"; // KS_PORTAL_v6_SUPPORT + KS_PORTAL_ACTIVE_CONTRACTS
     if (isStaff) return label !== "marketing";
     return false;
   };
@@ -190,6 +191,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
         >
           {item.label}
           {item.path === "/reports" && <LockedBadge feature="full_reports" />}
+          {item.path === "/crm/active-contracts" && <LockedBadge feature="active_contracts" />}{/* KS_PORTAL_ACTIVE_CONTRACTS */}
           {item.path === "/communications" && messagesUnread > 0 && (
             <span style={{ marginLeft: 8, background: "#ef4444", color: "#fff", borderRadius: 999, fontSize: 11, fontWeight: 700, padding: "1px 7px", minWidth: 18, display: "inline-block", textAlign: "center" }}>
               {messagesUnread}

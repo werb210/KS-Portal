@@ -27,7 +27,13 @@ export const PIPELINES_REPORT: LibraryEntry = {
   key: PIPELINES_KEY, title: "Pipelines by stage", silo: "BF", group: "operations", size: "half",
   description: "Open deals, amount and weighted amount by stage for Lending or any other pipeline.",
 };
-const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT, PIPELINES_REPORT];
+// KS_PORTAL_ACTIVE_CONTRACTS - Admin portfolio reporting for Active Contracts (money group: Admin only).
+export const ACTIVE_CONTRACTS_KEY = "active_contracts_portfolio";
+export const ACTIVE_CONTRACTS_REPORT: LibraryEntry = {
+  key: ACTIVE_CONTRACTS_KEY, title: "Active contracts portfolio", silo: "BF", group: "money", size: "full",
+  description: "Active contracts, outstanding, renewals due, conversion, repeat volume, revenue by lender / product, expected vs received.",
+};
+const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT, PIPELINES_REPORT, ACTIVE_CONTRACTS_REPORT];
 
 // BF_PORTAL_v819_MOBILE_REPORT - mirrors BF-Server canSee(): Admin sees all, Marketing all but money, others operations.
 export function canSeeReportGroup(role: unknown, group: ReportGroup): boolean {

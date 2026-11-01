@@ -16,6 +16,7 @@ import { EntityEditModal } from "@/components/EntityEditModal";
 import ContactJourney from "@/components/crm/ContactJourney"; // BF_PORTAL_VISITOR_JOURNEY_v1
 import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 import ContactRecordTabs from "@/components/crm/ContactRecordTabs"; // BF_PORTAL_CONTACT_RECORD_TABS_v272
+import ActiveContractsTab from "@/features/activeContracts/ActiveContractsTab"; // KS_PORTAL_ACTIVE_CONTRACTS (FeatureGate is already imported)
 import { ContactDocuments } from "@/components/crm/ContactDocuments"; // BF_PORTAL_CONTACT_DOCUMENTS_v1
 import { crmUnified, useBfCrmBackend } from "@/components/crm/unified/crmUnifiedApi"; // BF_PORTAL_v856_CRM_UNIFY
 import { CrmContactApplications, contactRoleBadge } from "@/components/crm/unified/CrmContactPanel"; // BF_PORTAL_v856_CRM_UNIFY
@@ -169,6 +170,7 @@ export default function ContactDetailPage() {
               <ContactDocuments contactId={id} refreshKey={refreshKey} /> {/* BF_PORTAL_CONTACT_DOCUMENTS_v1 */}
             </>
           }
+          contracts={<FeatureGate feature="active_contracts"><ActiveContractsTab contactId={id} /></FeatureGate>} // KS_PORTAL_ACTIVE_CONTRACTS - Growth and Pro
         />
       </main>
 
