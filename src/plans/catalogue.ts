@@ -52,6 +52,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   // KS_PORTAL_v22_KYC - growth and up; some checks included each month, the rest billed per check.
   { key: "id_verification", plan: "growth", label: "ID and selfie verification of applicants and guarantors (some checks included each month)", description: "Applicants and guarantors verify with a photo of their government ID and a selfie in the client app; results land on the file and feed the fraud checks." },
+  // KS_PORTAL_v23_QUOTES - growth and up.
+  { key: "quotes", plan: "growth", label: "Quotes: compare lender offers for the client, branded PDF and acceptance in the client app", description: "Turn the lender offers on a file into one branded quote with payments, fees and total cost of borrowing; the client accepts in the client app." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   // KS_PORTAL_MARKETING_ADDON - Starter and Growth see Google Ads results; the full tools are Pro (or the add-on).
   { key: "ad_attribution", plan: "pro", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", description: "See which ads and keywords brought in each lead and funded deal, find wasted spend, send your client list to Google, and get a Monday ads email and suggestions. Also comes with the Marketing add-on." },
