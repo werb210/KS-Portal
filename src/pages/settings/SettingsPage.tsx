@@ -13,15 +13,12 @@ import KnowledgeManager from "@/features/ai/KnowledgeManager";
 import MayaTuning from "@/features/ai/MayaTuning";
 import SettingsSectionLayout from "./components/SettingsSectionLayout";
 import ProfileSettings from "./tabs/ProfileSettings";
+import ContentSettings, { isContentSection } from "./tabs/ContentSettings"; // BF_PORTAL_v864_CONTENT_TAB
 import RuntimeSettings from "./tabs/RuntimeSettings";
 import UsersAndRoles from "@/roles/UsersAndRoles"; // KS_PORTAL_CUSTOM_ROLES - people and roles
 import { can, usePermissions } from "@/roles/permissionStore"; // KS_PORTAL_CUSTOM_ROLES
 import PhoneLines from "./tabs/PhoneLines"; // BF_PORTAL_PHONE_LINES_v689
 import SettingsOverview from "./tabs/SettingsOverview";
-import TemplatesSettings from "./tabs/TemplatesSettings"; // v694
-import SnippetsSettings from "./tabs/SnippetsSettings"; // BF_PORTAL_SNIPPETS_TAB_v46
-import CollateralSettings from "./tabs/CollateralSettings"; // v694
-import LibraryPage from "@/pages/library/LibraryPage"; // BF_PORTAL_LIBRARY_IN_SETTINGS_v764
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
 import RetentionSettings from "./tabs/RetentionSettings"; // KS_PORTAL_v14_RETENTION
 import IdVerificationSettings from "@/kyc/IdVerificationSettings"; // KS_PORTAL_v22_KYC
@@ -73,6 +70,8 @@ const SettingsPage = () => {
   const isBI = String(silo ?? "").toUpperCase() === "BI";
   const planState = usePlan(); // KS_PORTAL_PLAN_FIXES
   const hasTemplates = hasFeature("templates", planState);
+  const hasAutomations = hasFeature("automations", planState); // BF_PORTAL_v864_CONTENT_TAB
+  const isMarketing = user?.role === "Marketing"; // BF_PORTAL_v864_CONTENT_TAB
 
   const tabs = useMemo(
     () => [
@@ -105,13 +104,9 @@ const SettingsPage = () => {
       { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
       { id: "meeting-notes", label: "Meeting notes", visible: !isBI, content: <MeetingNotesSettings /> }, // KS_HUBSPOT_GAPS_1_MEETING_NOTES - Zoom / Google Meet
       { id: "runtime", label: "Runtime Verification", visible: !isBI, content: <RuntimeSettings /> },
-      { id: "templates", label: "Templates", visible: !isBI && hasTemplates, content: <TemplatesSettings /> }, // v694 // KS_PORTAL_PLAN_FIXES - Growth+
-      // BF_PORTAL_SNIPPETS_TAB_v46 - visible in BI too: #pnw is as useful on a
-      // PGI conversation as a lending one, and the server scopes by silo.
-      { id: "snippets", label: "Snippets", visible: hasTemplates, content: <SnippetsSettings /> }, // KS_PORTAL_PLAN_FIXES - Growth+
-      { id: "collateral", label: "Collateral", visible: !isBI, content: <CollateralSettings /> }, // v694
-      // BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Staff Library (lender forms, Read This) lives here, not in the sidebar.
-      { id: "library", label: "Library", visible: true, content: <LibraryPage /> },
+      // BF_PORTAL_v864_CONTENT_TAB - Templates, Snippets, Collateral, the Library and the automations are sections of one
+      // Content tab (tabs/ContentSettings.tsx); plan limits still apply to each section.
+      { id: "content", label: "Content", visible: true, content: <ContentSettings isBI={isBI} hasTemplates={hasTemplates} canAutomate={(isAdmin || isMarketing) && hasAutomations} /> },
       { id: "plan", label: "Plan", visible: canBilling, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS // KS_PORTAL_CUSTOM_ROLES
       // KS_PORTAL_BETA_v1 - beta features the brokerage can try (join, leave, feedback). Admins only.
       { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
@@ -125,12 +120,15 @@ const SettingsPage = () => {
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
-    [isAdmin, isStaff, isBI, hasTemplates, canUsers, canBilling]
+    [isAdmin, isStaff, isBI, hasTemplates, hasAutomations, isMarketing, canUsers, canBilling]
   );
 
   const safeTabs = Array.isArray(tabs) ? tabs : [];
   const availableTabs = safeTabs.filter((tab) => tab.visible);
-  const activeTabId = tabParam ?? searchParams.get("tab");
+  const requestedTabId = tabParam ?? searchParams.get("tab");
+  // BF_PORTAL_v864_CONTENT_TAB - the old tabs forward to their section of Content, so links and bookmarks keep working.
+  const legacySection = isContentSection(requestedTabId) ? requestedTabId : null;
+  const activeTabId = legacySection ? "content" : requestedTabId;
   const fallbackTabId = availableTabs.some((tab) => tab.id === "profile") ? "profile" : availableTabs[0]?.id ?? "profile";
   const resolvedTabId = availableTabs.some((tab) => tab.id === activeTabId) ? activeTabId : fallbackTabId;
   const activeTab = availableTabs.find((tab) => tab.id === resolvedTabId) ?? availableTabs[0];
@@ -138,6 +136,10 @@ const SettingsPage = () => {
   const showOverview = false;
 
   useEffect(() => {
+    if (legacySection) {
+      navigate(`/settings/content?section=${legacySection}`, { replace: true });
+      return;
+    }
     if (!tabParam) {
       navigate(`/settings/${resolvedTabId}`, { replace: true });
       return;
@@ -145,10 +147,10 @@ const SettingsPage = () => {
     if (tabParam && resolvedTabId !== tabParam) {
       navigate(`/settings/${resolvedTabId}`, { replace: true });
     }
-  }, [activeTabId, navigate, resolvedTabId, tabParam]);
+  }, [activeTabId, navigate, resolvedTabId, tabParam, legacySection]);
 
   return (
-    <RequireRole roles={["Admin", "Staff"]}>
+    <RequireRole roles={["Admin", "Staff", "Marketing"]}>
       <ErrorBoundary>
         <SettingsSectionLayout>
           {showOverview ? (

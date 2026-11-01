@@ -46,7 +46,6 @@ const Leads = lazyWithRetry(() => import("@/pages/Leads"));
 const IssueInboxPage = lazyWithRetry(() => import("@/pages/IssueInboxPage"));
 const ReportsBoard = lazyWithRetry(() => import("@/pages/reports/ReportsBoard")); // BF_PORTAL_REPORTS_SECTION_v714 (replaces the hidden ReportsPage)
 import DesktopBridge from "@/desktop/DesktopBridge"; // BF_PORTAL_DESKTOP_ALERTS_v724
-const AutomationsPage = lazyWithRetry(() => import("@/pages/admin/AutomationsPage")); // BF_PORTAL_AUTOMATIONS_UI_v1
 const WorkflowEditor = lazyWithRetry(() => import("@/pages/automations/workflow/WorkflowEditor")); // BF_PORTAL_v786_WORKFLOW_BUILDER
 // BF_PORTAL_BLOCK_v45_ADMIN_DEAD_ROUTE_REMOVAL_v1
 // Five removed admin pages all call /api/admin/* endpoints that do not exist
@@ -232,7 +231,7 @@ const AppRoutes = () => {
         <Route path="/lenders/*" element={<ProtectedRoute><LendersPage /></ProtectedRoute>} />
         <Route path="/broker-imports" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} /> {/* BF_PORTAL_PARTNERS_TABS_v720 - Broker Files lives in Marketing > Referrers > Brokers */}
         <Route path="/settings/broker-files" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} />
-        <Route path="/library" element={<Navigate to="/settings/library" replace />} /> {/* BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Library is a Settings tab now */}
+        <Route path="/library" element={<Navigate to="/settings/content?section=library" replace />} /> {/* BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Library is a Settings tab now */}
         <Route path="/reports" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing", "Ops"]}><div style={{ padding: 16 }}><h1 style={{ fontSize: 20, margin: "0 0 12px", color: "var(--ui-text)" }}>Reports</h1><ReportsBoard /></div></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_REPORTS_SECTION_v714 */}
         <Route path="/maya" element={<ProtectedRoute><MayaPage /></ProtectedRoute>} />
         {/* KS_PORTAL_v1_NO_BI - the insurance (BI) screens are not part of Keystone. */}
@@ -240,7 +239,7 @@ const AppRoutes = () => {
         <Route path="/leads" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><Leads /></RequireRole></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing"]}><IssueInboxPage /></RequireRole></ProtectedRoute>} />
         {/* BF_PORTAL_DEAD_PAGES_v781 - /chat, /ai-chat and /ai-comms removed: in no menu, and they called server addresses that do not exist. */}
-        <Route path="/admin/automations" element={<ProtectedRoute><RequireRole roles={["Admin"]}><FeatureGate feature="automations"><AutomationsPage /></FeatureGate></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_AUTOMATIONS_UI_v1 */}
+        <Route path="/admin/automations" element={<Navigate to="/settings/content?section=automations" replace />} /> {/* BF_PORTAL_AUTOMATIONS_UI_v1 */}
         {/* BF_PORTAL_BLOCK_v45_ADMIN_DEAD_ROUTE_REMOVAL_v1 -- five routes
             removed here (/admin/ai-knowledge, /admin/issue-reports,
             /admin/website-leads, /admin/live-chat, /admin/conversions)
