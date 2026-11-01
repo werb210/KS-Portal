@@ -15,6 +15,9 @@ import LendersTab from "@/pages/applications/tabs/LendersTab";
 import SbaSigningTab from "@/pages/applications/tabs/SbaSigningTab"; // BF_PORTAL_SBA_SIGNING_TAB_v146
 import FraudTab from "@/fraud/FraudTab"; // KS_PORTAL_v7_FRAUD
 import PgiTab from "@/pgi/PgiTab"; // KS_PORTAL_v9_PGI
+import IdVerificationTab from "@/kyc/IdVerificationTab"; // KS_PORTAL_v22_KYC
+import QuotesTab from "@/quotes/QuotesTab"; // KS_PORTAL_v23_QUOTES
+import FileForecastPanel from "@/forecast/FileForecastPanel"; // KS_PORTAL_v23_FORECAST
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v12_DEMO_FIXES
 
 const TABS = [
@@ -26,6 +29,8 @@ const TABS = [
   { key: "request-items", label: "Request Items" }, // BF_PORTAL_BLOCK_v821_REQUEST_ITEMS_TAB
   { key: "notes", label: "Notes" },
   { key: "lenders", label: "Lenders" },
+  { key: "quotes", label: "Quotes" }, // KS_PORTAL_v23_QUOTES - offer summary for the client
+  { key: "id-verification", label: "ID verification" }, // KS_PORTAL_v22_KYC
   { key: "fraud", label: "Fraud check" }, // KS_PORTAL_v7_FRAUD - before lender submission
   { key: "pgi", label: "PGI insurance" }, // KS_PORTAL_v9_PGI - referral to the insurance partner
   // BF_PORTAL_SBA_SIGNING_TAB_v146 - expose signing status and resend.
@@ -78,8 +83,10 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
     "request-items": <RequestItemsTab applicationId={applicationId} />,
     notes: <NotesTab applicationId={applicationId} />,
     lenders: <LendersTab applicationId={applicationId} />,
+    quotes: <QuotesTab applicationId={applicationId} />, // KS_PORTAL_v23_QUOTES
     "sba-signing": <SbaSigningTab applicationId={applicationId} />,
     fraud: <FraudTab applicationId={applicationId} />, // KS_PORTAL_v7_FRAUD
+    "id-verification": <IdVerificationTab applicationId={applicationId} />, // KS_PORTAL_v22_KYC
     pgi: <PgiTab applicationId={applicationId} />, // KS_PORTAL_v9_PGI
   }[activeTab];
 
@@ -142,6 +149,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
       </div>
 
       <ApplicationOriginPanel applicationId={applicationId} />{/* BF_PORTAL_v828_APPLICATION_ORIGIN - lender, broker or referrer */}
+      {!isLiveDemo() ? <FileForecastPanel applicationId={applicationId} /> : null}{/* KS_PORTAL_v23_FORECAST - expected close date and category */}
 
       <nav
         style={{
