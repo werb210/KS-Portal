@@ -25,6 +25,10 @@ export const FEATURES: FeatureInfo[] = [
   { key: "ipad_app", plan: "starter", label: "iPad staff portal app", description: "Run the full staff portal as an app on iPad." },
   { key: "office_sync", plan: "starter", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", description: "Outlook (Microsoft 365) mail is read into each contact's timeline. Gmail can send email now; reading a Gmail inbox comes later." },
   { key: "call_recording", plan: "starter", label: "Call recording on every plan (playback on Growth and Pro)", description: "Every call is recorded on every plan. Playing recordings back from the contact's timeline is on Growth and Pro." },
+  // KS_BROKER_TOOLS - deal tools for equipment and asset finance brokers: 1-3 every plan, 4, 5, 7, 8 growth+, 9 pro.
+  { key: "funding_conditions", plan: "starter", label: "Funding conditions checklist", description: "Track every lender condition between Accepted and Funded: owner, due date, status and document. A file funds only when all are cleared or waived, and clients see what they must supply in the client app." },
+  { key: "invoice_reading", plan: "starter", label: "Vendor invoice reading", description: "Upload a vendor or equipment invoice and the vendor, invoice number, line items, taxes, total and serial numbers or VINs are read for you to confirm into the deal." },
+  { key: "sales_tax", plan: "starter", label: "Canadian sales tax in quotes and calculators", description: "GST, HST, PST and QST by province, applied to the equipment cost or to each lease payment, on quotes and calculators. Rates are kept in a table you can edit." },
   { key: "call_recording_playback", plan: "growth", label: "Call recording playback", description: "Play recorded calls back from the contact's timeline." },
   // KS_PORTAL_v20_TEAMS - growth and up.
   { key: "teams", plan: "growth", label: "Teams and record visibility", description: "Put people on teams and choose who sees all records, their team's records or only their own." },
@@ -59,6 +63,10 @@ export const FEATURES: FeatureInfo[] = [
   { key: "forecasting", plan: "growth", label: "Revenue forecast: weighted pipeline, commit and best case per rep and team, against goals", description: "Commission forecast per person and team by month or quarter, from each file's stage and expected close date, next to everyone's goals." },
   // KS_PORTAL_LENDER_API - growth and up.
   { key: "lender_api", plan: "growth", label: "Lender API connections", description: "Send the lender package through a lender's broker API and pull status, offers, conditions and document requests back into the file automatically. Email stays the fallback." },
+  { key: "credit_lines", plan: "growth", label: "Approved credit lines per client", description: "Record master lease lines and approved limits per client: lender, limit, used, available, expiry and conditions. Deals drawn against a line reduce what is available, with alerts before a line expires." },
+  { key: "rate_cards", plan: "growth", label: "Lender rate cards and deal structuring", description: "Keep each lender product's rate card (term by amount and credit tier, fees and residuals) and compare payment options from every eligible lender side by side, with sales tax." },
+  { key: "credit_scorecards", plan: "growth", label: "Credit scorecards and pre-decision rules", description: "Your own weighted scorecards and rules (for example: refer under 6 months in business) give each file a score, a grade and flags, and rank the lenders. Signals only: your team decides." },
+  { key: "contract_templates", plan: "growth", label: "Contracts from Word templates", description: "Upload Word templates with merge fields, fill them from the deal, client, company and lender, download Word or PDF, and send them for e-signature." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   // KS_PORTAL_MARKETING_ADDON - Starter and Growth see Google Ads results; the full tools are Pro (or the add-on).
   { key: "ad_attribution", plan: "pro", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", description: "See which ads and keywords brought in each lead and funded deal, find wasted spend, send your client list to Google, and get a Monday ads email and suggestions. Also comes with the Marketing add-on." },
@@ -70,6 +78,7 @@ export const FEATURES: FeatureInfo[] = [
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_CUSTOM_ROLES - pro.
   { key: "custom_roles", plan: "pro", label: "Custom roles and permissions", description: "Build your own roles: choose what each role can view, create, edit, delete and export in every area, and whether it sees all records, its team's or only its own." },
+  { key: "vendor_portal", plan: "pro", label: "Vendor and dealer portal with point-of-sale quoting", description: "Equipment vendors get their own login to quote payments for their customers, send a link to apply, upload invoices, follow funding and see their referral fees." },
   // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
   // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they
   // are the hidden bank_connect add-on operations switches on per licensee (planStore hasAddon). Never listed here.
