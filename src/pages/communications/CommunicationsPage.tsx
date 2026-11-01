@@ -60,14 +60,17 @@ import ThreadPanel, { type ThreadEvent, type ThreadSummary } from "@/components/
 import { useSnippets, useShortcutExpansion } from "@/hooks/useSnippets"; // BF_PORTAL_SNIPPET_TRIGGER_v45
 import O365ComposeModal from "@/components/communications/O365ComposeModal";
 import { sanitizeHtml } from "@/lib/sanitizeHtml"; // BF_PORTAL_HTML_SANITIZE_v1
+import GmailInbox from "@/gmail/GmailInbox"; // KS_PORTAL_GMAIL_INBOX
+import { useGmailInboxAvailable } from "@/gmail/gmailApi"; // KS_PORTAL_GMAIL_INBOX
 
 // BF_PORTAL_PHONE_TAB_v1 - Voicemail + Recents merged into one "Phone" tab.
-type Tab = "messages" | "sms" | "inbox" | "issues" | "maya" | "team" | "phone";
+type Tab = "messages" | "sms" | "inbox" | "gmail" | "issues" | "maya" | "team" | "phone"; // KS_PORTAL_GMAIL_INBOX - gmail
 
 // BF_PORTAL_COMMS_TABS_v39 - order set by Todd. Inbox leads because it is
 // where staff start; the default tab below must stay in step with it.
 const TABS: { id: Tab; label: string }[] = [
   { id: "inbox", label: "Inbox" },
+  { id: "gmail", label: "Gmail" }, // KS_PORTAL_GMAIL_INBOX - only for Google users once Gmail inbox reading is on
   { id: "sms", label: "SMS" },
   { id: "messages", label: "Messages" },
   { id: "team", label: "Team" }, // BF_PORTAL_BLOCK_v752_TEAM_TAB
@@ -2629,7 +2632,8 @@ export default function CommunicationsPage({ initialTab }: { initialTab?: Tab } 
   // BF_PORTAL_PHONE_TAB_v1 - the voicemail/recents counters were declared but never
   // populated by the loader below (always 0, badge never rendered), so folding them
   // into a single `phone` key loses nothing.
-  const [tabCounts, setTabCounts] = useState<{ messages: number; sms: number; inbox: number; issues: number; maya: number; team: number; phone: number }>({
+  const gmailAvailable = useGmailInboxAvailable(); // KS_PORTAL_GMAIL_INBOX
+  const [tabCounts, setTabCounts] = useState<{ gmail?: number; messages: number; sms: number; inbox: number; issues: number; maya: number; team: number; phone: number }>({
     messages: 0,
     sms: 0,
     inbox: 0,
@@ -2711,7 +2715,7 @@ export default function CommunicationsPage({ initialTab }: { initialTab?: Tab } 
           padding: "0 4px",
         }}
       >
-        {TABS.map((t) => (
+        {TABS.filter((t) => t.id !== "gmail" || gmailAvailable).map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
@@ -2732,7 +2736,7 @@ export default function CommunicationsPage({ initialTab }: { initialTab?: Tab } 
             }}
           >
             {t.id === "maya" ? assistantName() : t.label}
-            {tabCounts[t.id] > 0 && (
+            {(tabCounts[t.id] ?? 0) > 0 && (
               <span
                 style={{
                   background: t.id === "issues" ? "#f59e0b" : "#ff3b30",
@@ -2759,6 +2763,7 @@ export default function CommunicationsPage({ initialTab }: { initialTab?: Tab } 
         {tab === "sms" && <SmsTab forcedContact={forcedSmsContact} onContactSelected={setForcedSmsContact} />}
         {tab === "messages" && <MessagesTab onStartConversation={(contact) => { setForcedSmsContact(contact); setTab("sms"); }} />}
         {tab === "inbox" && <InboxTab unreadOnly={unreadOnly} />}
+        {tab === "gmail" && <GmailInbox />}
         {tab === "phone" && <PhoneTab />} {/* BF_PORTAL_PHONE_TAB_v1 */}
         {tab === "issues" && <IssuesTab />}
         {tab === "maya" && <MayaTab />}

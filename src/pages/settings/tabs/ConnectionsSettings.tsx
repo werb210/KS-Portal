@@ -3,6 +3,7 @@
 // Nobody registers an app or types a tenant id. A Keystone admin who is not a Microsoft 365 admin gets a link to send
 // to theirs. Google Workspace needs no company step: each person connects in My Profile. Plain-English status, which
 // permissions, the last successful sync, and the fix for anything wrong.
+import { GMAIL_READ_PENDING } from "@/gmail/gmailApi"; // KS_PORTAL_GMAIL_INBOX
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { primaryButton } from "@/plans/ui";
 import {
@@ -188,13 +189,15 @@ function GoogleCard({ g }: { g: GoogleConnection }) {
       <h3 style={h3}>Google Workspace <StatePill state={g.state} /></h3>
       <p style={{ margin: "6px 0 0", fontSize: 15 }} data-testid="google-headline">{g.headline}</p>
       {g.fix && <div role={g.state === "needs_reconnect" ? "alert" : "status"} style={g.state === "needs_reconnect" ? warnBox : { ...muted, marginTop: 8 }}>{g.fix}</div>}
+      {/* KS_PORTAL_GMAIL_INBOX - always visible: inbox reading waits for Google's security review (CASA). */}
+      {!g.gmail_reading && <p style={{ ...muted, marginTop: 8 }} data-testid="gmail-pending">{GMAIL_READ_PENDING}</p>}
       {g.state !== "not_available" && (
         <Details>
           <dt style={dt}>People connected</dt><dd style={dd}>{g.staff_connected}{g.staff_needing_reconnect ? ` (${g.staff_needing_reconnect} need to reconnect)` : ""}</dd>
           {g.first_connected_at && (<><dt style={dt}>First connected</dt><dd style={dd}>{formatWhen(g.first_connected_at)}</dd></>)}
           <dt style={dt}>Last successful sync</dt><dd style={dd}>{formatWhen(g.last_sync_at)}</dd>
           <dt style={dt}>Permissions</dt><dd style={dd}>{g.permissions.map((p) => p.label).join(", ")}</dd>
-          <dt style={dt}>Reading Gmail</dt><dd style={dd}>{g.gmail_reading ? "On" : "Off (Keystone sends from Gmail but does not read the inbox yet)"}</dd>
+          <dt style={dt}>Reading Gmail</dt><dd style={dd} data-testid="gmail-reading">{g.gmail_reading_note ?? (g.gmail_reading ? "On" : GMAIL_READ_PENDING)}</dd>
         </Details>
       )}
     </section>
