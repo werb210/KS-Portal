@@ -589,7 +589,7 @@ const ProfileSettings = () => {
           <span style={{ fontSize: 13, color: "#516f90" }}>
             {/* BF_PORTAL_v864_NATIVE_PASSKEYS - the old Electron Mac app has no passkey support; the native Mac app does. */}
             {typeof navigator !== "undefined" && /Electron/i.test(navigator.userAgent)
-              ? "This version of the Mac app can't use passkeys. Install the new Boreal Staff Portal for Mac, or use the iPad app or a browser."
+              ? `This version of the Mac app can't use passkeys. Install the new ${brandName()} Staff Portal for Mac, or use the iPad app or a browser.`
               : "This browser doesn't support passkeys."}
           </span>
         )}
