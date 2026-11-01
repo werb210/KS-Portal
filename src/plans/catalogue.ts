@@ -37,12 +37,20 @@ export const FEATURES: FeatureInfo[] = [
   { key: "visitor_tracking", plan: "growth", label: "Website visitor tracking", description: "See which website pages a lead visited, and where they dropped off, before they applied." },
   { key: "toll_free_number", plan: "growth", label: "Toll-free number", description: "A toll-free main number for your business." },
   // KS_PORTAL_SETTINGS_PACK_v1_NPS
+  // KS_HUBSPOT_GAPS_1_PAYMENTS - growth and up.
+  { key: "payment_links", plan: "growth", label: "Payment links and bank debit for fees (your own Stripe account)", description: "Send clients a link to pay a fee by card or Canadian pre-authorized debit. Money goes to your own Stripe account; paid fees are marked on the deal and in QuickBooks." },
+  // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS - growth and up.
+  { key: "call_scripts", plan: "growth", label: "Call scripts (playbooks)", description: "Scripts with talking points and questions beside the dialler and on records; answers go on the timeline and into your custom fields." },
+  // KS_HUBSPOT_GAPS_1_PIPELINES - growth (3 pipelines in all) and pro (unlimited).
+  { key: "custom_pipelines", plan: "growth", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", description: "Add pipelines such as Renewals or Equipment with their own stages, colours and win probability. Lending keeps its built-in stages." },
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   { key: "ad_attribution", plan: "pro", label: "Ad attribution", description: "See which ads and campaigns brought in each lead and each funded deal." },
   { key: "api_access", plan: "pro", label: "API access", description: "Connect your own tools to the system with API keys." },
   { key: "sso", plan: "pro", label: "Single sign-on", description: "Your team signs in with your company's Microsoft or Google account." },
   // KS_PORTAL_v20_WEBHOOKS - pro.
+  // KS_HUBSPOT_GAPS_1_CALL_QUEUES - pro.
+  { key: "call_queues", plan: "pro", label: "Call queues", description: "Callers to your main line or a menu option wait in line with hold music and their place in line, and ring the person who has been free longest. Live queue panel for Admins." },
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
   // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they

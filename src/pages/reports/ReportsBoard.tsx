@@ -7,7 +7,9 @@ import SiloContext from "@/context/SiloContext";
 import { AdsStoryPanel, DropoffPanel, VisitorsPanel } from "@/components/marketing/GoogleAdsAnalytics";
 import { ReportDataCard } from "./ReportDataCards";
 import { MobileAppsSummary } from "@/pages/marketing/MobileAppsPanel"; // BF_PORTAL_v819_MOBILE_REPORT
-import { MOBILE_APPS_KEY, withPortalReports } from "./reportLibrary"; // BF_PORTAL_v819_MOBILE_REPORT
+import { FEE_PAYMENTS_KEY, MOBILE_APPS_KEY, PIPELINES_KEY, withPortalReports } from "./reportLibrary"; // BF_PORTAL_v819_MOBILE_REPORT // KS_HUBSPOT_GAPS_1
+import { FeePaymentsReport } from "@/payments/PaymentsSettings"; // KS_HUBSPOT_GAPS_1_PAYMENTS
+import PipelineReportCard from "@/pipelines/PipelineReportCard"; // KS_HUBSPOT_GAPS_1_PIPELINES
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
 
 export type ReportDef = { key: string; title: string; silo: string; group: "money" | "marketing" | "operations"; size: "half" | "full"; description: string };
@@ -48,6 +50,8 @@ export const STARTER_DASHBOARD_REPORTS: ReadonlySet<string> = new Set(["dash_kpi
 export function reportFeature(report: string, _group?: ReportDef["group"]): string | null {
   if (report === "ads_story") return "ad_attribution";
   if (report === "ads_dropoff" || report === "ads_visitors") return "visitor_tracking";
+  if (report === FEE_PAYMENTS_KEY) return "payment_links"; // KS_HUBSPOT_GAPS_1_PAYMENTS
+  if (report === PIPELINES_KEY) return "custom_pipelines"; // KS_HUBSPOT_GAPS_1_PIPELINES
   if (STARTER_DASHBOARD_REPORTS.has(report)) return null;
   return "full_reports";
 }
@@ -63,6 +67,8 @@ function CardBodyInner({ report, days }: { report: string; days?: number }): Rea
   if (report === "ads_dropoff") return <DropoffPanel />;
   if (report === "ads_visitors") return <VisitorsPanel />;
   if (report === MOBILE_APPS_KEY) return <MobileAppsSummary days={days ?? 30} />; // BF_PORTAL_v819_MOBILE_REPORT
+  if (report === FEE_PAYMENTS_KEY) return <FeePaymentsReport />; // KS_HUBSPOT_GAPS_1_PAYMENTS
+  if (report === PIPELINES_KEY) return <PipelineReportCard />; // KS_HUBSPOT_GAPS_1_PIPELINES
   return <ReportDataCard report={report} days={days} />;
 }
 
