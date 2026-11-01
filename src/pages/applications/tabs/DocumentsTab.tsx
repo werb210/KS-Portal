@@ -760,8 +760,14 @@ function DocRow(props: {
             Delete
           </button>
         )}
-        <FraudScanRow scan={props.scan} open={props.scanOpen} onToggle={props.onToggleScan} />
       </div>
+      {/* KS_PORTAL_TAMPER_BELOW_v1 - the tamper report spans the full row under the file details and buttons, so opening
+          it never squeezes the file name, size and category into a narrow column. */}
+      {props.scan ? (
+        <div style={styles.fraudScanFullRow} data-testid="doc-fraud-row">
+          <FraudScanRow scan={props.scan} open={props.scanOpen} onToggle={props.onToggleScan} />
+        </div>
+      ) : null}
 
       {canManage && rejectOpen && (
         <div style={styles.rejectFormRow}>
@@ -927,7 +933,7 @@ const styles: Record<string, CSSProperties> = {
   categoryTag: { background: "var(--ui-surface-muted)", color: "var(--ui-text-muted)", padding: "2px 6px", borderRadius: 4, fontWeight: 600, fontSize: 11 },
   rejectionReason: { marginTop: 8, padding: "6px 10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, fontSize: 12, color: "#7f1d1d" },
 
-  docActions: { display: "flex", gap: 6, alignItems: "center" },
+  docActions: { display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" as const, justifyContent: "flex-end" }, // KS_PORTAL_TAMPER_BELOW_v1
   previewButtonDisabled: { padding: "5px 10px", background: "var(--ui-surface-muted)", color: "var(--ui-text-muted)", border: "1px solid var(--ui-border)", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "not-allowed", fontFamily: "inherit" },
   // BF_PORTAL_BLOCK_v184_DOC_PREVIEW_WIRE_UP_v1
   previewButton: { padding: "5px 10px", background: "var(--ui-surface-strong)", color: "var(--ui-accent-blue)", border: "1px solid #bfdbfe", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
@@ -937,6 +943,7 @@ const styles: Record<string, CSSProperties> = {
   rejectButton: { padding: "5px 10px", background: "var(--ui-surface-strong)", color: "#b91c1c", border: "1px solid #fecaca", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
   rejectButtonDone: { padding: "5px 10px", background: "#fee2e2", color: "#7f1d1d", border: "1px solid #fca5a5", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" },
 
+  fraudScanFullRow: { gridColumn: "1 / -1", minWidth: 0 }, // KS_PORTAL_TAMPER_BELOW_v1
   rejectFormRow: { gridColumn: "1 / -1", marginTop: 8, display: "flex", flexDirection: "column", gap: 6 },
   rejectTextarea: { width: "100%", padding: "8px 10px", border: "1px solid var(--ui-border)", borderRadius: 6, fontSize: 13, fontFamily: "inherit", resize: "vertical" as const },
   rejectFormActions: { display: "flex", justifyContent: "flex-end", gap: 6 },
