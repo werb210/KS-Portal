@@ -63,10 +63,11 @@ describe("Settings tabs", () => {
     __setPlanForTests(plan);
     const { default: SettingsPage } = await import("@/pages/settings/SettingsPage");
     render(
-      <MemoryRouter initialEntries={["/settings/profile"]}>
+      <MemoryRouter initialEntries={["/settings/content"]}>
         <Routes><Route path="/settings/:tab" element={<SettingsPage />} /></Routes>
       </MemoryRouter>,
     );
+    // KS_PORTAL_v864 - Templates and Snippets are sections of Settings > Content (its own tab list) now.
     return screen.getAllByRole("tab").map((t) => t.textContent);
   }
 
@@ -190,10 +191,11 @@ describe("Marketing tabs", () => {
     renderWithRole(<MarketingDashboard />, "Admin");
     return screen.getAllByRole("button").map((b) => b.textContent ?? "");
   }
+  // KS_PORTAL_v864 - automations moved to Settings > Content (gated there by plan and role), so Marketing has no tab.
   it("Starter: no Automations tab", async () => {
     expect(await marketingTabs(starter())).not.toContain("Automations");
   });
-  it("Growth: the Automations tab is there", async () => {
-    expect(await marketingTabs(growth())).toContain("Automations");
+  it("Growth: Automations live in Settings > Content, not in Marketing", async () => {
+    expect(await marketingTabs(growth())).not.toContain("Automations");
   });
 });
