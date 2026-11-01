@@ -3,8 +3,40 @@ import { startRegistration, startAuthentication, browserSupportsWebAuthn } from 
 import { setAuthToken } from "@/lib/authToken";
 import { api } from "@/api";
 import { captureRefreshToken } from "@/auth/sessionRefresh"; // KS_NATIVE_DESKTOP_v1_SLIDING_REFRESH
+import { Capacitor, registerPlugin } from "@capacitor/core";
+
+// BF_PORTAL_v864_NATIVE_PASSKEYS - in the iPad app (and the same app on an Apple silicon Mac, "Designed for iPad")
+// the page runs from capacitor://localhost, so WebKit's WebAuthn is missing or refuses the brokerage domain and
+// the passkey button never showed. There, passkeys go through the app's native plugin (Apple's passkey API, see
+// a NativePasskey plugin in the iOS app; Keystone builds without it fall back to the web view), which answers in the same JSON shape.
+type NativeCredential = Record<string, unknown>;
+type NativePasskeyPlugin = {
+  status(): Promise<{ available: boolean; onMac: boolean }>;
+  register(o: { rpId: string; challenge: string; userId: string; userName: string; excludeCredentials?: Array<{ id: string }> }): Promise<NativeCredential>;
+  authenticate(o: { rpId: string; challenge: string; allowCredentials?: Array<{ id: string }> }): Promise<NativeCredential>;
+};
+export const NativePasskey = registerPlugin<NativePasskeyPlugin>("NativePasskey");
+
+/** True inside the iOS / iPadOS app (also when it runs on a Mac) when the build has the native passkey plugin. */
+export function nativePasskeysAvailable(): boolean {
+  try {
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios" && Capacitor.isPluginAvailable("NativePasskey");
+  } catch {
+    return false;
+  }
+}
+
+/** Native errors as the browser's names, so the screens treat a cancel the same way everywhere. */
+function nativeError(e: unknown): Error {
+  const err = e as { code?: string; message?: string };
+  const out = new Error(err?.message || "Passkey failed");
+  out.name = err?.code === "cancelled" ? "NotAllowedError" : "PasskeyNativeError";
+  return out;
+}
 
 export function passkeysSupported(): boolean {
+  // The native path first: feature-detecting the web view would hide passkeys in the iPad app and on the Mac.
+  if (nativePasskeysAvailable()) return true;
   try { return browserSupportsWebAuthn(); } catch { return false; }
 }
 
@@ -16,7 +48,13 @@ export async function loginWithPasskey(): Promise<void> {
   });
   const options = await optRes.json();
   if (!optRes.ok) throw new Error(options?.error || "Could not start passkey sign-in");
-  const assertion = await startAuthentication({ optionsJSON: options });
+  const assertion = nativePasskeysAvailable()
+    ? await NativePasskey.authenticate({
+        rpId: String(options?.rpId ?? window.location.hostname),
+        challenge: String(options?.challenge ?? ""),
+        allowCredentials: Array.isArray(options?.allowCredentials) ? options.allowCredentials.map((c: { id: string }) => ({ id: c.id })) : [],
+      }).catch((e: unknown) => { throw nativeError(e); })
+    : await startAuthentication({ optionsJSON: options });
   const verRes = await fetch(`${API_BASE}/api/webauthn/login/verify`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(assertion),
   });
@@ -33,7 +71,16 @@ export async function loginWithPasskey(): Promise<void> {
 
 export async function registerPasskey(): Promise<void> {
   const options = await api.post("/api/webauthn/register/options", {});
-  const attestation = await startRegistration({ optionsJSON: options as any });
+  const o = options as { challenge?: string; rp?: { id?: string }; user?: { id?: string; name?: string }; excludeCredentials?: Array<{ id: string }> };
+  const attestation = nativePasskeysAvailable()
+    ? await NativePasskey.register({
+        rpId: String(o?.rp?.id ?? window.location.hostname),
+        challenge: String(o?.challenge ?? ""),
+        userId: String(o?.user?.id ?? ""),
+        userName: String(o?.user?.name ?? "staff"),
+        excludeCredentials: (o?.excludeCredentials ?? []).map((c) => ({ id: c.id })),
+      }).catch((e: unknown) => { throw nativeError(e); })
+    : await startRegistration({ optionsJSON: options as any });
   await api.post("/api/webauthn/register/verify", {
     ...attestation, deviceLabel: (navigator as any).platform || "Browser",
   });

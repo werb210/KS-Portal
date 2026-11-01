@@ -3,7 +3,8 @@ import { describe, it, expect } from "vitest";
 import fs from "fs";
 
 const TAB = fs.readFileSync("src/pages/settings/tabs/SnippetsSettings.tsx", "utf8");
-const PAGE = fs.readFileSync("src/pages/settings/SettingsPage.tsx", "utf8");
+// BF_PORTAL_v864_CONTENT_TAB - Snippets is a section of Settings > Content now.
+const PAGE = fs.readFileSync("src/pages/settings/tabs/ContentSettings.tsx", "utf8");
 
 describe("a snippet can be created", () => {
   it("has name, text and shortcut", () => {
@@ -55,7 +56,7 @@ describe("it is wired into settings", () => {
   });
   // KS_PORTAL_PLAN_FIXES - in BI as well as BF, but only when the plan includes templates (Growth and up).
   it("is available in BI as well as BF", () => {
-    expect(PAGE).toContain('{ id: "snippets", label: "Snippets", visible: hasTemplates');
+    expect(PAGE).toContain('{ id: "snippets", label: "Snippets", visible: hasTemplates, render: () => <SnippetsSettings /> }');
   });
 });
 

@@ -151,6 +151,22 @@ export async function rawApiFetch(path: string, options: RequestOptions = {}) {
   });
 }
 
+// BF_PORTAL_v864_KS_WIDGET_FIX - a call that names its silo (X-Silo in its own headers, e.g. a widget asking for another
+// silo's summary) is checked against THAT silo, not the topbar silo, so its answer is not thrown away as a mismatch.
+export function explicitSiloHeader(headers: RequestOptions["headers"]): string | null {
+  if (!headers) return null;
+  let value: string | null | undefined;
+  if (typeof Headers !== "undefined" && headers instanceof Headers) value = headers.get("X-Silo");
+  else if (Array.isArray(headers)) value = headers.find(([k]) => k.toLowerCase() === "x-silo")?.[1];
+  else {
+    const rec = headers as Record<string, string>;
+    const key = Object.keys(rec).find((k) => k.toLowerCase() === "x-silo");
+    value = key ? rec[key] : null;
+  }
+  const v = String(value ?? "").trim().toUpperCase();
+  return v === "BF" || v === "BI" || v === "SLF" || v === "KS" ? v : null;
+}
+
 export async function apiFetch<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   // BF_PORTAL_OFFLINE_READ_CACHE_v252 - saved copies for a few read-only GETs.
   const offlineKey = String(options.method ?? "GET").toUpperCase() === "GET" && !options.params
@@ -243,7 +259,7 @@ export async function apiFetch<T = any>(path: string, options: RequestOptions = 
     throw parseError;
   }
   const parsed = parsePayload<T>(json);
-  assertSiloScoped(path, parsed, getActiveSilo()); // BF_PORTAL_v789_SILO_GUARD - before it is cached or shown
+  assertSiloScoped(path, parsed, explicitSiloHeader(options.headers) ?? getActiveSilo()); // BF_PORTAL_v789_SILO_GUARD, BF_PORTAL_v864_KS_WIDGET_FIX
   if (offlineKey) saveOfflineCopy(offlineKey, parsed); // BF_PORTAL_OFFLINE_READ_CACHE_v252
   return parsed;
 }
