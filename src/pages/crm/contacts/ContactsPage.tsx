@@ -7,6 +7,7 @@ import ColumnsMenu from "@/components/crm/ColumnsMenu";
 import { contactDisplayName } from "@/utils/contactName";
 import { crmApi, type ContactRow } from "@/api/crm";
 import { canDelete } from "@/auth/canDelete";
+import { useCan } from "@/roles/permissionStore"; // KS_PORTAL_CUSTOM_ROLES
 import { useSilo } from "@/hooks/useSilo";
 import { useAuth } from "@/hooks/useAuth";
 import { useCrmStore } from "@/state/crm.store";
@@ -26,7 +27,8 @@ type SortCol = "name" | "company_name" | "lead_status" | "owner_name" | "created
 export default function ContactsPage() {
   const { silo } = useSilo();
   const { user } = useAuth();
-  const showDelete = canDelete(user?.role as any);
+  const roleCan = { create: useCan("contacts", "create"), del: useCan("contacts", "delete"), exp: useCan("contacts", "export") }; // KS_PORTAL_CUSTOM_ROLES
+  const showDelete = canDelete(user?.role as any) && roleCan.del;
   const isAdmin = user?.role === "Admin";
   // BF_PORTAL_CRM_FILTER_PERSIST_v1 - remember the list view (tag/owner/search/sort/page) so
   // opening a contact and hitting Back restores it instead of resetting to the default view.
@@ -272,9 +274,9 @@ export default function ContactsPage() {
             <option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>
           ))}
         </select>
-        <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-contacts.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>
+        {roleCan.exp && <button style={toolbarBtn} onClick={() => exportRowsToCsv("bf-contacts.csv", rowsWithCustomFields(rows as any, cf.fields))}>Export</button>}
         <ColumnsMenu options={[{ key: "company_name", label: "Company" }, { key: "tags", label: "Tags" }, { key: "lead_status", label: "Lead status" }, { key: "owner_name", label: "Owner" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
-        <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>
+        {roleCan.create && <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>}
         <CrmSegmentBar current={{ q, ownerId, tagFilter, sort }} onApply={(f) => {
           if (typeof f.q === "string") setQ(f.q);
           if (typeof f.ownerId === "string") setOwnerId(f.ownerId);
@@ -282,7 +284,7 @@ export default function ContactsPage() {
           if (f.sort && typeof f.sort === "object") setSort(f.sort as { col: SortCol; dir: "asc" | "desc" });
           setCrmPage(1);
         }} />
-        <button onClick={() => setCreateOpen(true)} style={{ background: "var(--accent)", color: "white", padding: "8px 14px", borderRadius: 8, fontWeight: 600, border: 0 }}>+ Create Contact</button>
+        {roleCan.create && <button onClick={() => setCreateOpen(true)} style={{ background: "var(--accent)", color: "white", padding: "8px 14px", borderRadius: 8, fontWeight: 600, border: 0 }}>+ Create Contact</button>}
       </div>
       {/* BF_PORTAL_v856_CRM_UNIFY - the shared View-by chips; several tags = any of them. */}
       <CrmTagViewBy backend={crmBackend} entity="contact" value={tagFilter ? tagFilter.split(",") : []}
@@ -291,7 +293,7 @@ export default function ContactsPage() {
       {isAdmin && selected.size > 0 && (
         <div style={{ display: "flex", gap: 8, padding: 12, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 12, alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 13 }}>{selected.size} selected</span>
-          <button disabled={busyMass !== null} onClick={massDelete} style={{ padding: "6px 12px", borderRadius: 6, background: "#dc2626", color: "#fff", border: 0, cursor: "pointer", fontSize: 13 }}>{busyMass === "delete" ? "Deleting…" : "Delete"}</button>
+          {roleCan.del && <button disabled={busyMass !== null} onClick={massDelete} style={{ padding: "6px 12px", borderRadius: 6, background: "#dc2626", color: "#fff", border: 0, cursor: "pointer", fontSize: 13 }}>{busyMass === "delete" ? "Deleting…" : "Delete"}</button>}
           {/* BF_PORTAL_v856_CRM_UNIFY - Tag as... and Remove tag (Active included), same as every CRM. */}
           <CrmBulkTagActions backend={crmBackend} entity="contact" ids={Array.from(selected)} catalogue={tagCatalogue}
             onDone={() => { setSelected(new Set()); setRefreshKey((k) => k + 1); }} />

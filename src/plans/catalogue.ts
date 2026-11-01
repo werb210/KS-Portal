@@ -59,6 +59,8 @@ export const FEATURES: FeatureInfo[] = [
   // KS_HUBSPOT_GAPS_1_CALL_QUEUES - pro.
   { key: "call_queues", plan: "pro", label: "Call queues", description: "Callers to your main line or a menu option wait in line with hold music and their place in line, and ring the person who has been free longest. Live queue panel for Admins." },
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
+  // KS_PORTAL_CUSTOM_ROLES - pro.
+  { key: "custom_roles", plan: "pro", label: "Custom roles and permissions", description: "Build your own roles: choose what each role can view, create, edit, delete and export in every area, and whether it sees all records, its team's or only its own." },
   // KS_PORTAL_v7_FRAUD - fraud protection (Todd, Oct 23): starter 1, 2, 4, 5; growth adds 6, 7, 8; pro has the rest.
   // KS_PORTAL_BANK_CONNECT_ADDON - bank connect and fraud_3 (statement vs live bank data) are not plan features: they
   // are the hidden bank_connect add-on operations switches on per licensee (planStore hasAddon). Never listed here.
