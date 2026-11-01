@@ -12,9 +12,9 @@ import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import {
   BorealVoice,
-  PORTAL_VOIP_APP,
   jsDeviceRegistersForIncoming,
   nativeVoiceAvailable,
+  portalVoipApp,
   registerNativeIncoming,
   unregisterNativeIncoming,
 } from "@/native/portalVoip";
@@ -28,7 +28,7 @@ export function tokenFrom(r: any): string | null {
 export async function fetchVoiceToken(native: boolean): Promise<string | null> {
   if (native) {
     try {
-      const t = tokenFrom(await dialerApi.voiceTokenFor(PORTAL_VOIP_APP));
+      const t = tokenFrom(await dialerApi.voiceTokenFor(portalVoipApp()));
       if (t) return t;
     } catch (e: any) {
       ringPush("native.token.fail", e?.message);
@@ -168,6 +168,16 @@ export function bindNativeCallEvents(): () => void {
   };
 }
 
+/** KS_ANDROID_STAFF_v1 - the Android app can answer a ringing native call from the portal's banner. */
+export function canAnswerInPage(): boolean {
+  try { return nativeVoiceAvailable() && Capacitor.getPlatform() === "android"; } catch { return false; }
+}
+
+export async function nativeAnswer(): Promise<void> {
+  const uuid = useDialer.getState().nativeCall?.uuid;
+  try { await BorealVoice.answer?.({ uuid }); } catch { /* the call screen still answers */ }
+}
+
 export async function nativeHangup(): Promise<void> {
   try { await BorealVoice.hangup(); } catch { /* the call screen still works */ }
 }
@@ -203,12 +213,18 @@ export function webMicAvailable(): boolean {
   return typeof navigator !== "undefined" && typeof navigator.mediaDevices?.getUserMedia === "function";
 }
 
-export function shouldCallNatively(opts: { native: boolean; webMic: boolean }): boolean {
-  return opts.native && !opts.webMic;
+// KS_ANDROID_STAFF_v1 - the Android staff app always calls through its own engine (Android Telecom + a foreground
+// service), so a call keeps going with the screen off or the app in the background, uses Bluetooth headsets, and
+// shows on the lock screen. The web page's microphone is never used there.
+export function shouldCallNatively(opts: { native: boolean; webMic: boolean; platform?: string }): boolean {
+  if (!opts.native) return false;
+  return opts.platform === "android" || !opts.webMic;
 }
 
 export function callsNatively(): boolean {
-  return shouldCallNatively({ native: nativeVoiceAvailable(), webMic: webMicAvailable() });
+  let platform = "web";
+  try { platform = Capacitor.getPlatform(); } catch { /* web */ }
+  return shouldCallNatively({ native: nativeVoiceAvailable(), webMic: webMicAvailable(), platform });
 }
 
 /** Only non-empty text values, as the native engine sends them to Twilio. */

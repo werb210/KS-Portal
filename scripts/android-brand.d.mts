@@ -1,0 +1,22 @@
+export type AndroidBrand = {
+  licensee: string;
+  application_id: string;
+  app_name: string;
+  phone_name: string;
+  brand_color: string;
+  on_brand_color: string;
+  version_name: string;
+};
+export const DEFAULT_APPLICATION_ID: string;
+export const DEFAULT_APP_NAME: string;
+export const DEFAULT_PHONE_NAME: string;
+export const DEFAULT_BRAND_COLOR: string;
+export const DEFAULT_VERSION: string;
+export const APPLICATION_ID_RE: RegExp;
+export const PROPERTIES_FILE: string;
+export function packageSegment(code: string): string;
+export function luminance(hex: string): number;
+export function contrast(a: string, b: string): number;
+export function onBrandColor(brand: string): string;
+export function resolveAndroidBrand(env?: Record<string, string | undefined>): AndroidBrand;
+export function brandProperties(brand: AndroidBrand): string;

@@ -13,6 +13,8 @@ export function borealDialerUrl(target: NativeDialerTarget): string {
 /** Returns false so callers can retain the existing web/Twilio flow as fallback. */
 export async function launchNativeBorealDialer(target: NativeDialerTarget): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
+  // KS_ANDROID_STAFF_v1 - the Android staff app is its own dialler (calls go through its native engine).
+  if (Capacitor.getPlatform() === "android") return false;
   const url = borealDialerUrl(target);
   try {
     const { value } = await AppLauncher.canOpenUrl({ url });
@@ -30,6 +32,13 @@ export async function launchNativeBorealDialer(target: NativeDialerTarget): Prom
 export async function placeCall(phone: string, contactId?: string): Promise<"dialer" | "tel"> {
   const number = String(phone ?? "").trim();
   if (!number) return "tel";
+
+  // KS_ANDROID_STAFF_v1 - in the Android staff app the call is placed in the app itself (native engine).
+  if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
+    const { startOutboundPstn } = await import("@/dialer/actions");
+    await startOutboundPstn(number, { contactId: contactId ?? null, source: "click_to_call" });
+    return "dialer";
+  }
 
   if (Capacitor.isNativePlatform()) {
     const opened = await launchNativeBorealDialer(

@@ -7,9 +7,18 @@
 | Web / PWA | Ready |
 | iPadOS native app | Ready |
 | iPhone native app | Unsupported |
-| Android native app | Unsupported |
+| Android staff app (phones and tablets) | Built in CI (KS_ANDROID_STAFF_v1) |
 
-The tracked `android/` directory is inert historical generated output. BF-Portal does not install the Capacitor Android platform, synchronize that directory, or provide an Android build or release path.
+`android/` is the Android staff app (KS_ANDROID_STAFF_v1): the portal plus a second launcher icon, "Phone", that opens it on the phone keypad. Calls use the Twilio Voice Android SDK through Android Telecom (ring on the lock screen, foreground service during a call), staff alerts arrive through Firebase, and the app has fingerprint/face lock, business-card scan, PDF mark-up and Share -> deal. `.github/workflows/android.yml` builds a debug APK on every pull request and, run by hand, a signed release bundle (AAB) that it uploads to Google Play's internal track when the secrets are set (it skips the upload with a notice otherwise).
+
+Local build (Android Studio or the Android SDK installed):
+
+```sh
+npm ci && npm run build
+npm run android:sync                       # brand file + npx cap sync android
+node scripts/android-google-services.mjs   # placeholder unless GOOGLE_SERVICES_JSON is set
+cd android && gradle assembleDebug          # Gradle 8.14 (the wrapper jar is not committed)
+```
 
 ## Local iPadOS build
 

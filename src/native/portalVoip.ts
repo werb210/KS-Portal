@@ -1,7 +1,8 @@
 // BF_PORTAL_v817_IPAD_VOIP - the iPad app's native calling (ios/App/App/BorealVoicePlugin.swift, jsName "BorealVoice").
 // Incoming calls ring through PushKit + CallKit even when the app is closed; this wrapper
 // hands the native side the Twilio access token and lets the dialer UI follow native calls.
-// Everything here is a no-op on the web and on Android (no plugin there).
+// KS_ANDROID_STAFF_v1 - the Android staff app has the same plugin (android/.../BorealVoicePlugin.java: Twilio Voice
+// Android SDK, FCM pushes, Android Telecom), so everything here works there too. A no-op in web browsers.
 import { Capacitor, registerPlugin } from "@capacitor/core";
 
 export type NativeCallInfo = {
@@ -46,15 +47,24 @@ export interface BorealVoicePlugin {
   // BF_PORTAL_v824_NATIVE_OUTGOING - an outgoing call placed by the app itself (the web page has no microphone).
   connect(options: { accessToken?: string; params: Record<string, string> }): Promise<{ started: boolean; error?: string }>;
   sendDigits(options: { digits: string }): Promise<void>;
+  // KS_ANDROID_STAFF_v1 - Android only: answer / decline a ringing call from the portal page (the iPad answers in
+  // CallKit's own screen).
+  answer?(options: { uuid?: string }): Promise<void>;
+  reject?(options: { uuid?: string }): Promise<void>;
   addListener(event: NativeVoiceEvent, cb: (data: any) => void): Promise<{ remove: () => Promise<void> }>;
 }
 
 export const BorealVoice = registerPlugin<BorealVoicePlugin>("BorealVoice");
 
-/** Native iOS (the iPad portal app) with a build that has the BorealVoice plugin. Web browsers: false. */
+/** KS_ANDROID_STAFF_v1 - the platforms whose app carries the BorealVoice plugin. */
+export function isNativeVoicePlatform(platform: string): boolean {
+  return platform === "ios" || platform === "android";
+}
+
+/** The iPad or Android staff app with a build that has the BorealVoice plugin. Web browsers: false. */
 export function nativeVoiceAvailable(): boolean {
   try {
-    return Capacitor.getPlatform() === "ios" && Capacitor.isPluginAvailable("BorealVoice");
+    return isNativeVoicePlatform(Capacitor.getPlatform()) && Capacitor.isPluginAvailable("BorealVoice");
   } catch {
     return false;
   }
@@ -63,6 +73,17 @@ export function nativeVoiceAvailable(): boolean {
 // BF_PORTAL_v817_IPAD_VOIP - the app id BF-Server uses to pick the portal's Twilio Push Credential
 // (TWILIO_PUSH_CREDENTIAL_SID_PORTAL) for the voice token.
 export const PORTAL_VOIP_APP = "portal-ios" as const;
+// KS_ANDROID_STAFF_v1 - the Android staff app's voice token names KS-server's Android (FCM) push credential.
+export const PORTAL_VOIP_APP_ANDROID = "portal-android" as const;
+export type PortalVoipApp = typeof PORTAL_VOIP_APP | typeof PORTAL_VOIP_APP_ANDROID;
+
+export function portalVoipApp(platform: string = safePlatform()): PortalVoipApp {
+  return platform === "android" ? PORTAL_VOIP_APP_ANDROID : PORTAL_VOIP_APP;
+}
+
+function safePlatform(): string {
+  try { return Capacitor.getPlatform(); } catch { return "web"; }
+}
 
 /**
  * BF_PORTAL_v817_IPAD_VOIP - should the Twilio JS Device register for INCOMING calls?
@@ -77,8 +98,8 @@ export function jsDeviceRegistersForIncoming(opts: {
   pluginAvailable: boolean;
   nativeRegistered: boolean;
 }): boolean {
-  const nativeIos = opts.platform === "ios" && opts.pluginAvailable;
-  return !(nativeIos && opts.nativeRegistered);
+  const nativeApp = isNativeVoicePlatform(opts.platform) && opts.pluginAvailable;
+  return !(nativeApp && opts.nativeRegistered);
 }
 
 /** Registers this iPad for incoming VoIP calls. False when the native side could not (no push credential, no VoIP token). */

@@ -30,24 +30,10 @@ if grep -r "networkGuard" src; then
   exit 1
 fi
 
-# BF-Portal is an iPad application that may also run unmodified on Apple-silicon
-# Mac using Apple's Designed-for-iPad compatibility destination. The legacy
-# android/ generated directory is intentionally ignored; only active
-# dependencies and automation are prohibited.
-if grep -q '"@capacitor/android"' package.json; then
-  echo "Forbidden dependency detected: @capacitor/android"
-  exit 1
-fi
-
-if grep -Eq '^[[:space:]]*android[[:space:]]*:' capacitor.config.ts; then
-  echo "Active Android configuration detected in capacitor.config.ts"
-  exit 1
-fi
-
-if grep -R -E 'cap (sync|add) android|assembleDebug|assembleRelease' .github/workflows; then
-  echo "Active Android build command detected in GitHub Actions"
-  exit 1
-fi
+# KS_ANDROID_STAFF_v1 - the portal ships as the iPad app (iOS: iPad only, below) AND as the Android staff app for
+# phones and tablets (android/, .github/workflows/android.yml). The old "no Android" rules are gone; the Android
+# project's brand file must still be the committed Keystone default (a licensee build rewrites it only in CI).
+node scripts/android-brand.mjs --check
 
 project_file="ios/App/App.xcodeproj/project.pbxproj"
 device_families="$(sed -n 's/.*TARGETED_DEVICE_FAMILY = "\([^"]*\)";.*/\1/p' "$project_file")"

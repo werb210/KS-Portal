@@ -62,15 +62,21 @@ export function storedWorkspace(): Workspace | null {
   }
 }
 
+// KS_ANDROID_STAFF_v1 - a licensee's own branded app (built with VITE_KS_FIXED_SERVER=true and the licensee's
+// VITE_API_URL) is for that one brokerage: it never asks for an email or mobile number to find the company.
+export function fixedServerBuild(env: Record<string, unknown> = import.meta.env as Record<string, unknown>): boolean {
+  return String(env?.VITE_KS_FIXED_SERVER ?? "").trim().toLowerCase() === "true";
+}
+
 /** The server the iPad app should use: the chosen workspace, or null (web builds always return null). */
 export function nativeWorkspaceServer(win?: unknown): string | null {
-  if (!isNativeApp(win)) return null;
+  if (!isNativeApp(win) || fixedServerBuild()) return null;
   return storedWorkspace()?.server_url ?? null;
 }
 
 /** The iPad app has no workspace yet, so the sign-in screen asks for an email or mobile number first. */
 export function needsWorkspace(win?: unknown): boolean {
-  return isNativeApp(win) && !storedWorkspace();
+  return isNativeApp(win) && !fixedServerBuild() && !storedWorkspace();
 }
 
 /** Keeps the choice and restarts the app on the sign-in screen against that server. */
