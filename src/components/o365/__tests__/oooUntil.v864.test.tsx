@@ -26,7 +26,7 @@ describe("Out of office Active until (v864)", () => {
     expect(screen.getByText(/Turns off automatically at the end of 2030-01-10/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Save out-of-office" }));
     await waitFor(() => expect(patch).toHaveBeenCalled());
-    const [path, body] = patch.mock.calls[0];
+    const [path, body] = patch.mock.calls[0]!;
     expect(path).toBe("/api/o365/mail/out-of-office");
     expect(body).toMatchObject({ status: "alwaysEnabled", activeUntil: "2030-01-10", externalReplyMessage: "Away" });
     expect(typeof body.timeZone).toBe("string");

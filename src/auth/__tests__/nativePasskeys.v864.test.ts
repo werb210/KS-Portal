@@ -47,7 +47,7 @@ describe("native passkeys (v864)", () => {
     await loginWithPasskey();
     expect(h.plugin.authenticate).toHaveBeenCalledWith({ rpId: "staff.boreal.financial", challenge: "Y2hhbA", allowCredentials: [{ id: "Y3JlZA" }] });
     expect(h.startAuthentication).not.toHaveBeenCalled();
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1].body)).id).toBe("Y3JlZA");
+    expect(JSON.parse(String(fetchMock.mock.calls[1]![1].body)).id).toBe("Y3JlZA");
     expect(h.setAuthToken).toHaveBeenCalledWith("jwt-1");
     vi.unstubAllGlobals();
   });

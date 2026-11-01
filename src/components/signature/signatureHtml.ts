@@ -27,7 +27,8 @@ export const EMPTY_FIELDS: SignatureFields = {
   linkedin: "", x: "", facebook: "", instagram: "", logoUrl: "", color: "#1E3A8A", logoWidth: 120,
 };
 
-const MARKER = "boreal-signature:";
+// KS: brand-neutral marker (white label); signatures saved with the older marker still reopen in the builder.
+const MARKER = "email-signature:";
 
 export function esc(value: string): string {
   return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -54,11 +55,11 @@ export function safeColor(raw: string, fallback = "#1E3A8A"): string {
 
 function luminance(hex: string): number {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
-  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return 0.2126 * (c[0] ?? 0) + 0.7152 * (c[1] ?? 0) + 0.0722 * (c[2] ?? 0);
 }
 
 export function contrast(a: string, b: string): number {
-  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  const [x = 0, y = 0] = [luminance(a), luminance(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
 }
 
@@ -87,10 +88,10 @@ export function encodeFields(f: SignatureFields): string {
 }
 
 export function decodeFields(html: string): SignatureFields | null {
-  const m = /<!--boreal-signature:([^>]*?)-->/.exec(String(html ?? ""));
+  const m = /<!--(?:email|boreal)-signature:([^>]*?)-->/.exec(String(html ?? ""));
   if (!m) return null;
   try {
-    const parsed = JSON.parse(decodeURIComponent(m[1]));
+    const parsed = JSON.parse(decodeURIComponent(m[1] ?? ""));
     return parsed && typeof parsed === "object" ? { ...EMPTY_FIELDS, ...parsed } : null;
   } catch {
     return null;

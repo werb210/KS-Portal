@@ -65,8 +65,8 @@ describe("SignatureBuilder (v864)", () => {
     expect(screen.getByTestId("sig-preview").textContent).toContain("Director");
     expect(screen.getByTestId("sig-preview").querySelector("img")?.getAttribute("src")).toBe("https://staff.boreal.financial/images/300_300.png");
     fireEvent.click(screen.getByText("save"));
-    expect(onSave.mock.calls[0][0]).toContain("Director");
-    expect(onSave.mock.calls[0][0]).toContain("<table");
+    expect(onSave.mock.calls[0]![0]).toContain("Director");
+    expect(onSave.mock.calls[0]![0]).toContain("<table");
   });
   it("opens a pasted signature in the advanced editor without changing it", () => {
     const onSave = vi.fn();

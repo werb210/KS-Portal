@@ -28,22 +28,22 @@ describe("Find a time re-checks automatically (v864)", () => {
     render(<FindATimePanel />);
     fireEvent.click(await screen.findByLabelText(/Andrew Polturak/));
     await waitFor(() => expect(scheduleCalls()).toHaveLength(1));
-    const first = scheduleCalls()[0];
+    const first = scheduleCalls()[0]!;
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
     await waitFor(() => expect(scheduleCalls()).toHaveLength(2));
-    const second = scheduleCalls()[1];
+    const second = scheduleCalls()[1]!;
     const startOf = (p: string) => new URL("http://x" + p).searchParams.get("start");
     expect(startOf(second)).not.toBe(startOf(first));
     expect(new Date(startOf(second)!).getTime() - new Date(startOf(first)!).getTime()).toBeGreaterThan(20 * 3600 * 1000);
 
     fireEvent.change(screen.getByLabelText("Find a time date"), { target: { value: "2026-12-01" } });
     await waitFor(() => expect(scheduleCalls()).toHaveLength(3));
-    expect(startOf(scheduleCalls()[2])).toBe(new Date(2026, 11, 1).toISOString());
+    expect(startOf(scheduleCalls()[2]!)).toBe(new Date(2026, 11, 1).toISOString());
 
     fireEvent.click(screen.getByLabelText(/Todd W/));
     await waitFor(() => expect(scheduleCalls()).toHaveLength(4));
-    expect(decodeURIComponent(scheduleCalls()[3])).toContain("andrew@example.com,todd@example.com");
+    expect(decodeURIComponent(scheduleCalls()[3]!)).toContain("andrew@example.com,todd@example.com");
   });
 
   it("folds quick clicks into one request and labels the grid with the fetched day", async () => {
@@ -57,7 +57,7 @@ describe("Find a time re-checks automatically (v864)", () => {
     });
     await waitFor(() => expect(scheduleCalls()).toHaveLength(2));
     const picked = (screen.getByLabelText("Find a time date") as HTMLInputElement).value;
-    const [y, m, d] = picked.split("-").map(Number);
+    const [y = 0, m = 1, d = 1] = picked.split("-").map(Number);
     const label = new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
     expect(await screen.findByText(new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))).toBeInTheDocument();
   });
