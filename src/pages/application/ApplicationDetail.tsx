@@ -91,6 +91,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
     "id-verification": <IdVerificationTab applicationId={applicationId} />, // KS_PORTAL_v22_KYC
     pgi: <PgiTab applicationId={applicationId} />, // KS_PORTAL_v9_PGI
     funding: <BrokerToolsTab tab="funding" applicationId={applicationId} />, // KS_BROKER_TOOLS
+    "deal-desk": <BrokerToolsTab tab="deal-desk" applicationId={applicationId} />, // KS_BROKER_TOOLS_2
   }[activeTab];
 
   return (

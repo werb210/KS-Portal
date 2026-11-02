@@ -28,6 +28,7 @@ export const FEATURES: FeatureInfo[] = [
   // KS_BROKER_TOOLS - deal tools for equipment and asset finance brokers: 1-3 every plan, 4, 5, 7, 8 growth+, 9 pro.
   { key: "funding_conditions", plan: "starter", label: "Funding conditions checklist", description: "Track every lender condition between Accepted and Funded: owner, due date, status and document. A file funds only when all are cleared or waived, and clients see what they must supply in the client app." },
   { key: "sales_tax", plan: "starter", label: "Canadian sales tax in quotes and calculators", description: "GST, HST, PST and QST by province, applied to the equipment cost or to each lease payment, on quotes and calculators. Rates are kept in a table you can edit." },
+  { key: "invoice_reading", plan: "starter", label: "Vendor invoice reading", description: "The AI reads the vendor's invoice into the deal: vendor, invoice number, date, line items, taxes, total and each piece of equipment with its serial number or VIN. Staff check and confirm; the equipment goes onto the Active Contract too." },
   { key: "call_recording_playback", plan: "growth", label: "Call recording playback", description: "Play recorded calls back from the contact's timeline." },
   // KS_PORTAL_v20_TEAMS - growth and up.
   { key: "teams", plan: "growth", label: "Teams and record visibility", description: "Put people on teams and choose who sees all records, their team's records or only their own." },
@@ -62,6 +63,10 @@ export const FEATURES: FeatureInfo[] = [
   { key: "forecasting", plan: "growth", label: "Revenue forecast: weighted pipeline, commit and best case per rep and team, against goals", description: "Commission forecast per person and team by month or quarter, from each file's stage and expected close date, next to everyone's goals." },
   // KS_PORTAL_LENDER_API - growth and up.
   { key: "lender_api", plan: "growth", label: "Lender API connections", description: "Send the lender package through a lender's broker API and pull status, offers, conditions and document requests back into the file automatically. Email stays the fallback." },
+  { key: "credit_lines", plan: "growth", label: "Approved credit lines per client", description: "Keep each client's approved lines: lender, limit, used, available, expiry and conditions. Draws reduce what is available, a funded deal draws on its line automatically, and a reminder task goes out before a line expires." },
+  { key: "rate_cards", plan: "growth", label: "Rate cards and deal structuring", description: "Load each lender's rate card by CSV (term, amount, credit tier, fees, residuals) and compare payment options across every lender that takes the deal, side by side, with GST, HST, PST or QST applied." },
+  { key: "credit_scorecards", plan: "growth", label: "Credit scorecards and pre-decision rules", description: "Weight the factors that matter to you (time in business, revenue, deposits, balances, NSFs, credit score) and set rules to refer or decline. Every deal gets a grade, the rules it hits and a ranking of the lenders it fits - signals only, you decide." },
+  { key: "contract_templates", plan: "growth", label: "Contracts from Word templates", description: "Upload your own Word contracts with merge fields. On a deal, the client, equipment, invoice and chosen payment fill in; you get the Word file and a PDF, sent for e-signature, and the signed copy is filed on the deal." },
   { key: "multiple_lines", plan: "pro", label: "Multiple business lines and direct lines", description: "More business lines, and each person on your team gets their own direct phone number." },
   // KS_PORTAL_MARKETING_ADDON - Starter and Growth see Google Ads results; the full tools are Pro (or the add-on).
   { key: "ad_attribution", plan: "pro", label: "Google Ads tools: attribution, ad-waste report, Customer Match, Monday ads email and AI ads suggestions", description: "See which ads and keywords brought in each lead and funded deal, find wasted spend, send your client list to Google, and get a Monday ads email and suggestions. Also comes with the Marketing add-on." },
@@ -70,6 +75,7 @@ export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_v20_WEBHOOKS - pro.
   // KS_HUBSPOT_GAPS_1_CALL_QUEUES - pro.
   { key: "call_queues", plan: "pro", label: "Call queues", description: "Callers to your main line or a menu option wait in line with hold music and their place in line, and ring the person who has been free longest. Live queue panel for Admins." },
+  { key: "vendor_portal", plan: "pro", label: "Vendor and dealer portal", description: "Equipment vendors and dealers quote your financing at the point of sale from your rate cards (with sales tax), send customers an apply link that names them, follow each deal, upload invoices, and see the fees they earn. They sign your vendor agreement online." },
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_CUSTOM_ROLES - pro.
   { key: "custom_roles", plan: "pro", label: "Custom roles and permissions", description: "Build your own roles: choose what each role can view, create, edit, delete and export in every area, and whether it sees all records, its team's or only its own." },

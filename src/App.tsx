@@ -73,6 +73,7 @@ const ReferrerPortalLayout = lazyWithRetry(() => import("@/pages/referrer/Referr
 const ReferrerLoginPage = lazyWithRetry(() => import("@/pages/referrer/ReferrerLoginPage"));
 const ReferrerSignupPage = lazyWithRetry(() => import("@/pages/referrer/ReferrerSignupPage")); // REFERRER_SIGNUP_UI_v1
 const BrokerPortalRoutes = lazyWithRetry(() => import("@/pages/broker/BrokerPortal")); // BF_PORTAL_BROKER_PORTAL_v717
+const VendorPortalRoutes = lazyWithRetry(() => import("@/pages/vendor/VendorPortal")); // KS_BROKER_TOOLS_VENDORS
 // BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1
 const LenderPortalPage = lazyWithRetry(() => import("@/pages/lender/LenderPortalPage"));
 const LenderLoginPage = lazyWithRetry(() => import("@/pages/lender/LenderLoginPage"));
@@ -190,6 +191,7 @@ const AppRoutes = () => {
         <Route path="/referrer/login" element={<ReferrerLoginPage />} />
         <Route path="/referrer/*" element={<ReferrerPortalLayout />} />
         <Route path="/broker/*" element={<BrokerPortalRoutes />} />
+        <Route path="/vendor/*" element={<VendorPortalRoutes />} />{/* KS_BROKER_TOOLS_VENDORS */}
         <Route path="/lender-portal/login" element={<LenderLoginPage />} />
         {/* LENDER_PORTAL_ONE_PAGE_v1 - single page; legacy paths redirect */}
         <Route path="/lender-portal" element={<LenderPortalPage />} />
