@@ -30,6 +30,7 @@ import { canWrite } from "@/auth/can";
 import CollateralFacilitySection from "@/pages/applications/tabs/CollateralFacilitySection";
 import ProductCategoryPicker from "@/pages/applications/tabs/ProductCategoryPicker"; // BF_PORTAL_PRODUCT_CATEGORY_PICKER_v287
 import BrokerDealPanel from "@/components/applications/BrokerDealPanel"; // BF_PORTAL_BLOCK_v522_BROKER_IMPORT
+import LenderApiPanel from "./LenderApiPanel"; // KS_PORTAL_LENDER_API
 import FeeAgreementPanel from "@/components/applications/FeeAgreementPanel"; // BF_PORTAL_FEE_AGREEMENT_v709
 // BF_PORTAL_PRODUCT_QUESTIONS_v292 - BF-Server v289 refuses to send while product questions are unanswered.
 type ProductQuestionsSummary = { blocking?: boolean; message?: string | null } | null | undefined;
@@ -1005,6 +1006,9 @@ function describeSendFailure(err: unknown): string {
           </tbody>
         </table>
       )}
+
+      {/* KS_PORTAL_LENDER_API - lenders connected by API: Submit by API, synced status, offers and conditions. */}
+      {id ? <div style={{ marginTop: 16 }}><LenderApiPanel applicationId={String(id)} /></div> : null}
 
       {/* BF_PORTAL_BLOCK_v741_COLLATERAL_GATE — show only once Accord is checked, under the lenders. */}
       {/* BF_PORTAL_COLLATERAL_LOC_ONLY_v1 — Accord Collateral & Facility is an LOC requirement only. */}

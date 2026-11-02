@@ -15,6 +15,8 @@ import {
 import { getErrorMessage } from "@/utils/errors";
 import { api } from "@/api";
 import ModalFooterWithDelete from "@/components/ModalFooterWithDelete";
+import LenderConnectionTab from "./components/LenderConnectionTab"; // KS_PORTAL_LENDER_API
+import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_LENDER_API
 import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "./components/SbaIvesFields"; // BF_PORTAL_LENDER_SBA_IVES_v747
 import { phoneInputHandler, formatDollar, formatRate, unformatDollar } from "@/utils/format";
 import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON
@@ -138,6 +140,7 @@ function CreateLenderModal({
   lender?: Lender | null;
 }) {
   const queryClient = useQueryClient();
+  const [modalTab, setModalTab] = useState<"details" | "connection">("details"); // KS_PORTAL_LENDER_API
   const [form, setForm] = useState({
     name: lender?.name ?? "",
     hasBrokerAgreement: ((lender as any)?.hasBrokerAgreement ?? (lender as any)?.has_broker_agreement ?? false) as boolean,
@@ -282,6 +285,18 @@ function CreateLenderModal({
       }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 22, color: "var(--ui-text-muted)", cursor: "pointer" }}>×</button>
         <h2 style={{ margin: "0 0 24px", fontSize: 22, fontWeight: 700, color: "var(--ui-text)" }}>{lender ? "Edit Lender" : "Create New Lender"}</h2>
+        {/* KS_PORTAL_LENDER_API - Details | Connection (the lender's broker API) for an existing lender. */}
+        {lender?.id && (
+          <div role="tablist" style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--ui-border)", margin: "-12px 0 18px" }}>
+            {(["details", "connection"] as const).map((t) => (
+              <button key={t} type="button" role="tab" aria-selected={modalTab === t} data-testid={`lender-modal-tab-${t}`} onClick={() => setModalTab(t)}
+                style={{ background: "none", border: 0, borderBottom: `2px solid ${modalTab === t ? "var(--ui-accent-blue)" : "transparent"}`, padding: "8px 14px", fontSize: 14, fontWeight: 600, cursor: "pointer", color: modalTab === t ? "var(--ui-text)" : "var(--ui-text-muted)", display: "inline-flex", gap: 6, alignItems: "center", fontFamily: "inherit" }}>
+                {t === "details" ? "Details" : "Connection"}{t === "connection" ? <LockedBadge feature="lender_api" /> : null}
+              </button>
+            ))}
+          </div>
+        )}
+        {lender?.id && modalTab === "connection" ? <LenderConnectionTab lenderId={String(lender.id)} lenderName={String(lender.name ?? form.name ?? "this lender")} /> : (<>
 
         {serverError && (
           <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 8, padding: "10px 14px", marginBottom: 16, color: "#dc2626", fontSize: 13 }}>
@@ -417,6 +432,7 @@ function CreateLenderModal({
           deleting={saving}
           saveLabel={lender ? "Save Changes" : "Create Lender"}
         />
+        </>)}
       </div>
     </div>
   );
