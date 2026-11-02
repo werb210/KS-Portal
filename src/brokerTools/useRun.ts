@@ -25,3 +25,15 @@ export async function postFile<T = any>(path: string, file: File, fields: Record
   if (!res.ok) throw new Error(j?.message ?? `Upload failed (${res.status}).`);
   return j;
 }
+
+/** Downloads a file the API serves (signed in), and saves it under its name. */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const res = await rawApiFetch(path, { method: "GET" });
+  if (!res.ok) throw new Error(`Download failed (${res.status}).`);
+  const blob = await res.blob();
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
