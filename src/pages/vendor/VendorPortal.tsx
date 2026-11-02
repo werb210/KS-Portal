@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Navigate, Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 import { api, rawApiFetch } from "@/api";
-import { brandName } from "@/config/brand";
+import { brandName } from "@/brokerTools/brand";
 import PartnerHeader from "@/components/partner/PartnerHeader";
 import StageTracker from "@/components/partner/StageTracker";
 import "@/components/partner/partnerPortal.css";
