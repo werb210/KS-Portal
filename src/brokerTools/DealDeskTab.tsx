@@ -4,11 +4,13 @@ import Gate from "./gate";
 import InvoicesPanel from "./InvoicesPanel"; // KS_BROKER_TOOLS_INVOICES
 import CreditLinesPanel from "./CreditLinesPanel"; // KS_BROKER_TOOLS_CREDIT_LINES
 import StructuringPanel from "./StructuringPanel"; // KS_BROKER_TOOLS_RATE_CARDS
+import ScorecardPanel from "./ScorecardPanel"; // KS_BROKER_TOOLS_SCORECARDS
 
 export default function DealDeskTab({ applicationId }: { applicationId: string }) {
   return (
     <div data-testid="deal-desk" style={{ maxWidth: 1200 }}>
       <Gate feature="invoice_reading"><InvoicesPanel applicationId={applicationId} /></Gate>
+      <Gate feature="credit_scorecards"><ScorecardPanel applicationId={applicationId} /></Gate>
       <Gate feature="rate_cards"><StructuringPanel applicationId={applicationId} /></Gate>
       <Gate feature="credit_lines"><CreditLinesPanel applicationId={applicationId} /></Gate>
     </div>
