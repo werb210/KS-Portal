@@ -19,6 +19,7 @@ import SbaIvesFields, { EMPTY_SBA, sbaMissing, type LenderSba } from "./componen
 import { phoneInputHandler, formatDollar, formatRate, unformatDollar } from "@/utils/format";
 import { useAddon } from "@/plans/planStore"; // KS_PORTAL_BANK_CONNECT_ADDON
 import { CATEGORY_ORDER, CATEGORY_LABELS, CREDIT_SCORE_BANDS, bfBandFromMin, bfMinFromBand, ProductCoreFields } from "./productFormShared"; // PRODUCT_CORE_FIELDS_SHARED_v1
+import RenewalRulesEditor from "@/features/activeContracts/RenewalRulesEditor"; // KS_PORTAL_ACTIVE_CONTRACTS
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -935,6 +936,9 @@ function CreateProductModal({
               </div>
             )}
           </div>
+
+          {/* KS_PORTAL_ACTIVE_CONTRACTS - renewal rules per lender product (saved separately; new products get them after the first save). */}
+          {product?.id ? <RenewalRulesEditor productId={String(product.id)} category={String(form.category ?? "")} /> : null}
 
           {/* Active toggle */}
           <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>

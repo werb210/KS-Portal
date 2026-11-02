@@ -7,7 +7,8 @@ import SiloContext from "@/context/SiloContext";
 import { AdsStoryPanel, DropoffPanel, VisitorsPanel } from "@/components/marketing/GoogleAdsAnalytics";
 import { ReportDataCard } from "./ReportDataCards";
 import { MobileAppsSummary } from "@/pages/marketing/MobileAppsPanel"; // BF_PORTAL_v819_MOBILE_REPORT
-import { FEE_PAYMENTS_KEY, MOBILE_APPS_KEY, PIPELINES_KEY, withPortalReports } from "./reportLibrary"; // BF_PORTAL_v819_MOBILE_REPORT // KS_HUBSPOT_GAPS_1
+import { ACTIVE_CONTRACTS_KEY, FEE_PAYMENTS_KEY, MOBILE_APPS_KEY, PIPELINES_KEY, withPortalReports } from "./reportLibrary"; // BF_PORTAL_v819_MOBILE_REPORT // KS_HUBSPOT_GAPS_1 // KS_PORTAL_ACTIVE_CONTRACTS
+import PortfolioReport from "@/features/activeContracts/PortfolioReport"; // KS_PORTAL_ACTIVE_CONTRACTS
 import { FeePaymentsReport } from "@/payments/PaymentsSettings"; // KS_HUBSPOT_GAPS_1_PAYMENTS
 import PipelineReportCard from "@/pipelines/PipelineReportCard"; // KS_HUBSPOT_GAPS_1_PIPELINES
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
@@ -52,6 +53,7 @@ export function reportFeature(report: string, _group?: ReportDef["group"]): stri
   if (report === "ads_dropoff" || report === "ads_visitors") return "visitor_tracking";
   if (report === FEE_PAYMENTS_KEY) return "payment_links"; // KS_HUBSPOT_GAPS_1_PAYMENTS
   if (report === PIPELINES_KEY) return "custom_pipelines"; // KS_HUBSPOT_GAPS_1_PIPELINES
+  if (report === ACTIVE_CONTRACTS_KEY) return "active_contracts"; // KS_PORTAL_ACTIVE_CONTRACTS
   if (STARTER_DASHBOARD_REPORTS.has(report)) return null;
   return "full_reports";
 }
@@ -69,6 +71,7 @@ function CardBodyInner({ report, days }: { report: string; days?: number }): Rea
   if (report === MOBILE_APPS_KEY) return <MobileAppsSummary days={days ?? 30} />; // BF_PORTAL_v819_MOBILE_REPORT
   if (report === FEE_PAYMENTS_KEY) return <FeePaymentsReport />; // KS_HUBSPOT_GAPS_1_PAYMENTS
   if (report === PIPELINES_KEY) return <PipelineReportCard />; // KS_HUBSPOT_GAPS_1_PIPELINES
+  if (report === ACTIVE_CONTRACTS_KEY) return <PortfolioReport />; // KS_PORTAL_ACTIVE_CONTRACTS
   return <ReportDataCard report={report} days={days} />;
 }
 

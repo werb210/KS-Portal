@@ -5,6 +5,9 @@ import CustomFieldsPanel from "@/crmFields/CustomFieldsPanel"; // KS_PORTAL_v20_
 import { crmApi, type CompanyRow, type ContactRow, type Scope } from "@/api/crm";
 import { ActionBar } from "@/components/crm/ActionBar";
 import { ActivityTimeline } from "@/components/crm/ActivityTimeline";
+import ContactRecordTabs from "@/components/crm/ContactRecordTabs"; // KS_PORTAL_ACTIVE_CONTRACTS
+import ActiveContractsTab from "@/features/activeContracts/ActiveContractsTab"; // KS_PORTAL_ACTIVE_CONTRACTS
+import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_ACTIVE_CONTRACTS
 import { useBfCrmBackend } from "@/components/crm/unified/crmUnifiedApi"; // BF_PORTAL_v856_CRM_UNIFY
 import { useTagCatalogue } from "@/components/crm/unified/CrmTags"; // BF_PORTAL_v856_CRM_UNIFY
 import { CrmDuplicatesBanner } from "@/components/crm/unified/CrmDuplicates"; // BF_PORTAL_v856_CRM_UNIFY
@@ -117,7 +120,8 @@ export default function CompanyDetailPage() {
       <main>
         <CrmDuplicatesBanner backend={crmBackend} entity="company" id={id} />{/* BF_PORTAL_v856_CRM_UNIFY */}
         <CrmAiSummary backend={crmBackend} entity="company" id={id} />{/* BF_PORTAL_v856_CRM_UNIFY - same spot as on a contact */}
-        <ActivityTimeline scope={scope} refreshKey={refreshKey} />
+        {/* KS_PORTAL_ACTIVE_CONTRACTS - Timeline | Active Contracts (Growth and Pro; a locked card on Starter). */}
+        <ContactRecordTabs timeline={<ActivityTimeline scope={scope} refreshKey={refreshKey} />} contracts={<FeatureGate feature="active_contracts"><ActiveContractsTab companyId={id} /></FeatureGate>} />
       </main>
 
       <aside style={rail}>

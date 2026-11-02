@@ -49,6 +49,8 @@ export const FEATURES: FeatureInfo[] = [
   { key: "call_scripts", plan: "growth", label: "Call scripts (playbooks)", description: "Scripts with talking points and questions beside the dialler and on records; answers go on the timeline and into your custom fields." },
   // KS_HUBSPOT_GAPS_1_PIPELINES - growth (3 pipelines in all) and pro (unlimited).
   { key: "custom_pipelines", plan: "growth", label: "Extra pipelines with custom stages (Growth 3, Pro unlimited)", description: "Add pipelines such as Renewals or Equipment with their own stages, colours and win probability. Lending keeps its built-in stages." },
+  // KS_PORTAL_ACTIVE_CONTRACTS - same key as KS-server, ks-ops and KS-Website.
+  { key: "active_contracts", plan: "growth", label: "Active contracts: renewals, re-engagement queues and commission tracking", description: "Every funded facility kept as a contract on the client, renewal dates found automatically from each lender product's rules, re-engagement queues, and commission expected vs received." },
   { key: "nps_survey", plan: "growth", label: "Post-funding survey and review requests", description: "After a deal funds, clients get a one-question survey; happy clients are offered your Google review link." },
   // KS_PORTAL_v22_KYC - growth and up; some checks included each month, the rest billed per check.
   { key: "id_verification", plan: "growth", label: "ID and selfie verification of applicants and guarantors (some checks included each month)", description: "Applicants and guarantors verify with a photo of their government ID and a selfie in the client app; results land on the file and feed the fraud checks." },
