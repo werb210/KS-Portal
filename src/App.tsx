@@ -44,6 +44,7 @@ const TasksPage = lazyWithRetry(() => import("@/pages/tasks/TasksPage")); // BF_
 // The orphan component is still exported in case test files reference it.
 const Leads = lazyWithRetry(() => import("@/pages/Leads"));
 const IssueInboxPage = lazyWithRetry(() => import("@/pages/IssueInboxPage"));
+const RevenuePage = lazyWithRetry(() => import("@/pages/revenue/RevenuePage")); // KS_PORTAL_NAV_REVENUE
 const ReportsBoard = lazyWithRetry(() => import("@/pages/reports/ReportsBoard")); // BF_PORTAL_REPORTS_SECTION_v714 (replaces the hidden ReportsPage)
 import DesktopBridge from "@/desktop/DesktopBridge"; // BF_PORTAL_DESKTOP_ALERTS_v724
 const WorkflowEditor = lazyWithRetry(() => import("@/pages/automations/workflow/WorkflowEditor")); // BF_PORTAL_v786_WORKFLOW_BUILDER
@@ -234,6 +235,7 @@ const AppRoutes = () => {
         <Route path="/broker-imports" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} /> {/* BF_PORTAL_PARTNERS_TABS_v720 - Broker Files lives in Marketing > Referrers > Brokers */}
         <Route path="/settings/broker-files" element={<Navigate to="/marketing?tab=referrers&sub=brokers" replace />} />
         <Route path="/library" element={<Navigate to="/settings/content?section=library" replace />} /> {/* BF_PORTAL_LIBRARY_IN_SETTINGS_v764 - the Library is a Settings tab now */}
+        <Route path="/revenue" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff"]}><RevenuePage /></RequireRole></ProtectedRoute>} /> {/* KS_PORTAL_NAV_REVENUE */}
         <Route path="/reports" element={<ProtectedRoute><RequireRole roles={["Admin", "Staff", "Marketing", "Ops"]}><div style={{ padding: 16 }}><h1 style={{ fontSize: 20, margin: "0 0 12px", color: "var(--ui-text)" }}>Reports</h1><ReportsBoard /></div></RequireRole></ProtectedRoute>} /> {/* BF_PORTAL_REPORTS_SECTION_v714 */}
         <Route path="/maya" element={<ProtectedRoute><MayaPage /></ProtectedRoute>} />
         {/* KS_PORTAL_v1_NO_BI - the insurance (BI) screens are not part of Keystone. */}
