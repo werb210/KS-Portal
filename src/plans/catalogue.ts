@@ -25,6 +25,9 @@ export const FEATURES: FeatureInfo[] = [
   { key: "ipad_app", plan: "starter", label: "iPad staff portal app", description: "Run the full staff portal as an app on iPad." },
   { key: "office_sync", plan: "starter", label: "Email sync: Outlook (Microsoft 365) inbox sync; Gmail sends only for now", description: "Outlook (Microsoft 365) mail is read into each contact's timeline. Gmail can send email now; reading a Gmail inbox comes later." },
   { key: "call_recording", plan: "starter", label: "Call recording on every plan (playback on Growth and Pro)", description: "Every call is recorded on every plan. Playing recordings back from the contact's timeline is on Growth and Pro." },
+  // KS_BROKER_TOOLS - deal tools for equipment and asset finance brokers: 1-3 every plan, 4, 5, 7, 8 growth+, 9 pro.
+  { key: "funding_conditions", plan: "starter", label: "Funding conditions checklist", description: "Track every lender condition between Accepted and Funded: owner, due date, status and document. A file funds only when all are cleared or waived, and clients see what they must supply in the client app." },
+  { key: "sales_tax", plan: "starter", label: "Canadian sales tax in quotes and calculators", description: "GST, HST, PST and QST by province, applied to the equipment cost or to each lease payment, on quotes and calculators. Rates are kept in a table you can edit." },
   { key: "call_recording_playback", plan: "growth", label: "Call recording playback", description: "Play recorded calls back from the contact's timeline." },
   // KS_PORTAL_v20_TEAMS - growth and up.
   { key: "teams", plan: "growth", label: "Teams and record visibility", description: "Put people on teams and choose who sees all records, their team's records or only their own." },

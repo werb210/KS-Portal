@@ -4,7 +4,7 @@
 // and the PDF is saved to Documents), and follow it: viewed, accepted (which option, by whom), declined, expired.
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import toast from "react-hot-toast";
-import { FREQ_LABEL, QUOTE_STATUS, money, quotesApi, type Fee, type Frequency, type OfferOnFile, type Quote, type QuoteEvent, type QuoteOption } from "@/quotes/quotesApi";
+import { FREQ_LABEL, QUOTE_STATUS, TAX_PROVINCES, money, quotesApi, type Fee, type Frequency, type OfferOnFile, type Quote, type QuoteEvent, type QuoteOption } from "@/quotes/quotesApi";
 import { LockedFeature } from "@/plans/FeatureGate";
 import { hasFeature, usePlan } from "@/plans/planStore";
 import { primaryButton, secondaryButton } from "@/plans/ui";
@@ -56,6 +56,7 @@ function OptionEditor({ o, i, onChange, onRemove, currency }: { o: QuoteOption; 
             <input aria-label="Fee name" placeholder="Fee name" style={{ ...input, width: 180 }} value={f.label} onChange={(e) => setFee(k, { label: e.target.value })} />
             <input aria-label="Fee amount" placeholder="Amount" style={{ ...input, width: 110 }} inputMode="decimal" value={f.amount || ""} onChange={(e) => setFee(k, { amount: Number(e.target.value) || 0 })} />
             <label style={{ fontSize: 12, color: "var(--ui-text)" }}><input type="checkbox" checked={f.deducted} onChange={(e) => setFee(k, { deducted: e.target.checked })} /> Taken from the funds</label>
+            <label style={{ fontSize: 12, color: "var(--ui-text)" }}><input type="checkbox" aria-label="Sales tax applies" checked={f.taxable === true} onChange={(e) => setFee(k, { taxable: e.target.checked })} /> Sales tax applies</label>
             <button type="button" style={small} onClick={() => set({ fees: o.fees.filter((_, j) => j !== k) })}>Remove</button>
           </div>
         ))}
@@ -69,6 +70,7 @@ function OptionEditor({ o, i, onChange, onRemove, currency }: { o: QuoteOption; 
       {o.id ? (
         <p style={{ ...muted, color: "var(--ui-text)" }} data-testid={`quote-option-${i}-math`}>
           Payment <strong>{money(o.payment_amount ?? null, currency)}</strong>{o.payment_count ? ` x ${o.payment_count}` : ""} · funds received {money(o.net_proceeds ?? null, currency)} · total repaid {money(o.total_repayment ?? null, currency)} · cost of borrowing <strong>{money(o.cost_of_borrowing ?? null, currency)}</strong>{o.estimated_apr !== null && o.estimated_apr !== undefined ? ` · est. APR ${o.estimated_apr.toFixed(2)}%` : ""}
+          {o.tax_lines && o.tax_lines.length ? ` · tax on fees ${o.tax_lines.map((t) => `${t.label} ${money(t.amount, currency)}`).join(", ")}` : ""}
         </p>
       ) : <p style={muted}>Save to see the payment and cost of borrowing.</p>}
     </fieldset>
@@ -79,13 +81,14 @@ function Editor({ quote, onSaved }: { quote: Quote; onSaved: (q: Quote) => void 
   const [title, setTitle] = useState(quote.title);
   const [message, setMessage] = useState(quote.message ?? "");
   const [expires, setExpires] = useState(quote.expires_on ?? "");
+  const [taxProvince, setTaxProvince] = useState(quote.tax_province ?? ""); // KS_BROKER_TOOLS_3_SALES_TAX
   const [options, setOptions] = useState<QuoteOption[]>(quote.options);
   const [busy, setBusy] = useState(false);
   useEffect(() => { setOptions(quote.options); }, [quote]);
   const save = async (): Promise<Quote | null> => {
     setBusy(true);
     try {
-      const r = await quotesApi.save(quote.id, { title, message: message || null, expires_on: expires || null, options });
+      const r = await quotesApi.save(quote.id, { title, message: message || null, expires_on: expires || null, tax_province: taxProvince || null, options });
       onSaved(r.quote);
       say(() => toast.success("Quote saved."));
       return r.quote;
@@ -102,10 +105,16 @@ function Editor({ quote, onSaved }: { quote: Quote; onSaved: (q: Quote) => void 
   return (
     <section style={card} data-testid="quote-editor">
       <h3 style={{ margin: "0 0 10px", fontSize: 16 }}>Edit quote {quote.quote_number}</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 10 }}>
-        <label><span style={label}>Title</span><input style={input} value={title} onChange={(e) => setTitle(e.target.value)} /></label>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+        <label style={{ gridColumn: "1 / -1" }}><span style={label}>Title</span><input style={input} value={title} onChange={(e) => setTitle(e.target.value)} /></label>
         <label><span style={label}>Valid until</span><input aria-label="Valid until" type="date" style={input} value={expires} onChange={(e) => setExpires(e.target.value)} /></label>
+        <label><span style={label}>Sales tax on fees</span>
+          <select aria-label="Sales tax province" style={input} value={taxProvince} onChange={(e) => setTaxProvince(e.target.value)}>
+            <option value="">No sales tax</option>
+            {TAX_PROVINCES.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
+          </select></label>
       </div>
+      <p style={muted}>Sales tax is added only to fees ticked "Sales tax applies", at the province's rate (Settings &gt; Deal tools). Interest and factor cost are never taxed.</p>
       <label style={{ display: "block", margin: "10px 0" }}><span style={label}>Message to the client (optional)</span><textarea style={{ ...input, minHeight: 60 }} value={message} onChange={(e) => setMessage(e.target.value)} /></label>
       {options.map((o, i) => (
         <OptionEditor key={o.id ?? `new-${i}`} o={o} i={i} currency={quote.currency} onChange={(n) => setOptions(options.map((x, j) => (j === i ? n : x)))} onRemove={() => setOptions(options.filter((_, j) => j !== i))} />

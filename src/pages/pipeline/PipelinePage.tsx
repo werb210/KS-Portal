@@ -9,6 +9,7 @@ import { fetchRetention, lockMessage, refusedDeleteMessage } from "@/retention/r
 import TeamFilter from "@/teams/TeamFilter"; // KS_PORTAL_v20_TEAMS
 import CustomFieldFilters from "@/crmFields/CustomFieldFilters"; // KS_PORTAL_v20_CRM_FIELDS
 import { filterParams, useCustomFields, type CustomFilter } from "@/crmFields/customFieldsApi"; // KS_PORTAL_v20_CRM_FIELDS
+import { patchStatusWithFundingGate } from "@/brokerTools/fundingGate"; // KS_BROKER_TOOLS_1_FUNDING_CONDITIONS
 
 // BF_PORTAL_FRAUD_HOLD_v34 - Fraud and Hold are parking columns. Neither
 // deletes anything; both take the file out of the reported numbers (Fraud from
@@ -17,7 +18,7 @@ import { filterParams, useCustomFields, type CustomFilter } from "@/crmFields/cu
 const STAGES = [
   "Received", "In Review", "Documents Required",
   "Additional Steps Required", "Off to Lender",
-  "Offer", "Accepted", "Rejected",
+  "Offer", "Accepted", "Funded", "Rejected", // KS_BROKER_TOOLS_1_FUNDING_CONDITIONS - Funded after Accepted
   "Fraud", "Hold",
 ] as const;
 
@@ -37,6 +38,7 @@ const COLORS: Record<Stage, string> = {
   "Off to Lender":             "var(--ui-accent-blue)",
   "Offer":                     "#16a34a",
   "Accepted":                  "#15803d",
+  "Funded":                    "#166534",
   "Rejected":                  "#6b7280",
   "Fraud":                     "#b91c1c",
   "Hold":                      "#7c3aed",
@@ -207,10 +209,12 @@ export default function PipelinePage() {
     }
     setActing(cardId);
     try {
-      await api.patch(`/api/portal/applications/${cardId}/status`, {
+      // KS_BROKER_TOOLS_1_FUNDING_CONDITIONS - Funded is refused while funding conditions are open (Admins may override).
+      const moved = await patchStatusWithFundingGate(cardId, {
         status: toStage, reason,
         ...(fundedAmount !== undefined ? { fundedAmount, fundedCurrency } : {}),
       });
+      if (!moved) return;
       setCards((prev) =>
         prev.map((c) => c.id === cardId
           ? {

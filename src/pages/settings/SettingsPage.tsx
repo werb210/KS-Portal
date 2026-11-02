@@ -46,6 +46,7 @@ import MeetingNotesSettings from "@/meetingNotes/MeetingNotesSettings"; // KS_HU
 import PipelinesSettings from "@/pipelines/PipelinesSettings"; // KS_HUBSPOT_GAPS_1_PIPELINES
 import CallQueuesSettings from "@/callQueues/CallQueuesSettings"; // KS_HUBSPOT_GAPS_1_CALL_QUEUES
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
+import DealToolsSettings from "@/brokerTools/DealToolsSettings"; // KS_BROKER_TOOLS
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
 // KS_PORTAL_PLAN_FIXES (Todd, Oct 26) - Templates and Snippets are Growth and up: on Starter the tabs are hidden (the
@@ -88,6 +89,7 @@ const SettingsPage = () => {
       { id: "payments", label: "Payments", visible: isAdmin && !isBI, content: <PaymentsSettings /> }, // Stripe Connect (growth+)
       { id: "call-scripts", label: "Call scripts", visible: isAdmin && !isBI, content: <CallScriptsSettings /> }, // playbooks (growth+)
       { id: "pipelines", label: "Pipelines", visible: isAdmin && !isBI, content: <PipelinesSettings /> }, // extra pipelines (growth 3, pro unlimited)
+      { id: "deal-tools", label: "Deal tools", visible: (isAdmin || isStaff) && !isBI, content: <DealToolsSettings isAdmin={isAdmin} /> }, // KS_BROKER_TOOLS
       { id: "call-queues", label: "Call queues", visible: (isAdmin || isStaff) && !isBI, content: <CallQueuesSettings /> }, // pro: live panel (Admins), my availability
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
       // KS_PORTAL_SETTINGS_PACK_v1 - Admin settings: phone menu, booking pages, lead rotation, blocked numbers, never log,
