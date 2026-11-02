@@ -75,6 +75,7 @@ export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_v20_WEBHOOKS - pro.
   // KS_HUBSPOT_GAPS_1_CALL_QUEUES - pro.
   { key: "call_queues", plan: "pro", label: "Call queues", description: "Callers to your main line or a menu option wait in line with hold music and their place in line, and ring the person who has been free longest. Live queue panel for Admins." },
+  { key: "vendor_portal", plan: "pro", label: "Vendor and dealer portal", description: "Equipment vendors and dealers quote your financing at the point of sale from your rate cards (with sales tax), send customers an apply link that names them, follow each deal, upload invoices, and see the fees they earn. They sign your vendor agreement online." },
   { key: "webhooks", plan: "pro", label: "Webhooks and Zapier", description: "Send contacts, deals, stage changes, documents and notes to your other tools the moment they happen, signed and retried." },
   // KS_PORTAL_CUSTOM_ROLES - pro.
   { key: "custom_roles", plan: "pro", label: "Custom roles and permissions", description: "Build your own roles: choose what each role can view, create, edit, delete and export in every area, and whether it sees all records, its team's or only its own." },

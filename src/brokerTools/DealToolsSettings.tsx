@@ -7,6 +7,7 @@ import { CreditLinesReport } from "./CreditLinesPanel"; // KS_BROKER_TOOLS_CREDI
 import RateCardsSettings from "./RateCardsSettings"; // KS_BROKER_TOOLS_RATE_CARDS
 import ScorecardSettings from "./ScorecardSettings"; // KS_BROKER_TOOLS_SCORECARDS
 import ContractTemplatesSettings from "./ContractTemplatesSettings"; // KS_BROKER_TOOLS_CONTRACTS
+import VendorsSettings from "./VendorsSettings"; // KS_BROKER_TOOLS_VENDORS
 
 export default function DealToolsSettings({ isAdmin }: { isAdmin: boolean }) {
   return (
@@ -17,6 +18,7 @@ export default function DealToolsSettings({ isAdmin }: { isAdmin: boolean }) {
       <Gate feature="credit_scorecards" compact><ScorecardSettings isAdmin={isAdmin} /></Gate>
       <Gate feature="contract_templates" compact><ContractTemplatesSettings isAdmin={isAdmin} /></Gate>
       <Gate feature="credit_lines" compact><CreditLinesReport /></Gate>
+      <Gate feature="vendor_portal" compact><VendorsSettings isAdmin={isAdmin} /></Gate>
     </div>
   );
 }
