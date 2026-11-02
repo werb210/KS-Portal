@@ -1,0 +1,12 @@
+// KS_BROKER_TOOLS_2 - the application's Deal desk tab: the broker tools that work on one deal, each behind its plan
+// feature.
+import Gate from "./gate";
+import InvoicesPanel from "./InvoicesPanel"; // KS_BROKER_TOOLS_INVOICES
+
+export default function DealDeskTab({ applicationId }: { applicationId: string }) {
+  return (
+    <div data-testid="deal-desk" style={{ maxWidth: 1200 }}>
+      <Gate feature="invoice_reading"><InvoicesPanel applicationId={applicationId} /></Gate>
+    </div>
+  );
+}
