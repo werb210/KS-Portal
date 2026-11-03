@@ -10,6 +10,9 @@
 // With [code] only that licensee is returned; it must be in the registry, enabled, and list <app>.
 // Inside GitHub Actions it writes `matrix` ({"include":[{code, environment}, ...]}) and `count` to $GITHUB_OUTPUT.
 // Each licensee's settings live in its GitHub environment (normally `ks-<code>`), never in this file.
+// KS_SHARED_HOSTING_v1 - with shared hosting KS-server and KS-Agent deploy one shared app (no matrix); this file stays
+// the list of brokerages whose KS-Portal / KS-Client web builds are published to the shared web host (blob container
+// `sites`, <code>/portal/ and <code>/client/ - deploy/publish-site.mjs).
 import { appendFileSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

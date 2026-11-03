@@ -65,17 +65,22 @@ jobs:
           app_location: "/"
           output_location: "dist"
 
-  # KS_LICENSEE_DEPLOY_v1 - every licensee's own portal (Static Web App ks-<code>-portal). deploy/licensees.json lists
-  # the licensees; each one's settings live in its GitHub environment (normally ks-<code>, Settings > Environments):
-  #   secret    AZURE_STATIC_WEB_APPS_API_TOKEN   the deployment token of ks-<code>-portal
-  #   variables VITE_API_BASE_URL                 the licensee's KS-server (https://...)        required
-  #             VITE_APP_URL                      this portal's address                         required
-  #             VITE_CLIENT_APP_URL               the licensee's client app                     required
+  # KS_LICENSEE_DEPLOY_v1 + KS_SHARED_HOSTING_v1 - every brokerage's portal. Brokerages no longer get a Static Web App
+  # each: their builds are served by the shared web host (ks-shared-web, KS-Ops web-host/), which streams them from the
+  # blob container `sites` at <code>/portal/. deploy/licensees.json lists the brokerages; each one's build settings live
+  # in its GitHub environment (normally ks-<code>, Settings > Environments):
+  #   variables VITE_API_BASE_URL                 the brokerage's api host on the shared KS-server (https://...)  required
+  #             VITE_APP_URL                      this portal's address (a portal host of the brokerage)          required
+  #             VITE_CLIENT_APP_URL               the brokerage's client app                                      required
   #             VITE_MSAL_CLIENT_ID, VITE_MSAL_TENANT_ID, VITE_MSAL_REDIRECT_URI, VITE_MSAL_SCOPES   Microsoft sign-in
   #             VITE_WEBSITE_URL, VITE_SUPPORT_EMAIL, VITE_COMPANY_NAME, VITE_ASSISTANT_NAME         optional
+  #   secret    KS_SITES_STORAGE_CONNECTION_STRING  the shared storage account (normally a repository secret, the same
+  #                                                 for every brokerage)
   # The VITE_* values end up in the public JavaScript, so they are variables, not secrets. The self-serve /demo page
-  # stays off in licensee builds. Separate jobs from the development deploy above; one licensee failing never stops
-  # the rest (fail-fast: false).
+  # stays off in brokerage builds. The build is the same as before (same .env, npm run build); only where it goes
+  # changed: deploy/publish-site.mjs uploads dist/ with explicit content types and removes the previous build's leftover
+  # files. Separate jobs from the development deploy above (which keeps its own Static Web App); one brokerage failing
+  # never stops the rest (fail-fast: false).
   licensee-plan:
     runs-on: ubuntu-24.04
     if: >-
@@ -86,7 +91,6 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
-      repo_token: ${{ steps.repo.outputs.token }}
       repo_api_base_url: ${{ steps.repo.outputs.api_base_url }}
       repo_app_url: ${{ steps.repo.outputs.app_url }}
       repo_client_app_url: ${{ steps.repo.outputs.client_app_url }}
@@ -101,19 +105,16 @@ jobs:
           WANTED: ${{ inputs.licensee }}
         run: node deploy/licensee-matrix.mjs portal "$WANTED"
 
-      # A licensee environment without its own value silently gets the repository's (the development copy's): its
-      # build would talk to the development server, or deploy over the development portal. Fingerprints and the
-      # repository-level values let each licensee job refuse that without the secret itself leaving this job.
+      # A brokerage environment without its own value silently gets the repository's (the development copy's): its
+      # build would talk to the development server. The repository-level values let each brokerage job refuse that.
       - name: Repository-level settings (to tell them apart from a licensee's)
         id: repo
         env:
-          REPO_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           REPO_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           REPO_APP_URL: ${{ vars.VITE_APP_URL }}
           REPO_CLIENT_APP_URL: ${{ vars.VITE_CLIENT_APP_URL }}
         run: |
           {
-            echo "token=$(printf '%s' "$REPO_TOKEN" | sha256sum | cut -d' ' -f1)"
             echo "api_base_url=$REPO_API_BASE_URL"
             echo "app_url=$REPO_APP_URL"
             echo "client_app_url=$REPO_CLIENT_APP_URL"
@@ -134,7 +135,7 @@ jobs:
     env:
       CODE: ${{ matrix.code }}
       ENVIRONMENT: ${{ matrix.environment }}
-      SWA_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+      SITES_CONNECTION: ${{ secrets.KS_SITES_STORAGE_CONNECTION_STRING }}
       VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
       VITE_APP_URL: ${{ vars.VITE_APP_URL }}
       VITE_CLIENT_APP_URL: ${{ vars.VITE_CLIENT_APP_URL }}
@@ -152,15 +153,12 @@ jobs:
     steps:
       - name: Check the licensee's settings
         env:
-          REPO_TOKEN: ${{ needs.licensee-plan.outputs.repo_token }}
           REPO_API_BASE_URL: ${{ needs.licensee-plan.outputs.repo_api_base_url }}
           REPO_APP_URL: ${{ needs.licensee-plan.outputs.repo_app_url }}
           REPO_CLIENT_APP_URL: ${{ needs.licensee-plan.outputs.repo_client_app_url }}
         run: |
           missing=""
-          if [ -z "$SWA_TOKEN" ] || [ "$(printf '%s' "$SWA_TOKEN" | sha256sum | cut -d' ' -f1)" = "$REPO_TOKEN" ]; then
-            missing="$missing secret:AZURE_STATIC_WEB_APPS_API_TOKEN"
-          fi
+          [ -n "$SITES_CONNECTION" ] || missing="$missing secret:KS_SITES_STORAGE_CONNECTION_STRING"
           for pair in "VITE_API_BASE_URL:$REPO_API_BASE_URL" "VITE_APP_URL:$REPO_APP_URL" "VITE_CLIENT_APP_URL:$REPO_CLIENT_APP_URL"; do
             name="${pair%%:*}"; repo_value="${pair#*:}"; value="${!name}"
             case "$value" in
@@ -169,7 +167,7 @@ jobs:
             esac
           done
           if [ -n "$missing" ]; then
-            echo "::error title=$CODE::Add to the GitHub environment '$ENVIRONMENT':$missing (https addresses for the variables)."
+            echo "::error title=$CODE::Add to the GitHub environment '$ENVIRONMENT' (or the repository, for the secret):$missing (https addresses for the variables)."
             exit 1
           fi
           [ -n "$VITE_MSAL_CLIENT_ID" ] || echo "::notice title=$CODE::No VITE_MSAL_CLIENT_ID in '$ENVIRONMENT' - Microsoft sign-in stays off in this portal."
@@ -196,11 +194,28 @@ jobs:
             done
           } >> .env
 
-      - name: Build and Deploy
-        uses: Azure/static-web-apps-deploy@v1
+      # The Static Web Apps action used to run this build itself (npm install, npm run build); same Node as CI.
+      - uses: actions/setup-node@v5
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/"
-          output_location: "dist"
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --include=optional
+
+      - name: Build
+        run: npm run build
+
+      # The shared web host applies dist/staticwebapp.config.json's headers (CSP etc.): it must be there and allow the
+      # brokerage's server.
+      - name: Verify the build
+        run: |
+          host="${VITE_API_BASE_URL#https://}"; host="${host%%/*}"
+          test -f dist/index.html || { echo "::error::dist/index.html missing"; exit 1; }
+          test -f dist/staticwebapp.config.json || { echo "::error::dist/staticwebapp.config.json missing - the web host would serve no CSP"; exit 1; }
+          grep -q "$host" dist/staticwebapp.config.json || { echo "::error::dist/staticwebapp.config.json does not allow $host"; exit 1; }
+          grep -rqF "$VITE_API_BASE_URL" dist/assets || { echo "::error::the bundle does not contain $VITE_API_BASE_URL"; exit 1; }
+
+      - name: Publish to the shared web host (sites/${{ matrix.code }}/portal/)
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.KS_SITES_STORAGE_CONNECTION_STRING }}
+        run: node deploy/publish-site.mjs portal "$CODE" dist
