@@ -2,6 +2,7 @@
 import { startRegistration, startAuthentication, browserSupportsWebAuthn } from "@simplewebauthn/browser";
 import { setAuthToken } from "@/lib/authToken";
 import { api } from "@/api";
+import { getApiBase } from "@/config/api";
 import { captureRefreshToken } from "@/auth/sessionRefresh"; // KS_NATIVE_DESKTOP_v1_SLIDING_REFRESH
 import { Capacitor, registerPlugin } from "@capacitor/core";
 
@@ -40,10 +41,13 @@ export function passkeysSupported(): boolean {
   try { return browserSupportsWebAuthn(); } catch { return false; }
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+// KS_SHARED_HOSTING_v1 - the build's KS-server (as every other call). This read VITE_API_BASE, which no build sets, so
+// passkey sign-in went to the web host's own /api - nothing answers there (Static Web Apps or the shared web host).
+// Read when used, not at import (tests that mock @/config/api without it still load this module).
+const apiBase = (): string => getApiBase();
 
 export async function loginWithPasskey(): Promise<void> {
-  const optRes = await fetch(`${API_BASE}/api/webauthn/login/options`, {
+  const optRes = await fetch(`${apiBase()}/api/webauthn/login/options`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
   });
   const options = await optRes.json();
@@ -55,7 +59,7 @@ export async function loginWithPasskey(): Promise<void> {
         allowCredentials: Array.isArray(options?.allowCredentials) ? options.allowCredentials.map((c: { id: string }) => ({ id: c.id })) : [],
       }).catch((e: unknown) => { throw nativeError(e); })
     : await startAuthentication({ optionsJSON: options });
-  const verRes = await fetch(`${API_BASE}/api/webauthn/login/verify`, {
+  const verRes = await fetch(`${apiBase()}/api/webauthn/login/verify`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(assertion),
   });
   const data = await verRes.json();

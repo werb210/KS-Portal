@@ -22,6 +22,7 @@ vi.mock("@/api", () => ({ api: { post: h.apiPost } }));
 vi.mock("@/lib/authToken", () => ({ setAuthToken: h.setAuthToken }));
 
 import { loginWithPasskey, passkeysSupported, registerPasskey } from "../passkey";
+import { getApiBase } from "@/config/api";
 
 describe("native passkeys (v864)", () => {
   beforeEach(() => {
@@ -48,6 +49,9 @@ describe("native passkeys (v864)", () => {
     expect(h.plugin.authenticate).toHaveBeenCalledWith({ rpId: "staff.boreal.financial", challenge: "Y2hhbA", allowCredentials: [{ id: "Y3JlZA" }] });
     expect(h.startAuthentication).not.toHaveBeenCalled();
     expect(JSON.parse(String(fetchMock.mock.calls[1]![1].body)).id).toBe("Y3JlZA");
+    // KS_SHARED_HOSTING_v1 - straight to KS-server, never the web host's own /api (it serves files only).
+    expect(String(fetchMock.mock.calls[0]![0])).toBe(`${getApiBase()}/api/webauthn/login/options`);
+    expect(String(fetchMock.mock.calls[1]![0])).toBe(`${getApiBase()}/api/webauthn/login/verify`);
     expect(h.setAuthToken).toHaveBeenCalledWith("jwt-1");
     vi.unstubAllGlobals();
   });
