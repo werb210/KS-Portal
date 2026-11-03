@@ -1,6 +1,8 @@
 // BF_PORTAL_v856_CRM_UNIFY / KS_PORTAL_v18_CRM_UNIFY - the shared CRM components, ported from Boreal's portal. They
 // talk to KS-server /api/crm/unified/* (a Keystone copy serves one brokerage, so there are no silos to choose from).
 // A backend says where the API is and where records link to in the portal.
+import { humanizeCode } from "@/utils/labels";
+import { useMemo } from "react";
 import { api } from "@/api";
 
 export type CrmEntity = "contact" | "company";
@@ -67,7 +69,8 @@ export function tagKindOf(tag: string, catalogue?: TagCatalogue | null): TagKind
 
 export function tagLabel(tag: string, catalogue?: TagCatalogue | null): string {
   const t = normalizeTag(tag);
-  return CORE_TAGS.find((c) => c.slug === t)?.label ?? catalogue?.custom.find((c) => c.slug === t)?.label ?? t;
+  // v884: automatic tags (application_started, contact_form...) read as words, not codes.
+  return CORE_TAGS.find((c) => c.slug === t)?.label ?? catalogue?.custom.find((c) => c.slug === t)?.label ?? humanizeCode(t);
 }
 
 /** Staff tags offered in "Tag as..." / "Remove tag": the shared list, the brokerage's own, then older ones in use. */
