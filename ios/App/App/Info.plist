@@ -39,7 +39,7 @@
 	<true/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>borealdialer</string>
+		<string>ksdialer</string>
 	</array>
 	<!-- BF_PORTAL_BLOCK_v594_SHARE_TO_DEAL -->
 	<key>CFBundleDocumentTypes</key>

@@ -8,7 +8,7 @@ describe("v424 Portal calls route through the Boreal Dialer", () => {
   it("declares the scheme iOS requires before canOpenURL will work", () => {
     const plist = read("ios/App/App/Info.plist");
     expect(plist).toContain("LSApplicationQueriesSchemes");
-    expect(plist).toContain("borealdialer");
+    expect(plist).toContain("ksdialer"); // KS_ANDROID_STAFF_v1 - the scheme KS-Dialer registers
   });
 
   it("falls back to tel: when the Dialer is absent", () => {

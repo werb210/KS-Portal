@@ -97,15 +97,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); stopNativeTokenRefresh(); vi.useRealTimers(); });
 
 describe("platform detection", () => {
-  it("only the native apps (iPad, and Android since KS_ANDROID_STAFF_v1) with the BorealVoice plugin count", () => {
+  it("only native iOS with the BorealVoice plugin counts", () => {
     expect(nativeVoiceAvailable()).toBe(false);
     h.platform = "ios";
     expect(nativeVoiceAvailable()).toBe(false); // an older iPad build without the plugin
     h.pluginAvailable = true;
     expect(nativeVoiceAvailable()).toBe(true);
     h.platform = "android";
-    expect(nativeVoiceAvailable()).toBe(true); // the Android staff app
-    h.pluginAvailable = false;
     expect(nativeVoiceAvailable()).toBe(false);
   });
 });

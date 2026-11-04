@@ -1,19 +1,18 @@
-# KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets; the portal plus its "Phone" dialler icon).
+# KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets): the staff portal. Calls are made and taken by the
+# Android dialler (KS-Dialer android/), which the portal opens with ksdialer://call?phone=...
 #
-#   verify   every pull request and push to main: builds a debug APK (kept as a run artifact for sideloading).
+#   verify   every pull request and push to main: builds a debug APK (for the Android Studio emulator or a phone)
+#            and an unsigned release bundle (AAB), both kept as run artifacts.
 #   release  Actions > "Android staff app" > Run workflow: builds the signed release bundle (AAB).
 #   upload   after release: sends the bundle to Google Play (internal track by default). Skipped with a notice,
 #            never failed, when GOOGLE_PLAY_SERVICE_ACCOUNT_JSON or the signing key is missing.
 #
-# Licensee empty = the Keystone app (one Play listing for every brokerage; staff find their company by work email or
-# mobile number, like the iPad app). A licensee code = that brokerage's own app, branded from its GitHub environment
-# ks-<code> (variables VITE_API_BASE_URL, VITE_COMPANY_NAME, optional ANDROID_APPLICATION_ID, ANDROID_BRAND_COLOR,
-# ANDROID_ICON_URL or DESKTOP_ICON_URL), published from the licensee's own Play account with its own secrets.
+# One app for every brokerage: staff find their company by work email or mobile number, like the iPad app.
 #
-# Secrets (repository for the Keystone app, or the licensee's environment):
+# Secrets (repository settings > Secrets and variables > Actions):
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD   upload key
 #   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON                                                             Play upload
-#   GOOGLE_SERVICES_JSON (raw or base64)                                                         Firebase: push + calls
+#   GOOGLE_SERVICES_JSON (raw or base64)                                                         Firebase: push alerts
 name: Android staff app
 
 on:
@@ -23,10 +22,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      licensee:
-        description: 'Licensee code for its own branded app (empty = the Keystone app)'
-        required: false
-        default: ''
       play_track:
         description: Google Play track
         type: choice
@@ -42,7 +37,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: android-${{ github.event_name }}-${{ github.ref }}-${{ inputs.licensee || 'keystone' }}
+  group: android-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -60,39 +55,38 @@ jobs:
         with:
           gradle-version: 8.14.3
       - run: npm ci --include=optional
-      - name: Brand file is the Keystone default
-        run: node scripts/android-brand.mjs --check
       - run: npm run build
         env:
           VITE_KS_OPS_URL: ${{ vars.VITE_KS_OPS_URL || 'https://ks-ops-dev.azurewebsites.net' }}
       - run: npx cap sync android
-      - name: Firebase file (placeholder on pull requests)
+      - name: Firebase file (placeholder unless GOOGLE_SERVICES_JSON is set)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: node scripts/android-google-services.mjs
       - name: Build the debug APK
         run: gradle assembleDebug
+        working-directory: android
+      - name: Build the release bundle (AAB, unsigned)
+        run: gradle bundleRelease
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
           name: android-staff-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-staff-unsigned-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
 
   release:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    environment: ${{ inputs.licensee && format('ks-{0}', inputs.licensee) || '' }}
     outputs:
-      application_id: ${{ steps.brand.outputs.application_id }}
-      app_name: ${{ steps.brand.outputs.app_name }}
       signed: ${{ steps.sign.outputs.signed }}
     env:
-      LICENSEE: ${{ inputs.licensee }}
-      ANDROID_LICENSEE: ${{ inputs.licensee }}
-      VITE_COMPANY_NAME: ${{ inputs.licensee && vars.VITE_COMPANY_NAME || '' }}
-      ANDROID_APPLICATION_ID: ${{ inputs.licensee && vars.ANDROID_APPLICATION_ID || '' }}
-      ANDROID_BRAND_COLOR: ${{ inputs.licensee && (vars.ANDROID_BRAND_COLOR || vars.VITE_PRIMARY_COLOR) || '' }}
-      ICON_URL: ${{ inputs.licensee && (vars.ANDROID_ICON_URL || vars.DESKTOP_ICON_URL) || '' }}
       KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -100,9 +94,6 @@ jobs:
       GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
     steps:
       - uses: actions/checkout@v6
-      - name: Licensee is in the registry
-        if: env.LICENSEE != ''
-        run: node deploy/licensee-matrix.mjs portal "$LICENSEE" > /dev/null
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: npm }
       - uses: actions/setup-java@v5
@@ -111,33 +102,9 @@ jobs:
         with:
           gradle-version: 8.14.3
       - run: npm ci --include=optional
-      - name: Brand (application id, names, colours)
-        id: brand
-        run: node scripts/android-brand.mjs
-      - name: Licensee icon
-        if: env.ICON_URL != ''
-        run: |
-          case "$ICON_URL" in https://*) ;; *) echo "::error::ANDROID_ICON_URL must be an https address"; exit 1 ;; esac
-          mkdir -p "$RUNNER_TEMP/icon"
-          curl -fsSL --max-filesize 5000000 "$ICON_URL" -o "$RUNNER_TEMP/icon/icon.png"
-          python3 -m pip install --quiet pillow
-          python3 scripts/android-icons.py "$RUNNER_TEMP/icon/icon.png"
-      - name: Web build settings
-        env:
-          API_URL: ${{ inputs.licensee && vars.VITE_API_BASE_URL || '' }}
-          OPS_URL: ${{ vars.VITE_KS_OPS_URL || 'https://ks-ops-dev.azurewebsites.net' }}
-        run: |
-          {
-            echo "VITE_KS_OPS_URL=$OPS_URL"
-            if [ -n "$LICENSEE" ]; then
-              case "$API_URL" in https://*) ;; *) echo "::error::Add the variable VITE_API_BASE_URL (https) to the environment ks-$LICENSEE"; exit 1 ;; esac
-              echo "VITE_API_URL=$API_URL"
-              echo "VITE_API_BASE_URL=$API_URL"
-              echo "VITE_KS_FIXED_SERVER=true"
-              [ -z "$VITE_COMPANY_NAME" ] || echo "VITE_COMPANY_NAME=$VITE_COMPANY_NAME"
-            fi
-          } >> .env.production.local
       - run: npm run build
+        env:
+          VITE_KS_OPS_URL: ${{ vars.VITE_KS_OPS_URL || 'https://ks-ops-dev.azurewebsites.net' }}
       - run: npx cap sync android
       - name: Firebase file
         run: node scripts/android-google-services.mjs
@@ -150,7 +117,7 @@ jobs:
           done
           if [ -n "$missing" ]; then
             echo "signed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Android signing::Missing secrets:${missing/KEYSTORE_BASE64/ANDROID_KEYSTORE_BASE64} - building an unsigned bundle (not uploadable to Google Play)."
+            echo "::notice title=Android signing::Missing secrets:${missing/KEYSTORE_BASE64/ANDROID_KEYSTORE_BASE64} - building an unsigned bundle (Google Play will not accept it)."
             exit 0
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
@@ -162,12 +129,10 @@ jobs:
       - name: Check the signature
         if: steps.sign.outputs.signed == 'true'
         run: jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab > /dev/null
-      - name: Name the bundle
-        run: cp android/app/build/outputs/bundle/release/app-release.aab "$RUNNER_TEMP/android-staff-${LICENSEE:-keystone}.aab"
       - uses: actions/upload-artifact@v4
         with:
           name: android-staff-aab
-          path: ${{ runner.temp }}/android-staff-${{ inputs.licensee || 'keystone' }}.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
       - name: Remove the key
         if: always()
@@ -175,8 +140,7 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "### Android staff app - ${{ steps.brand.outputs.app_name }}"
-            echo "- Application id: ${{ steps.brand.outputs.application_id }}"
+            echo "### Android staff app"
             echo "- Version code: $((1000 + GITHUB_RUN_NUMBER))"
             echo "- Signed: ${{ steps.sign.outputs.signed }}"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -185,7 +149,6 @@ jobs:
     needs: release
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    environment: ${{ inputs.licensee && format('ks-{0}', inputs.licensee) || '' }}
     env:
       PLAY_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
     steps:
@@ -211,10 +174,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ env.PLAY_JSON }}
-          packageName: ${{ needs.release.outputs.application_id }}
+          packageName: com.keystone.portal
           releaseFiles: aab/*.aab
           track: ${{ inputs.play_track }}
           status: ${{ inputs.play_status }}
-      - name: Summary
-        run: |
-          echo "- Google Play (${{ inputs.play_track }}, ${{ inputs.play_status }}): uploaded=${{ steps.creds.outputs.upload }}" >> "$GITHUB_STEP_SUMMARY"

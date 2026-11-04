@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- KS_ANDROID_STAFF_v1 - the "Phone" launcher icon: brand colour with the receiver on it. -->
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ks_brand"/>
-    <foreground android:drawable="@drawable/ic_phone_foreground"/>
-    <monochrome android:drawable="@drawable/ic_phone_foreground"/>
-</adaptive-icon>

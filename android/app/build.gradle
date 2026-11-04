@@ -1,28 +1,31 @@
 apply plugin: 'com.android.application'
 
-// KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets). Brand (application id, names, colours, version)
-// comes from ../brand.properties, written by scripts/android-brand.mjs: the committed copy is the Keystone app, a
-// licensee build rewrites it from the licensee's GitHub environment. The Java package stays
-// financial.boreal.keystone.portal (namespace) whatever the application id, so no source file changes per brand.
-def brand = new Properties()
-rootProject.file('brand.properties').withInputStream { brand.load(it) }
+// KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets): the staff portal for every brokerage (staff find
+// their company by work email or mobile number, like the iPad app). One app, not one per licensee: only the client
+// app is branded per licensee. Calls are made and taken by the Android dialler (KS-Dialer android/).
+def brand = [
+    applicationId: 'com.keystone.portal',
+    appName      : 'Keystone Staff Portal',
+    brandColor   : '#1E3A8A', // white text on it is above 10:1 (AA needs 4.5:1)
+    onBrandColor : '#FFFFFF',
+    versionName  : '2.0.0',
+]
 
 android {
     namespace = "financial.boreal.keystone.portal"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId brand.getProperty('applicationId')
+        applicationId brand.applicationId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Google Play needs a higher versionCode for every upload: 1000 + the workflow run number in CI, 1 locally.
         versionCode(1000 + (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInteger())
-        versionName brand.getProperty('versionName')
-        resValue "string", "app_name", brand.getProperty('appName')
-        resValue "string", "title_activity_main", brand.getProperty('appName')
-        resValue "string", "ks_phone_app_name", brand.getProperty('phoneName')
-        resValue "color", "ks_brand", brand.getProperty('brandColor')
-        resValue "color", "ks_on_brand", brand.getProperty('onBrandColor')
-        resValue "color", "ic_launcher_background", brand.getProperty('brandColor')
+        versionName brand.versionName
+        resValue "string", "app_name", brand.appName
+        resValue "string", "title_activity_main", brand.appName
+        resValue "color", "ks_brand", brand.brandColor
+        resValue "color", "ks_on_brand", brand.onBrandColor
+        resValue "color", "ic_launcher_background", brand.brandColor
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -47,7 +50,7 @@ android {
     }
     buildTypes {
         release {
-            // Shrink release builds; keep rules for Capacitor, the plugins, Twilio Voice and ML Kit are in
+            // Shrink release builds; keep rules for Capacitor, the plugins and ML Kit are in
             // proguard-rules.pro (Capacitor finds plugins by reflection, so a missing rule fails only at run time).
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -80,8 +83,6 @@ dependencies {
     // firebase-messaging as `implementation`, so the app needs it too. The BOM keeps versions in step.
     implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
     implementation 'com.google.firebase:firebase-messaging'
-    // Calls: Twilio Voice (incoming through FCM + Android Telecom, outgoing from the app).
-    implementation "com.twilio:voice-android:$twilioVoiceVersion"
     // Fingerprint / face unlock (the iPad's Face ID lock).
     implementation "androidx.biometric:biometric:$androidxBiometricVersion"
     // Business-card scan: on-device text recognition (no upload), the iPad's Vision scan.

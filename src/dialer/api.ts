@@ -10,7 +10,7 @@ export const dialerApi = {
   resolveCaller: (phone: string) => api.post<{ ok: boolean; matched: boolean; name: string | null; isStaff?: boolean; contactId?: string; applicationId?: string | null; applicationName?: string | null; companyName?: string | null }>("/api/voice/resolve-caller", { phone }),
   getConference: (id: string) => api.get<any>(`/api/voice/conferences/${id}`), voiceToken: () => api.get<any>("/api/telephony/token"),
   // BF_PORTAL_v817_IPAD_VOIP - the iPad app's token names its own VoIP push credential (BF-Server TWILIO_PUSH_CREDENTIAL_SID_PORTAL).
-  voiceTokenFor: (app: "portal-ios" | "portal-android") => api.post<any>("/api/voice/token", { app }),
+  voiceTokenFor: (app: "portal-ios") => api.post<any>("/api/voice/token", { app }),
   quickCallGet: () => api.get<QuickCallData>("/api/telephony/quick-call"),
   quickCallSave: (slots: string[]) => api.put<{ ok: boolean; slots: string[] }>("/api/telephony/quick-call", { slots }),
   muteParticipant: (cid: string, pid: string, muted: boolean) => api.post<any>(`/api/voice/conferences/${cid}/participants/${pid}/mute`, { muted }),

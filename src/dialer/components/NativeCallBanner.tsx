@@ -2,7 +2,7 @@
 // "On a call with X" with mute / speaker / hang up driving the native call.
 import React from "react";
 import { useDialer } from "../store";
-import { canAnswerInPage, nativeAnswer, nativeHangup, nativeSendDigits, nativeToggleMute, nativeToggleSpeaker } from "../nativeVoice";
+import { nativeHangup, nativeSendDigits, nativeToggleMute, nativeToggleSpeaker } from "../nativeVoice";
 import { nativeCallerLabel } from "@/native/portalVoip";
 
 // BF_PORTAL_v824_NATIVE_OUTGOING - a keypad for phone menus on calls the app places itself (the portal on a Mac).
@@ -28,10 +28,6 @@ export default function NativeCallBanner() {
         </>
       )}
       <button type="button" onClick={() => void nativeHangup()} style={btn("#dc2626")}>{ringing ? "Decline" : "Hang up"}</button>
-      {/* KS_ANDROID_STAFF_v1 - the Android app answers here too (the iPad answers in CallKit). */}
-      {ringing && canAnswerInPage() && (
-        <button type="button" onClick={() => void nativeAnswer()} style={btn("#15803d")}>Answer</button>
-      )}
       {keypad && !ringing && (
         <div role="group" aria-label="Keypad" style={pad}>
           {KEYS.map((k) => (

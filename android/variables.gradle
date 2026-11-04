@@ -13,9 +13,8 @@ ext {
     androidxJunitVersion = '1.3.0'
     androidxEspressoCoreVersion = '3.7.0'
     cordovaAndroidVersion = '14.0.1'
-    // KS_ANDROID_STAFF_v1 - native pieces of the staff app (app/build.gradle). Twilio Voice needs API 25+; the
-    // self-managed calling (Android Telecom) the app uses needs API 26, hence minSdkVersion 26.
-    twilioVoiceVersion = '6.10.2'
+    // KS_ANDROID_STAFF_v1 - native pieces of the staff app (app/build.gradle). Calls are in the Android dialler
+    // (KS-Dialer android/), not here.
     firebaseBomVersion = '33.7.0'
     androidxBiometricVersion = '1.1.0'
     mlkitTextRecognitionVersion = '16.0.1'

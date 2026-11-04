@@ -17,7 +17,7 @@
     "test": "vitest run",
     "test:ci": "vitest run",
     "ci:verify": "npm run build && npm run test:ci",
-    "android:sync": "node scripts/android-brand.mjs && npx cap sync android"
+    "android:sync": "npx cap sync android"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",

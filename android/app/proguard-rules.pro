@@ -49,11 +49,6 @@
 -keep class io.ionic.libs.** { *; }
 -dontwarn io.ionic.libs.**
 
-# Twilio Voice: JNI into the native media library, so its classes must keep their names.
--keep class com.twilio.** { *; }
--keep class tvo.webrtc.** { *; }
--dontwarn tvo.webrtc.**
--keep class com.twilio.voice.** { *; }
 -keepattributes InnerClasses
 
 # Firebase Cloud Messaging.

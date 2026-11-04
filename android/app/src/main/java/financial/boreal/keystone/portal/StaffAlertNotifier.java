@@ -4,8 +4,8 @@ package financial.boreal.keystone.portal;
 // buildStaffFcmData). The server sends data-only FCM messages: title, body, categoryId (MISSED_CALL, VOICEMAIL,
 // CLIENT_MESSAGE, SMS, HANDOFF, TASK), type, and optional url, contactId, phone, threadKind, voicemailId, senderName.
 // A tap opens the portal at `url` through the push plugin's "notification tapped" event (the extras carry
-// google.message_id, which is what the plugin looks for). A missed call or voicemail with a number also gets
-// "Call back", which opens the app and starts the call.
+// google.message_id, which is what the plugin looks for). When the Android dialler is on the same phone it draws
+// the call and message alerts itself (with "Call back"); this app then draws only tasks (drawsHere).
 
 import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
@@ -74,6 +74,21 @@ final class StaffAlertNotifier {
         return v == null ? "" : v.trim();
     }
 
+    /** True when the Android dialler (KS-Dialer android/) is installed: it answers ksdialer:// links. */
+    static boolean dialerInstalled(Context c) {
+        Intent probe = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("ksdialer://call?phone=%2B14035550100"));
+        return probe.resolveActivity(c.getPackageManager()) != null;
+    }
+
+    /**
+     * Both Android apps get every staff alert. With the dialler on the same phone it draws the call and message
+     * alerts (missed calls, voicemail, texts, client messages, handoffs) and this app draws only tasks, so nothing
+     * shows twice. Without the dialler this app draws them all.
+     */
+    static boolean drawsHere(String category, boolean dialerOnPhone) {
+        return "TASK".equals(category) || !dialerOnPhone;
+    }
+
     @SuppressLint("MissingPermission")
     static void show(Context c, Map<String, String> data, String messageId) {
         if (data == null) return;
@@ -82,6 +97,7 @@ final class StaffAlertNotifier {
         if (title.isEmpty() && body.isEmpty()) return;
         String category = value(data, "categoryId");
         if (category.isEmpty()) category = "GENERIC";
+        if (!drawsHere(category, dialerInstalled(c))) return;
         String url = safeUrl(value(data, "url"), category);
         String key = value(data, "type") + ":" + (value(data, "contactId").isEmpty() ? value(data, "phone") : value(data, "contactId"));
         int id = key.hashCode();
@@ -111,13 +127,6 @@ final class StaffAlertNotifier {
                 .setPriority("TASK".equals(category) ? NotificationCompat.PRIORITY_DEFAULT : NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(PendingIntent.getActivity(c, id, tap, flags));
 
-        String phone = value(data, "phone");
-        if (("MISSED_CALL".equals(category) || "VOICEMAIL".equals(category)) && phone.matches("^\\+[1-9][0-9]{7,14}$")) {
-            Intent call = new Intent(c, MainActivity.class)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    .putExtra(EXTRA_ROUTE, "dial:" + phone);
-            b.addAction(0, c.getString(R.string.ks_call_back), PendingIntent.getActivity(c, id + 1, call, flags));
-        }
         try {
             NotificationManagerCompat.from(c).notify(id, b.build());
         } catch (RuntimeException ignored) {

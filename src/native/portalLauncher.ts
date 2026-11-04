@@ -12,21 +12,15 @@ export const PortalLauncherPlugin = registerPlugin<PortalLauncher>("PortalLaunch
 export const MAYA_EVENT = "boreal:maya-command";
 let pendingMaya: string | null = null;
 
-// KS_ANDROID_STAFF_v1 - the Android staff app has the plugin too: its "Phone" icon and the long-press shortcuts and
-// "Call back" on a missed-call alert arrive as routes ("dialer:" opens the keypad, "dial:+15551234567" calls).
+// KS_ANDROID_STAFF_v1 - the Android staff app has the plugin too: its long-press shortcuts (Messages, Tasks) and
+// tapped staff alerts arrive as routes.
 export function launcherAvailable(): boolean {
   const platform = Capacitor.getPlatform();
   return Capacitor.isNativePlatform() && (platform === "ios" || platform === "android") && Capacitor.isPluginAvailable("PortalLauncher");
 }
-export type LaunchRoute = { path: string } | { maya: string } | { dialer: true } | { dial: string };
-export function parseLaunchRoute(raw: unknown): LaunchRoute | null {
+export function parseLaunchRoute(raw: unknown): { path: string } | { maya: string } | null {
   const route = typeof raw === "string" ? raw.trim() : "";
   if (!route) return null;
-  if (route === "dialer:") return { dialer: true };
-  if (route.startsWith("dial:")) {
-    const phone = route.slice(5).trim();
-    return /^\+[1-9]\d{7,14}$/.test(phone) ? { dial: phone } : null;
-  }
   if (route.startsWith("maya:")) {
     const maya = route.slice(5).trim();
     return maya ? { maya: maya.slice(0, 500) } : null;

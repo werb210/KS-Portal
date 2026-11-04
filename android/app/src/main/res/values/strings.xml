@@ -1,30 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <!-- app_name, title_activity_main and ks_phone_app_name come from brand.properties (app/build.gradle). -->
-    <string name="package_name">financial.boreal.keystone.portal</string>
-    <string name="custom_url_scheme">financial.boreal.keystone.portal</string>
+    <!-- app_name and title_activity_main are set in app/build.gradle. -->
+    <string name="package_name">com.keystone.portal</string>
+    <string name="custom_url_scheme">com.keystone.portal</string>
 
-    <!-- KS_ANDROID_STAFF_v1 - calls -->
-    <string name="ks_channel_incoming_calls">Incoming calls</string>
-    <string name="ks_channel_incoming_calls_description">Rings for calls to you, even when the phone is locked</string>
-    <string name="ks_channel_ongoing_calls">Current call</string>
+    <!-- KS_ANDROID_STAFF_v1 - alerts (calls themselves are in the Android dialler) -->
     <string name="ks_channel_missed_calls">Missed calls and voicemail</string>
     <string name="ks_channel_messages">Client messages and texts</string>
     <string name="ks_channel_tasks">Tasks</string>
-    <string name="ks_incoming_call">Incoming call</string>
-    <string name="ks_calling">Calling…</string>
-    <string name="ks_on_call">On a call</string>
-    <string name="ks_call_ended">Call ended</string>
-    <string name="ks_answer">Answer</string>
-    <string name="ks_decline">Decline</string>
-    <string name="ks_hang_up">Hang up</string>
-    <string name="ks_mute">Mute</string>
-    <string name="ks_unmute">Unmute</string>
-    <string name="ks_speaker">Speaker</string>
-    <string name="ks_speaker_off">Speaker off</string>
-    <string name="ks_keypad">Keypad</string>
-    <string name="ks_open_portal">Open the portal</string>
-    <string name="ks_call_back">Call back</string>
 
     <!-- KS_ANDROID_STAFF_v1 - documents and other -->
     <string name="ks_cancel">Cancel</string>
@@ -38,10 +21,8 @@
     <string name="ks_markup_cannot_save">The marked-up copy could not be saved. Try again.</string>
 
     <!-- KS_ANDROID_STAFF_v1 - long-press shortcuts -->
-    <string name="ks_shortcut_call">New call</string>
-    <string name="ks_shortcut_call_long">Open the phone keypad</string>
     <string name="ks_shortcut_messages">Messages</string>
-    <string name="ks_shortcut_messages_long">Calls, voicemail and texts</string>
+    <string name="ks_shortcut_messages_long">Client messages and texts</string>
     <string name="ks_shortcut_tasks">Tasks</string>
     <string name="ks_shortcut_tasks_long">Your tasks for today</string>
 </resources>

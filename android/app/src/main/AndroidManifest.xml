@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets): the staff portal plus calling. -->
+<!-- KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets): the staff portal. Calls are in the Android
+     dialler (KS-Dialer android/), which the portal opens with ksdialer://call?phone=... -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -8,24 +9,16 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- Calls (Twilio Voice): microphone, audio routing, Bluetooth headsets. -->
+    <!-- Voice notes and, when the Android dialler is not installed, calls from the page itself. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Ring and hold calls through Android Telecom as a calling app (self-managed). -->
-    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <!-- The call screen over the lock screen when a call rings (Google Play: calling apps may use it). -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- Business-card photos. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
-    <uses-feature android:name="android.software.connectionservice" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <!-- The camera app takes the business-card photo; the document viewer opens previews. -->
     <queries>
@@ -35,6 +28,11 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="*/*" />
+        </intent>
+        <!-- The Android dialler, so the portal's Call buttons can hand the call to it. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="ksdialer" />
         </intent>
     </queries>
 
@@ -77,54 +75,12 @@
             </intent-filter>
         </activity>
 
-        <!-- The second launcher icon, "Phone": the same app opened on the phone keypad (the Android dialler). -->
-        <activity-alias
-            android:name=".PhoneLauncher"
-            android:targetActivity=".MainActivity"
-            android:label="@string/ks_phone_app_name"
-            android:icon="@mipmap/ic_launcher_phone"
-            android:roundIcon="@mipmap/ic_launcher_phone"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
-        <!-- The native call screen: over the lock screen while ringing, then the call's own screen. -->
-        <activity
-            android:name=".voice.CallActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:excludeFromRecents="true"
-            android:taskAffinity="${applicationId}.call"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".MarkupActivity"
             android:exported="false"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <!-- Calls through Android Telecom (self-managed: the app draws its own call screen). -->
-        <service
-            android:name=".voice.VoiceConnectionService"
-            android:exported="true"
-            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
-            <intent-filter>
-                <action android:name="android.telecom.ConnectionService" />
-            </intent-filter>
-        </service>
-
-        <service
-            android:name=".voice.VoiceCallService"
-            android:exported="false"
-            android:foregroundServiceType="phoneCall|microphone" />
-
-        <receiver android:name=".voice.CallActionReceiver" android:exported="false" />
-
-        <!-- One Firebase service for the app: Twilio calls and KS-server staff alerts, then the push plugin. The
+        <!-- One Firebase service for the app: KS-server staff alerts, then the push plugin. The
              plugin's own service is removed so messages are never split between two services. -->
         <service
             android:name=".KeystoneMessagingService"

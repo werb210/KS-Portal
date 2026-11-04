@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // KS_ANDROID_STAFF_v1 - writes android/app/google-services.json (the Firebase file push and incoming calls need)
-// for the application id in android/brand.properties:
+// for the application id in android/app/build.gradle:
 //   - the GOOGLE_SERVICES_JSON secret (raw JSON or base64) when it contains this application id, otherwise
 //   - a build-only placeholder (the app builds and runs; it gets no pushes and cannot ring while closed).
 // Prints which one it wrote; inside GitHub Actions also writes real=true|false to $GITHUB_OUTPUT.
@@ -11,9 +11,9 @@ import { fileURLToPath } from "node:url";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const androidDir = path.join(here, "..", "android");
 
-export function applicationIdFrom(properties) {
-  const m = /^applicationId=(.+)$/m.exec(properties);
-  if (!m) throw new Error("android/brand.properties has no applicationId");
+export function applicationIdFrom(gradle) {
+  const m = /applicationId\s*:\s*'([^']+)'/.exec(gradle);
+  if (!m) throw new Error("android/app/build.gradle has no applicationId");
   return m[1].trim();
 }
 
@@ -48,7 +48,7 @@ export function realFileFor(pkg, secret) {
 }
 
 function main() {
-  const pkg = applicationIdFrom(readFileSync(path.join(androidDir, "brand.properties"), "utf8"));
+  const pkg = applicationIdFrom(readFileSync(path.join(androidDir, "app", "build.gradle"), "utf8"));
   const real = realFileFor(pkg, process.env.GOOGLE_SERVICES_JSON);
   writeFileSync(path.join(androidDir, "app", "google-services.json"), real ?? placeholderFor(pkg));
   if (real) console.log(`google-services.json: the Firebase file for ${pkg}`);

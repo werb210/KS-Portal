@@ -9,13 +9,13 @@
 | iPhone native app | Unsupported |
 | Android staff app (phones and tablets) | Built in CI (KS_ANDROID_STAFF_v1) |
 
-`android/` is the Android staff app (KS_ANDROID_STAFF_v1): the portal plus a second launcher icon, "Phone", that opens it on the phone keypad. Calls use the Twilio Voice Android SDK through Android Telecom (ring on the lock screen, foreground service during a call), staff alerts arrive through Firebase, and the app has fingerprint/face lock, business-card scan, PDF mark-up and Share -> deal. `.github/workflows/android.yml` builds a debug APK on every pull request and, run by hand, a signed release bundle (AAB) that it uploads to Google Play's internal track when the secrets are set (it skips the upload with a notice otherwise).
+`android/` is the Android staff app (KS_ANDROID_STAFF_v1) for phones and tablets: the staff portal with fingerprint/face lock, business-card scan, PDF mark-up, Share -> deal and push alerts. Calls are made and taken by the Android dialler (KS-Dialer `android/`): the portal's Call buttons open it with `ksdialer://call?phone=...`, and the portal never rings itself, so one phone has one calling engine. With the dialler on the same phone, call and message alerts show from the dialler and task alerts from the portal. `.github/workflows/android.yml` builds a debug APK and an unsigned release bundle (AAB) on every pull request and, run by hand, a signed release bundle that it uploads to Google Play's internal track when the secrets are set (it skips the upload with a notice otherwise).
 
 Local build (Android Studio or the Android SDK installed):
 
 ```sh
 npm ci && npm run build
-npm run android:sync                       # brand file + npx cap sync android
+npm run android:sync                       # npx cap sync android
 node scripts/android-google-services.mjs   # placeholder unless GOOGLE_SERVICES_JSON is set
 cd android && gradle assembleDebug          # Gradle 8.14 (the wrapper jar is not committed)
 ```

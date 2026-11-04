@@ -1,13 +1,11 @@
 package financial.boreal.keystone.portal;
 
 // KS_ANDROID_STAFF_v1 - the Android staff app (phones and tablets): the staff portal in Capacitor, with the iPad
-// app's native pieces (calls, biometric lock, business-card scan, document mark-up, share-to-deal, push alerts) and a
-// second launcher icon, "Phone", that opens the same app straight on the phone keypad. That is the Android dialler:
-// one app instead of a separate one like the iPhone's, because on Android the portal itself runs on phones, and one
-// app means one Twilio registration, one push token and one sign-in, so a call never rings twice or not at all.
+// app's native pieces (biometric lock, business-card scan, document mark-up, share-to-deal, push alerts). Calls are
+// made and taken by the Android dialler, a separate app like the iPhone's (KS-Dialer android/): the portal's Call
+// buttons open it with ksdialer://call?phone=..., so each phone has one calling engine and never rings twice.
 
 import android.content.ClipData;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -41,7 +39,6 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(BorealVoicePlugin.class);
         registerPlugin(BiometricUnlockPlugin.class);
         registerPlugin(WorkstationPlugin.class);
         registerPlugin(PortalLauncherPlugin.class);
@@ -50,11 +47,10 @@ public class MainActivity extends BridgeActivity {
         publishShortcuts();
     }
 
-    /** Long-press the app icon: New call, Messages, Tasks (each a PortalLauncher route). */
+    /** Long-press the app icon: Messages, Tasks (each a PortalLauncher route). */
     private void publishShortcuts() {
         try {
             List<ShortcutInfoCompat> list = new ArrayList<>();
-            list.add(shortcut("call", R.string.ks_shortcut_call, R.string.ks_shortcut_call_long, R.drawable.ic_shortcut_call, "dialer:"));
             list.add(shortcut("messages", R.string.ks_shortcut_messages, R.string.ks_shortcut_messages_long, R.drawable.ic_shortcut_messages, "/communications"));
             list.add(shortcut("tasks", R.string.ks_shortcut_tasks, R.string.ks_shortcut_tasks_long, R.drawable.ic_shortcut_tasks, "/tasks"));
             ShortcutManagerCompat.setDynamicShortcuts(this, list);
@@ -91,13 +87,10 @@ public class MainActivity extends BridgeActivity {
         if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action)) takeShared(intent);
     }
 
-    /** "Phone" icon -> the keypad; shortcuts and alert buttons carry their route in an extra. */
+    /** Shortcuts carry their route in an extra. */
     static String routeFor(Intent intent) {
         String extra = intent.getStringExtra(StaffAlertNotifier.EXTRA_ROUTE);
-        if (extra != null && !extra.isEmpty()) return extra;
-        ComponentName c = intent.getComponent();
-        if (c != null && c.getClassName().endsWith(".PhoneLauncher") && Intent.ACTION_MAIN.equals(intent.getAction())) return "dialer:";
-        return null;
+        return extra != null && !extra.isEmpty() ? extra : null;
     }
 
     // ------------------------------------------------------------------ share to deal

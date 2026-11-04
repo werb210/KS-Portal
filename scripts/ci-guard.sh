@@ -31,9 +31,12 @@ if grep -r "networkGuard" src; then
 fi
 
 # KS_ANDROID_STAFF_v1 - the portal ships as the iPad app (iOS: iPad only, below) AND as the Android staff app for
-# phones and tablets (android/, .github/workflows/android.yml). The old "no Android" rules are gone; the Android
-# project's brand file must still be the committed Keystone default (a licensee build rewrites it only in CI).
-node scripts/android-brand.mjs --check
+# phones and tablets (android/, .github/workflows/android.yml). Calls on Android belong to the Android dialler
+# (KS-Dialer android/), so the portal's Android project must not carry a calling engine of its own.
+if grep -rqE 'com\.twilio|ConnectionService|MANAGE_OWN_CALLS' android/app/src android/app/build.gradle; then
+  echo "The Android portal must hand calls to the Android dialler, not place them itself"
+  exit 1
+fi
 
 project_file="ios/App/App.xcodeproj/project.pbxproj"
 device_families="$(sed -n 's/.*TARGETED_DEVICE_FAMILY = "\([^"]*\)";.*/\1/p' "$project_file")"
