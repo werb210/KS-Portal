@@ -5,7 +5,6 @@ import { api } from "@/api";
 import { LinkRow } from "./BookingSettings";
 import { MySessions } from "./SecuritySettings";
 import { Field, Notice, Section, Toggle, button, errText, input, muted } from "./ui";
-import { MyQueueCallsOnProfile } from "@/callQueues/CallQueuesSettings"; // KS_LENDER_SYNC_CONTRACTS - my queue-call switch
 
 type Defaults = { prompt_after_call: boolean; prompt_after_email: boolean; prompt_after_meeting: boolean; due_in_days: number; due_time: string; task_type: string; reminder_minutes: number | null };
 
@@ -76,7 +75,6 @@ export default function MyProfileExtras() {
       <MyBookingLink />
       <FollowUpDefaults />
       <MyLeadRotation />
-      <MyQueueCallsOnProfile />
       <MySessions />
     </div>
   );

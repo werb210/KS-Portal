@@ -90,8 +90,7 @@ const SettingsPage = () => {
       { id: "call-scripts", label: "Call scripts", visible: isAdmin && !isBI, content: <CallScriptsSettings /> }, // playbooks (growth+)
       { id: "pipelines", label: "Pipelines", visible: isAdmin && !isBI, content: <PipelinesSettings /> }, // extra pipelines (growth 3, pro unlimited)
       { id: "deal-tools", label: "Deal tools", visible: (isAdmin || isStaff) && !isBI, content: <DealToolsSettings isAdmin={isAdmin} /> }, // KS_BROKER_TOOLS
-      // KS_LENDER_SYNC_CONTRACTS - Admins only; everyone's own "available for queue calls" switch is on My Profile.
-      { id: "call-queues", label: "Call queues", visible: isAdmin && !isBI, content: <CallQueuesSettings /> }, // pro: live panel, set-up, my availability
+      { id: "call-queues", label: "Call queues", visible: (isAdmin || isStaff) && !isBI, content: <CallQueuesSettings /> }, // pro: live panel (Admins), my availability
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
       // KS_PORTAL_SETTINGS_PACK_v1 - Admin settings: phone menu, booking pages, lead rotation, blocked numbers, never log,
       // security, privacy requests and the client survey.
