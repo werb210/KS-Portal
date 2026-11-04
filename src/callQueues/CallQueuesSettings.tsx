@@ -18,7 +18,12 @@ const blank = (): Draft => ({ id: null, name: "", greeting: "Thanks for calling.
 export function MyQueueAvailability() {
   const [me, setMe] = useState<{ available: boolean; queues: string[] } | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  useEffect(() => { void callQueuesApi.me().then(setMe).catch((e) => setErr(errText(e, "Could not load your queue status."))); }, []);
+  useEffect(() => {
+    void callQueuesApi.me()
+      // An odd or empty reply means "not in a queue", never a crash that takes down the page around it.
+      .then((r) => setMe({ available: Boolean(r?.available), queues: Array.isArray(r?.queues) ? r.queues : [] }))
+      .catch((e) => setErr(errText(e, "Could not load your queue status.")));
+  }, []);
   const set = async (available: boolean) => {
     setErr(null);
     try { await callQueuesApi.setMe(available); setMe((m) => (m ? { ...m, available } : m)); } catch (e) { setErr(errText(e, "Could not change your status.")); }
