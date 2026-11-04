@@ -6,7 +6,7 @@ const patch = vi.fn();
 vi.mock("@/api", () => ({ api: { patch: (...a: unknown[]) => patch(...a) } }));
 
 import { fundingConflict, patchStatusWithFundingGate } from "../fundingGate";
-import { summaryText } from "../FundingConditionsPanel";
+import { conditionSourceText, summaryText } from "../FundingConditionsPanel";
 
 const conflict = (canOverride: boolean) => new ApiError({ status: 409, message: "1 funding condition is still open.", details: {
   error: "funding_conditions_outstanding", message: "1 funding condition is still open.", can_override: canOverride,
@@ -58,5 +58,15 @@ describe("funding gate", () => {
     const c = (status: string) => ({ status }) as any;
     expect(summaryText([c("cleared"), c("waived")])).toMatch(/can move to Funded/);
     expect(summaryText([c("open"), c("cleared")])).toMatch(/1 of 2 conditions still open/);
+  });
+});
+
+// KS_LENDER_SYNC_CONTRACTS - conditions a connected lender reported say so on the checklist.
+describe("condition source", () => {
+  it("names the lender", () => {
+    expect(conditionSourceText({ source: "lender", source_label: "Reported by Sample Lender", lender_name: "Sample Lender" })).toBe("Reported by Sample Lender");
+    expect(conditionSourceText({ source: "lender", lender_name: "Sample Lender" })).toBe("Reported by Sample Lender");
+    expect(conditionSourceText({ source: "manual" })).toBe("Added by staff");
+    expect(conditionSourceText({ source: "offer" })).toBe("From the offer");
   });
 });

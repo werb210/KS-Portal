@@ -2,7 +2,7 @@
 // (corrections are new entries; nothing is edited or deleted) and recording money received.
 import { useState } from "react";
 import { acApi, errorText, type Detail } from "./api";
-import { balanceSource, Btn, card, day, ErrorLine, Field, h3, input, label, money, muted, table, td, th } from "./ui";
+import { balanceRowSource, balanceSource, Btn, card, day, ErrorLine, Field, h3, input, label, money, muted, table, td, th } from "./ui";
 
 const TYPES: Array<[string, string]> = [
   ["commission_received", "Commission received"], ["recurring_payment", "Recurring payment to us"], ["profit_share_payment", "Profit-share payment"],
@@ -38,7 +38,7 @@ export default function LedgerPanel({ d, onChanged }: { d: Detail; onChanged: ()
           <table style={{ ...table, marginTop: 8 }}>
             <thead><tr><th style={th}>As of</th><th style={th}>Balance</th><th style={th}>Source</th><th style={th}>Payments</th><th style={th}>Arrears</th><th style={th}>Note</th></tr></thead>
             <tbody>{d.balances.map((b) => (
-              <tr key={b.id}><td style={td}>{day(b.as_of)}</td><td style={td}>{money(Number(b.balance), true)}</td><td style={td}>{label(b.source)}</td><td style={td}>{b.payments_made ?? "-"}</td><td style={td}>{b.arrears ? money(Number(b.arrears), true) : "-"}</td><td style={td}>{b.note ?? ""}</td></tr>
+              <tr key={b.id}><td style={td}>{day(b.as_of)}</td><td style={td}>{money(Number(b.balance), true)}</td><td style={td}>{balanceRowSource(b)}</td><td style={td}>{b.payments_made ?? "-"}</td><td style={td}>{b.arrears ? money(Number(b.arrears), true) : "-"}</td><td style={td}>{b.note ?? ""}</td></tr>
             ))}</tbody>
           </table>
         ) : null}

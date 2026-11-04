@@ -7,7 +7,8 @@ vi.mock("@/api", () => ({ api: { get: h.get, post: h.post, put: h.put }, default
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: h.role } }) }));
 vi.mock("@/dialer/actions", () => ({ startOutboundPstn: h.call }));
 
-import CallQueuesSettings from "../CallQueuesSettings";
+import CallQueuesSettings, { MyQueueCallsOnProfile } from "../CallQueuesSettings";
+import MyProfileExtras from "@/settingsPack/MyProfileExtras";
 import PhoneMenuSettings from "@/settingsPack/PhoneMenuSettings";
 
 const Q = "q1", SAM = "u1", SUE = "u2";
@@ -91,5 +92,39 @@ describe("Phone menu", () => {
     expect(within(opt).getByLabelText("Queue")).toHaveValue(Q);
     fireEvent.click(screen.getByText("Save phone menu"));
     await waitFor(() => expect((h.put.mock.calls[0]![1] as any).menu.options[0].target).toEqual({ type: "queue", queueId: Q }));
+  });
+});
+
+// KS_LENDER_SYNC_CONTRACTS - the personal switch on Settings > My Profile (Brokers no longer see Settings > Call queues).
+describe("My Profile > My queue calls", () => {
+  it("a Broker in a queue gets the switch, using the same endpoint", async () => {
+    h.role = "Staff";
+    render(<MyQueueCallsOnProfile />);
+    fireEvent.click(await screen.findByLabelText("Not taking queue calls"));
+    await waitFor(() => expect(h.put).toHaveBeenCalledWith("/api/call-queues/me", { available: true }));
+    expect(screen.getByText("Your queues: Sales.")).toBeInTheDocument();
+    expect(h.get).toHaveBeenCalledWith("/api/call-queues/me");
+    expect(h.get).not.toHaveBeenCalledWith("/api/call-queues");
+  });
+
+  it("someone in no queue sees one line", async () => {
+    h.role = "Staff";
+    h.get.mockImplementation(async (url: string) => (url.endsWith("/me") ? { available: false, queues: [] } : {}));
+    render(<MyQueueCallsOnProfile />);
+    expect(await screen.findByText("You're not in any call queue.")).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("Marketing sees the one line without asking the server", () => {
+    h.role = "Marketing";
+    render(<MyQueueCallsOnProfile />);
+    expect(screen.getByText("You're not in any call queue.")).toBeInTheDocument();
+    expect(h.get).not.toHaveBeenCalled();
+  });
+
+  it("is part of My Profile", async () => {
+    h.role = "Staff";
+    render(<MyProfileExtras />);
+    expect(await screen.findByLabelText("Not taking queue calls")).toBeInTheDocument();
   });
 });

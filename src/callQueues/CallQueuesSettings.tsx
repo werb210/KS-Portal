@@ -3,8 +3,10 @@
 // callback requests), queue set-up (members, greeting, hold music and messages, place-in-line announcements, longest
 // wait, overflow) and whether the main line goes straight into a queue. Phone-menu options pick a queue in
 // Settings > Phone menu.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import SiloContext from "@/context/SiloContext";
+import { hasFeature, usePlan } from "@/plans/planStore";
 import { startOutboundPstn } from "@/dialer/actions";
 import { Field, Notice, Section, Toggle, button, cell, danger, errText, input, muted, quiet } from "@/settingsPack/ui";
 import { callQueuesApi, duration, type Live, type Queue, type QueueSetup } from "./callQueuesApi";
@@ -27,9 +29,24 @@ export function MyQueueAvailability() {
       {me && (me.queues.length ? <>
         <Toggle id="queue-available" label={me.available ? "Available for queue calls" : "Not taking queue calls"} checked={me.available} onChange={(v) => void set(v)} />
         <p style={muted}>Your queues: {me.queues.join(", ")}.</p>
-      </> : <p style={muted}>You are not in any call queue.</p>)}
+      </> : <p style={muted}>You&apos;re not in any call queue.</p>)}
     </Section>
   );
+}
+
+/**
+ * KS_LENDER_SYNC_CONTRACTS - the same personal "available for queue calls" switch on Settings > My Profile, so Brokers
+ * keep it now that Settings > Call queues is for Admins. Only where the plan has call queues and outside the BI silo.
+ */
+export function MyQueueCallsOnProfile() {
+  const { user } = useAuth();
+  const silo = useContext(SiloContext)?.silo; // no provider (tests, previews): not BI
+  const plan = usePlan();
+  if (String(silo ?? "").toUpperCase() === "BI" || !hasFeature("call_queues", plan)) return null;
+  if (user?.role !== "Admin" && user?.role !== "Staff") {
+    return <Section id="my-queue" title="My queue calls"><p style={muted}>You&apos;re not in any call queue.</p></Section>;
+  }
+  return <MyQueueAvailability />;
 }
 
 export function LiveQueuePanel({ setup }: { setup: QueueSetup | null }) {

@@ -17,6 +17,8 @@ vi.mock("@/api", () => ({ api: h.apiFn, default: h.apiFn, apiGetEnvelope: vi.fn(
 
 import ActiveContractsTab from "../ActiveContractsTab";
 import RenewalRulesEditor from "../RenewalRulesEditor";
+import { LenderReportedBalance } from "../DetailsPanel";
+import { balanceRowSource } from "../ui";
 import ContactRecordTabs from "@/components/crm/ContactRecordTabs";
 import { withPortalReports, ACTIVE_CONTRACTS_KEY } from "@/pages/reports/reportLibrary";
 
@@ -108,5 +110,29 @@ describe("reports", () => {
   it("the portfolio report is Admin only (money group)", () => {
     expect(withPortalReports([], "Admin").map((r) => r.key)).toContain(ACTIVE_CONTRACTS_KEY);
     expect(withPortalReports([], "Staff").map((r) => r.key)).not.toContain(ACTIVE_CONTRACTS_KEY);
+  });
+});
+
+// KS_LENDER_SYNC_CONTRACTS - what a connected lender reported, next to what staff entered.
+describe("lender-reported balance on the contract page", () => {
+  const reported = { balance: 41250.5, as_of: "2026-11-02", lender_name: "Sample Lender", payments_made: 9, next_payment_date: "2026-11-09", next_payment_amount: 1250, lender_status: "Active" };
+  it("shows the lender's balance, next payment and status, and the staff balance when they differ", () => {
+    render(<LenderReportedBalance c={{ ...contract, lender_reported: reported, staff_balance: { balance: 40000, as_of: "2026-11-02", source: "manual" }, balances_differ: true } as any} />);
+    const box = screen.getByTestId("lender-reported-balance");
+    expect(box.textContent).toMatch(/^Balance reported by Sample Lender: \$41,250\.50 on /);
+    expect(box.textContent).toContain("Next payment: $1,250.00 on");
+    expect(box.textContent).toContain("Payments made: 9");
+    expect(box.textContent).toContain("Status at Sample Lender: Active");
+    expect(screen.getByTestId("staff-balance").textContent).toMatch(/^Balance entered by staff: \$40,000\.00 on .*The two figures differ; check with Sample Lender\.$/);
+  });
+  it("shows nothing extra when the lender has not reported, and hides the staff line when they agree", () => {
+    const { container } = render(<LenderReportedBalance c={{ ...contract, lender_reported: null } as any} />);
+    expect(container.textContent).toBe("");
+    render(<LenderReportedBalance c={{ ...contract, lender_reported: reported, staff_balance: { balance: 41250.5, as_of: "2026-11-02", source: "manual" }, balances_differ: false } as any} />);
+    expect(screen.queryByTestId("staff-balance")).toBeNull();
+  });
+  it("names the lender in the balance history", () => {
+    expect(balanceRowSource({ source: "lender_portal", lender_name: "Sample Lender" })).toBe("Reported by Sample Lender");
+    expect(balanceRowSource({ source: "manual" })).toBe("Entered by staff");
   });
 });
