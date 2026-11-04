@@ -18,6 +18,12 @@ export type Contract = {
   open_opportunity_application_id: string | null; closed_at: string | null; renewal_rule: Record<string, unknown> | null;
   balance: BalanceView; rule: { rule_type: string; description: string; source: string; percent_threshold?: number | null; months_before_maturity?: number | null };
   renewal: Renewal; next_action: string; last_contact_at?: string | null;
+  // KS_LENDER_SYNC_CONTRACTS - the latest balance a connected lender reported, and the latest one staff entered.
+  lender_reported?: LenderReported | null; staff_balance?: { balance: number | null; as_of: string | null; source: string } | null; balances_differ?: boolean;
+};
+export type LenderReported = {
+  balance: number | null; as_of: string | null; lender_name: string | null; payments_made: number | null;
+  next_payment_date: string | null; next_payment_amount: number | null; lender_status: string | null;
 };
 export type Summary = {
   total_original_financing: number; open_original_financing: number; estimated_outstanding: number; outstanding_has_estimates: boolean;
@@ -39,7 +45,7 @@ export type Detail = {
   documents: { contract_documents: Array<{ id: string; kind: string; filename: string; created_at: string; source: string }>; application_documents: Array<{ id: string; filename: string; category: string | null; created_at: string }> };
   reviews: Review[];
   chain: Array<{ id: string; status: string; lender_name: string | null; product_name: string | null; funded_at: string | null; original_amount: string | null }>;
-  balances: Array<{ id: string; balance: string; as_of: string; source: string; payments_made: number | null; arrears: string | null; note: string | null }>;
+  balances: Array<{ id: string; balance: string; as_of: string; source: string; payments_made: number | null; arrears: string | null; note: string | null; lender_name?: string | null }>;
 };
 export type Review = { id: string; contract_id: string | null; filename: string | null; extracted: { balance?: number | null; as_of?: string | null; payments_made?: number | null; arrears?: number | null; borrower_name?: string | null; lender_name?: string | null }; status: string; error: string | null; created_at: string; company_name?: string | null; lender_name?: string | null };
 export type Settings = { silo: string; auto_email: boolean; auto_sms: boolean; email_subject: string | null; email_body: string | null; sms_body: string | null; no_contact_months: number; client_portal: boolean };

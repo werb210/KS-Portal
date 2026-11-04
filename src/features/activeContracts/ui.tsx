@@ -83,6 +83,14 @@ export function ErrorLine({ text }: { text: string | null }) {
   return text ? <div role="alert" style={{ color: "var(--ui-text-danger, #b91c1c)", fontSize: 13, margin: "6px 0" }}>{text}</div> : null;
 }
 
+/** KS_LENDER_SYNC_CONTRACTS - a balance history row's source in words ("Reported by Sample Lender"). */
+export function balanceRowSource(b: { source: string; lender_name?: string | null }): string {
+  if (b.source === "lender_portal") return b.lender_name ? `Reported by ${b.lender_name}` : "Lender portal";
+  if (b.source === "lender_statement") return "Lender statement";
+  if (b.source === "payoff") return "Paid out";
+  return "Entered by staff";
+}
+
 /** Where the balance came from, always visible: "Estimated" or "Lender statement - Oct 1, 2026". */
 export function balanceSource(b: { basis: string; source: string; as_of: string | null }): string {
   if (b.basis === "unknown") return "No balance yet";

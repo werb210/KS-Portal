@@ -11,10 +11,18 @@ export type Condition = {
   status: "open" | "received" | "cleared" | "waived"; source: string; requires_document: boolean;
   document_id: string | null; document_url: string | null; note: string | null; waived_reason: string | null;
   client_submitted_at: string | null; overdue: boolean;
+  source_label?: string; lender_name?: string | null; // KS_LENDER_SYNC_CONTRACTS - "Reported by <lender>"
 };
 type Person = { id: string; name: string | null; email: string | null };
 
 export const STATUS_TONE: Record<Condition["status"], Tone> = { open: "amber", received: "blue", cleared: "green", waived: "grey" };
+
+/** KS_LENDER_SYNC_CONTRACTS - where a condition came from, in words ("Reported by Sample Lender"). */
+export function conditionSourceText(c: Pick<Condition, "source" | "source_label" | "lender_name">): string {
+  if (c.source_label) return c.source_label;
+  if (c.source === "lender") return `Reported by ${c.lender_name || "the lender"}`;
+  return c.source === "offer" ? "From the offer" : c.source === "template" ? "From a template" : "Added by staff";
+}
 
 export function summaryText(list: Condition[]): string {
   const open = list.filter((c) => c.status !== "cleared" && c.status !== "waived").length;
@@ -98,7 +106,7 @@ export default function FundingConditionsPanel({ applicationId }: { applicationI
                   <Chip tone={STATUS_TONE[c.status]}>{STATUS_LABEL[c.status]}</Chip>
                   {c.overdue && <Chip tone="red">Overdue</Chip>}
                   {c.client_submitted_at && c.status === "received" && <Chip tone="blue">Sent by client</Chip>}
-                  <span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>{c.source === "offer" ? "From the offer" : c.source === "template" ? "From a template" : "Added by staff"}</span>
+                  <span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>{conditionSourceText(c)}</span>
                 </div>
                 {c.description && <p style={muted}>{c.description}</p>}
                 {c.waived_reason && <p style={muted}>Waived: {c.waived_reason}</p>}

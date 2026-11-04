@@ -2,7 +2,7 @@
 // compensation, recent activity (from the CRM Timeline), the maturity outcome / status, and editing the details.
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { acApi, errorText, type Detail } from "./api";
+import { acApi, errorText, type Contract, type Detail } from "./api";
 import { balanceSource, Btn, card, day, ErrorLine, Field, h3, input, label, money, muted, Progress, Row } from "./ui";
 import type { DetailTab } from "./ContractDetail";
 
@@ -11,6 +11,31 @@ const STATUS_CHOICES: Array<[string, string]> = [
   ["refinanced", "Refinanced"], ["paid_out", "Paid Out"], ["matured", "Matured"], ["closed", "Closed"], ["default", "Default / Problem Account"],
 ];
 const FREQ = ["daily", "weekly", "biweekly", "semi_monthly", "monthly", "quarterly", "annually", "other"];
+
+/**
+ * KS_LENDER_SYNC_CONTRACTS - what a connected lender last reported by API ("Balance reported by Sample Lender: $41,250
+ * on Nov 2, 2026"), its next payment and status, and the balance staff entered when the two differ. Nothing staff
+ * typed is replaced.
+ */
+export function LenderReportedBalance({ c }: { c: Contract }) {
+  const r = c.lender_reported;
+  if (!r || r.balance === null) return null;
+  const who = r.lender_name || c.lender_name || "the lender";
+  const line = { fontSize: 13, color: "var(--ui-text)", margin: "2px 0" } as const;
+  return (
+    <div data-testid="lender-reported-balance" style={{ borderTop: "1px solid var(--ui-border)", borderBottom: "1px solid var(--ui-border)", padding: "6px 0", margin: "4px 0" }}>
+      <div style={line}>Balance reported by {who}: <strong>{money(r.balance, true)}</strong> on {day(r.as_of)}</div>
+      {r.next_payment_amount !== null || r.next_payment_date ? (
+        <div style={line}>Next payment: {r.next_payment_amount !== null ? money(r.next_payment_amount, true) : "amount not given"}{r.next_payment_date ? ` on ${day(r.next_payment_date)}` : ""}</div>
+      ) : null}
+      {r.payments_made !== null ? <div style={line}>Payments made: {r.payments_made}</div> : null}
+      {r.lender_status ? <div style={line}>Status at {who}: {r.lender_status}</div> : null}
+      {c.balances_differ && c.staff_balance ? (
+        <div style={line} data-testid="staff-balance">Balance entered by staff: <strong>{money(c.staff_balance.balance, true)}</strong> on {day(c.staff_balance.as_of)}. The two figures differ; check with {who}.</div>
+      ) : null}
+    </div>
+  );
+}
 
 export default function DetailsPanel({ d, onChanged, goTo }: { d: Detail; onChanged: () => void; goTo: (t: DetailTab) => void }) {
   const c = d.contract;
@@ -43,6 +68,7 @@ export default function DetailsPanel({ d, onChanged, goTo }: { d: Detail; onChan
           <Row k="Original Term" v={c.term_months ? `${c.term_months} months` : "n/a"} />
           <Row k="Current Balance" v={money(c.balance.balance)} />
           <Row k="Balance Source" v={balanceSource(c.balance)} />
+          <LenderReportedBalance c={c} />
           <Row k="Amount Paid" v={c.balance.balance !== null && c.balance.total_repayable ? `${money(c.balance.total_repayable - c.balance.balance)}${pct !== null ? ` (${Math.round(pct)}%)` : ""}` : "n/a"} />
           <Row k="Maturity Date" v={day(c.maturity_date)} />
           <Row k="Payment" v={c.payment_amount ? `${money(c.payment_amount, true)} ${label(c.payment_frequency)}` : label(c.payment_frequency)} />
