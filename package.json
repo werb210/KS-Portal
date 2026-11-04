@@ -16,12 +16,14 @@
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
     "test:ci": "vitest run",
-    "ci:verify": "npm run build && npm run test:ci"
+    "ci:verify": "npm run build && npm run test:ci",
+    "android:sync": "npx cap sync android"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",
     "@azure/msal-browser": "^3.30.0",
     "@boreal/shared-contract": "file:shared-contract",
+    "@capacitor/android": "8.5.2",
     "@capacitor/app": "^8.1.0",
     "@capacitor/app-launcher": "^8.0.1",
     "@capacitor/core": "8.5.2",

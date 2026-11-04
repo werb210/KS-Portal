@@ -7,10 +7,16 @@ export function borealDialerUrl(target: NativeDialerTarget): string {
   const params = new URLSearchParams();
   if (target.phone) params.set("phone", target.phone);
   if (target.contactId) params.set("contactId", target.contactId);
-  return `borealdialer://call?${params.toString()}`;
+  // KS_ANDROID_STAFF_v1 - KS-Dialer registers "ksdialer" (iPhone project.yml and android/ manifest); the old
+  // "borealdialer" link opened nothing.
+  return `ksdialer://call?${params.toString()}`;
 }
 
-/** Returns false so callers can retain the existing web/Twilio flow as fallback. */
+/**
+ * Returns false so callers can retain the existing web/Twilio flow as fallback.
+ * KS_ANDROID_STAFF_v1 - on Android this opens the Android dialler (KS-Dialer android/), which owns calls on the phone;
+ * the portal app's manifest lists the ksdialer scheme under <queries> so canOpenUrl can see it.
+ */
 export async function launchNativeBorealDialer(target: NativeDialerTarget): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) return false;
   const url = borealDialerUrl(target);
