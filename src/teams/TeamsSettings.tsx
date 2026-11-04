@@ -3,6 +3,7 @@
 // records, so nothing changes until a setting is changed here. The server enforces it on every list, search, record,
 // export, report and assistant answer.
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { roleLabel } from "@/utils/roles"; // KS_SETUP_WIZARD - Staff reads as Broker
 import { card, cell, errorBox, h3, headCell, input, label, muted, okBox, primary, quiet } from "@/crmFields/PropertiesSettings";
 import {
   createTeam, getTeams, renameTeam, setRoleVisibility, setTeamArchived, setTeamMembers, updateTeamUser, userName,
@@ -33,7 +34,7 @@ function RoleVisibility({ data, onSaved }: { data: TeamsOverview; onSaved: (msg:
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
         {data.roles.map((role) => (
           <div key={role}>
-            <label style={label} htmlFor={`vis-${role}`}>{role}</label>
+            <label style={label} htmlFor={`vis-${role}`}>{roleLabel(role)}</label>
             <select id={`vis-${role}`} style={input} value={vals[role] ?? "all"} onChange={(e) => setVals((p) => ({ ...p, [role]: e.target.value as Visibility }))}>
               {VIS.map((v) => <option key={v} value={v}>{VISIBILITY_LABEL[v]}</option>)}
             </select>
@@ -77,7 +78,7 @@ function TeamRow({ team, data, onChanged, onError }: { team: Team; data: TeamsOv
             {data.users.map((u) => (
               <label key={u.id} style={{ fontSize: 13, color: "var(--ui-text)", display: "inline-flex", gap: 6, alignItems: "center" }}>
                 <input type="checkbox" checked={members.has(u.id)} onChange={(e) => setMembers((p) => { const n = new Set(p); if (e.target.checked) n.add(u.id); else n.delete(u.id); return n; })} />
-                {userName(u)} <span style={{ color: "var(--ui-text-muted)" }}>({u.role ?? "Staff"})</span>
+                {userName(u)} <span style={{ color: "var(--ui-text-muted)" }}>({roleLabel(u.role ?? "Staff")})</span>
               </label>
             ))}
           </div>
@@ -159,7 +160,7 @@ export default function TeamsSettings() {
                 return (
                   <tr key={u.id} data-testid={`team-user-${u.id}`}>
                     <td style={cell}><strong>{userName(u)}</strong><div style={{ ...muted, margin: 0 }}>{u.email}</div></td>
-                    <td style={cell}>{u.role ?? "Staff"}</td>
+                    <td style={cell}>{roleLabel(u.role ?? "Staff")}</td>
                     <td style={cell}>{myTeams.length ? myTeams.map((t) => t.name).join(", ") : <span style={{ color: "var(--ui-text-muted)" }}>None</span>}</td>
                     <td style={cell}>
                       <select aria-label={`Primary team for ${userName(u)}`} style={input} value={u.primary_team_id ?? ""} disabled={!myTeams.length}

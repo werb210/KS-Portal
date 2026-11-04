@@ -32,6 +32,7 @@ import { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v5_NO_REPORTS_ON
 import { isLiveDemo } from "@/demo/mode"; // KS_PORTAL_v11_LIVE_DEMO
 import FollowUpPrompt from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
 import StrongSignInGate from "@/settingsPack/StrongSignInGate"; // KS_PORTAL_SETTINGS_PACK_v1_SECURITY
+import { SetupNavItem, SetupWizardHost } from "@/setup/SetupNavItem"; // KS_SETUP_WIZARD
 
 
 const TOPBAR_HEIGHT = 68;
@@ -127,6 +128,8 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const isAdmin = roleUpper === "ADMIN";
   const isMarketing = roleUpper === "MARKETING";
   const isStaff = roleUpper === "STAFF";
+  // KS_SETUP_WIZARD - the set-up wizard for the brokerage's own people (not the live demo).
+  const setupEnabled = Boolean(user) && !isLiveDemo() && ["ADMIN", "STAFF", "OPS", "MARKETING"].includes(roleUpper);
 
   // BF_PORTAL_BLOCK_v200_LIVE_TEST_FIXES_v1
   // canSee used to match `path.replace(/^\//,"")` against "lenders" /
@@ -160,6 +163,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
 
   const NavContent = () => (
     <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, overflowY: "auto" }}>
+      {setupEnabled && <SetupNavItem onOpen={() => setMobileNavOpen(false)} />}{/* KS_SETUP_WIZARD */}
       {navItems.map((item) => isLiveDemo() && !LIVE_DEMO_NAV.includes(item.path) ? (
         // KS_PORTAL_v12_DEMO_FIXES - sections the sample data does not cover are shown but switched off, so a click
         // never lands on an error screen.
@@ -207,6 +211,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
     <div style={{ display: "flex", height: "100dvh", overflow: "hidden" }}>
       <NotificationToast />
       <UpsellHost />{/* KS_PORTAL_v3_PLANS */}
+      <SetupWizardHost enabled={setupEnabled} />{/* KS_SETUP_WIZARD - opens by itself the first time */}
       {/* ── Sidebar ── */}
       <aside
         style={{

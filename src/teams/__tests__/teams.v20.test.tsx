@@ -32,7 +32,7 @@ describe("Settings > Teams", () => {
     h.get.mockResolvedValue(overview());
     h.put.mockResolvedValue({ ok: true });
     render(<TeamsSettings />);
-    const staff = await screen.findByLabelText("Staff");
+    const staff = await screen.findByLabelText("Broker");
     expect(staff).toHaveValue("all");
     fireEvent.change(staff, { target: { value: "own" } });
     expect(screen.getByText("Sees only records they own (or deals they are assigned to).")).toBeInTheDocument();
