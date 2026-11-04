@@ -4,6 +4,7 @@
 // boxes the starting role cannot do are greyed out. Only an Admin (the built-in Admin role) can change roles. The
 // server enforces every permission; this screen only edits them.
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { roleLabel } from "@/utils/roles"; // KS_SETUP_WIZARD - Staff reads as Broker
 import { card, cell, errorBox, h3, headCell, input, label, muted, okBox, primary, quiet } from "@/crmFields/PropertiesSettings";
 import { LockedFeature } from "@/plans/FeatureGate";
 import { hasFeature, usePlan } from "@/plans/planStore";
@@ -127,7 +128,7 @@ function RoleEditor({ data, draft, onCancel, onSaved, onError }: {
               setD({ ...d, base_role: base, permissions: t ? normalizePermissionSet(t.permissions) : d.permissions });
             }}
           >
-            {BUILT_IN_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            {BUILT_IN_ROLES.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
           </select>
           <span style={{ ...muted, fontSize: 12 }}>
             {d.id && d.users > 0 ? "People are on this role, so its starting role is fixed." : "The role can do at most what this built-in role does."}
@@ -197,11 +198,11 @@ export default function RolesSettings() {
   const row = (r: RoleRow) => (
     <tr key={r.id} data-testid={`role-row-${r.id}`}>
       <td style={cell}>
-        <strong>{r.name}</strong>
+        <strong>{r.built_in ? roleLabel(r.name) : r.name}</strong>
         {r.built_in && <span style={{ ...muted, margin: "0 0 0 6px" }}>(built-in, read-only)</span>}
         {r.archived_at && <span style={{ ...muted, margin: "0 0 0 6px" }}>(archived)</span>}
         {r.description && <div style={{ ...muted, margin: "2px 0 0" }}>{r.description}</div>}
-        {!r.built_in && <div style={{ ...muted, margin: "2px 0 0" }}>Starts from {r.base_role}</div>}
+        {!r.built_in && <div style={{ ...muted, margin: "2px 0 0" }}>Starts from {roleLabel(r.base_role)}</div>}
       </td>
       <td style={cell}>{countGranted(r.permissions)} of {AREAS.length * ACTIONS.length}</td>
       <td style={cell}>{VISIBILITY_LABEL[r.record_visibility]}</td>
@@ -245,7 +246,7 @@ export default function RolesSettings() {
       </section>
       {viewed && !draft && (
         <section style={card} aria-labelledby="role-view-h">
-          <h3 id="role-view-h" style={h3}>{viewed.name}</h3>
+          <h3 id="role-view-h" style={h3}>{viewed.built_in ? roleLabel(viewed.name) : viewed.name}</h3>
           <PermissionMatrix value={viewed.permissions} ceiling={null} readOnly caption={`Permissions for ${viewed.name}`} />
         </section>
       )}

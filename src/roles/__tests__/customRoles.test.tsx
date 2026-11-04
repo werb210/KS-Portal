@@ -45,7 +45,7 @@ describe("permission store", () => {
 describe("role dropdown", () => {
   it("lists built-in roles then active custom roles; a custom choice sends its base role and id", () => {
     const roles = overview().roles as RoleRow[];
-    expect(roleOptions(roles).map((o) => o.label)).toEqual(["Admin", "Ops", "Staff", "Marketing", "Viewer (custom)"]);
+    expect(roleOptions(roles).map((o) => o.label)).toEqual(["Admin", "Ops", "Broker", "Marketing", "Viewer (custom)"]);
     expect(bodyForChoice("custom:r1", roles)).toEqual({ role: "Staff", custom_role_id: "r1" });
     expect(bodyForChoice("builtin:Marketing", roles)).toEqual({ role: "Marketing" });
     expect(choiceForUser({ role: "Staff", custom_role_id: "r1" })).toBe("custom:r1");

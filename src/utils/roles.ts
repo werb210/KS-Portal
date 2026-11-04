@@ -33,7 +33,7 @@ export const getRoleLabel = (role?: UserRole | null) => {
     case "Admin":
       return "Admin";
     case "Staff":
-      return "Staff";
+      return "Broker"; // KS_SETUP_WIZARD - the Staff role reads as "Broker"; the stored value stays "Staff"
     case "Marketing":
       return "Marketing";
     case "Ops":
@@ -47,4 +47,12 @@ export const getRoleLabel = (role?: UserRole | null) => {
     default:
       return "Unassigned";
   }
+};
+
+/** KS_SETUP_WIZARD - any role value as people read it: "Broker" for Staff (whatever its case); other values unchanged. */
+export const roleLabel = (role?: string | null): string => {
+  const r = String(role ?? "").trim();
+  if (!r) return "";
+  const known = roleValues.find((v) => v.toLowerCase() === r.toLowerCase());
+  return known ? getRoleLabel(known) : r;
 };

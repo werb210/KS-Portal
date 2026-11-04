@@ -1246,6 +1246,12 @@ a,
   gap: 12px;
 }
 
+/* KS_SETUP_WIZARD - the window title used the dark-theme heading colour (near-white) on the light theme's white
+   window, so it could not be read. It follows the theme's text colour now. */
+.modal__header h3 {
+  color: var(--ui-text);
+}
+
 .modal__actions {
   display: flex;
   align-items: center;

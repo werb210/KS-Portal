@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { LeadScoreBadge, useLeadScores } from "@/components/marketing/LeadScore"; // KS_PORTAL_MARKETING_ADDON
 import { CrmSegmentBar } from "@/components/crm/CrmSegmentBar"; // BF_PORTAL_CRM_SEGMENTS_v1
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/api";
 import ColumnsMenu from "@/components/crm/ColumnsMenu";
 import { contactDisplayName } from "@/utils/contactName";
@@ -48,6 +48,15 @@ export default function ContactsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  // KS_SETUP_WIZARD - /crm/contacts?import=1 (the set-up wizard's "Import a contact list") opens the import window.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("import") !== "1") return;
+    if (roleCan.create) setImportOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("import");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, roleCan.create]);
   const [refreshKey, setRefreshKey] = useState(0);
   // BF_PORTAL_BF_CONTACTS_PAGER_v1 - the server has always supported ?page/&pageSize
   // (GET /api/crm/contacts, default 200, max 500) and BI already ships a pager, but

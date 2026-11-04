@@ -58,7 +58,7 @@ function formatDate(iso: string | null): string {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-function ArticleView({ slug, onOpen, onBack }: { slug: string; onOpen: (slug: string) => void; onBack: () => void }) {
+function ArticleView({ slug, onOpen, onBack, backLabel = "Back to help articles" }: { slug: string; onOpen: (slug: string) => void; onBack: () => void; backLabel?: string }) {
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -86,7 +86,7 @@ function ArticleView({ slug, onOpen, onBack }: { slug: string; onOpen: (slug: st
   };
   return (
     <section style={card} data-testid="help-article" aria-live="polite">
-      <button type="button" style={linkButton} onClick={onBack}>Back to help articles</button>
+      <button type="button" style={linkButton} onClick={onBack}>{backLabel}</button>
       {error && <div role="alert" style={errorBox}>{error}</div>}
       {!article && !error && <p style={muted}>Loading…</p>}
       {article && (
@@ -104,6 +104,19 @@ function ArticleView({ slug, onOpen, onBack }: { slug: string; onOpen: (slug: st
         </>
       )}
     </section>
+  );
+}
+
+/** KS_SETUP_WIZARD - one help article on its own (the set-up wizard's Help button), with links to other articles
+ *  opening in place. The same reader as the Help Center, so articles look and behave the same everywhere. */
+export function HelpArticle({ slug, onBack, backLabel }: { slug: string; onBack: () => void; backLabel?: string }) {
+  const [current, setCurrent] = useState(slug);
+  useEffect(() => setCurrent(slug), [slug]);
+  return (
+    <>
+      <style>{ARTICLE_CSS}</style>
+      <ArticleView slug={current} onOpen={setCurrent} onBack={onBack} backLabel={backLabel} />
+    </>
   );
 }
 

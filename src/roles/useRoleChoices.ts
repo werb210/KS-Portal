@@ -2,12 +2,13 @@
 // Falls back to the built-in roles alone when /api/roles is unavailable (older server), so the screen keeps working.
 import { useCallback, useEffect, useState } from "react";
 import { BUILT_IN_ROLES, builtInChoice, customChoice, getRoles, type RoleRow } from "./rolesApi";
+import { roleLabel } from "@/utils/roles"; // KS_SETUP_WIZARD - Staff reads as Broker
 
 export type RoleOption = { value: string; label: string };
 
 export function roleOptions(roles: RoleRow[]): RoleOption[] {
   return [
-    ...BUILT_IN_ROLES.map((r) => ({ value: builtInChoice(r), label: r })),
+    ...BUILT_IN_ROLES.map((r) => ({ value: builtInChoice(r), label: roleLabel(r) })),
     ...roles.filter((r) => !r.built_in && !r.archived_at).map((r) => ({ value: customChoice(r.id), label: `${r.name} (custom)` })),
   ];
 }
