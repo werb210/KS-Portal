@@ -37,6 +37,7 @@ export const ADDON_ADDS: string[] = [
 
 export const MARKETING_TOOLS = [
   "website_kit", "session_replay", "full_visitor_history", "google_ads_full", "lead_scoring", "ab_test", "send_time", "funded_report",
+  "landing_pages", // KS_LANDING_PAGES_v1 - Marketing add-on only
 ] as const;
 export type MarketingTool = (typeof MARKETING_TOOLS)[number];
 
@@ -49,6 +50,7 @@ export const TOOL_LABELS: Record<MarketingTool, string> = {
   ab_test: "Subject-line A/B test",
   send_time: "Send at each person's best time",
   funded_report: "Applications and funded deals by campaign",
+  landing_pages: "Landing pages",
 };
 
 export type MarketingState = {
