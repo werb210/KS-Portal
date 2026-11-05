@@ -1,4 +1,4 @@
-// KS_HUBSPOT_GAPS_1_CALL_SCRIPTS - the script runner (dialler and records), the dock beside the dialler and the editor.
+// KS_HUBSPOT_GAPS_1_CALL_SCRIPTS - the script runner (dialler and records), the dialler fold-out and the editor.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
@@ -6,7 +6,8 @@ const h = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn() }));
 vi.mock("@/api", () => ({ api: { get: h.get, post: h.post, put: h.put } }));
 
 import CallScriptRunner from "../CallScriptRunner";
-import CallScriptsPanel, { CallScriptDock } from "../CallScriptDock";
+import CallScriptsPanel from "../CallScriptDock";
+import { DialerCallScript } from "@/dialer/components/DialerPanel";
 import CallScriptsSettings from "../CallScriptsSettings";
 import { useDialer } from "@/dialer/store";
 import { __setPlanForTests, normalizePlan } from "@/plans/planStore";
@@ -67,18 +68,35 @@ describe("where scripts show", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("beside the dialler only while a call is ringing or live, for the call's contact", async () => {
-    const { rerender } = render(<CallScriptDock />);
-    expect(screen.queryByTestId("call-script-dock")).toBeNull();
+  it("in the dialler's own fold-out, opening the dialler script with the brokerage's name (KS_ONE_CALL_SCRIPT)", async () => {
+    const dialerScript = { ...script, id: "s2", name: "Intake call", use_for: "calls", dialer_default: true,
+      sections: [{ id: "greeting", title: "Greeting", body: "Thank you for calling {company}.", questions: [] }] };
+    h.get.mockImplementation(async (url: string) => (url.includes("/runs") ? { runs: [] } : { ...list, scripts: [script, dialerScript] }));
     act(() => { useDialer.getState().open({ contactId: "c9", applicationId: null }); useDialer.getState().setStatus("connected"); });
-    rerender(<CallScriptDock />);
-    expect(await screen.findByTestId("call-script-dock")).toBeInTheDocument();
+    render(<DialerCallScript />);
+    fireEvent.click(screen.getByRole("button", { name: /Call script/ }));
+    await waitFor(() => expect((screen.getByLabelText("Call script", { selector: "select" }) as HTMLSelectElement).value).toBe("s2"));
+    expect(screen.queryByText("Thank you for calling {company}.")).toBeNull();
+    expect(screen.getByText(/^Thank you for calling .+\.$/)).toBeInTheDocument();
     await waitFor(() => expect(h.get).toHaveBeenCalledWith("/api/call-scripts/runs", { params: { contact_id: "c9" } }));
-    fireEvent.click(screen.getByRole("button", { name: "Hide" }));
-    expect(screen.queryByLabelText("Call script", { selector: "select" })).toBeNull();
-    act(() => { useDialer.getState().setStatus("ready"); });
-    rerender(<CallScriptDock />);
-    expect(screen.queryByTestId("call-script-dock")).toBeNull();
+  });
+
+  it("on Starter the dialler keeps the fixed intake script, and staff-to-staff calls get none (KS_ONE_CALL_SCRIPT)", () => {
+    __setPlanForTests(normalizePlan(planBody({ features: { call_scripts: false } })));
+    act(() => { useDialer.getState().open({ contactId: "c9", applicationId: null }); useDialer.getState().setStatus("connected"); });
+    const { unmount } = render(<DialerCallScript />);
+    expect(screen.queryByTestId("dialer-call-script")).toBeNull();
+    expect(screen.getByText("Intake script")).toBeInTheDocument();
+    expect(h.get).not.toHaveBeenCalled();
+    unmount();
+    act(() => { useDialer.getState().open({ isStaff: true }); });
+    const { container } = render(<DialerCallScript />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("the old floating box beside the dialler is gone (KS_ONE_CALL_SCRIPT)", async () => {
+    const mod = await import("../CallScriptDock");
+    expect(Object.keys(mod)).toEqual(["default"]);
   });
 });
 
@@ -95,6 +113,7 @@ describe("Settings > Call scripts", () => {
     fireEvent.change(screen.getByLabelText("Question 1"), { target: { value: "Revenue now" } });
     fireEvent.change(screen.getByLabelText("Answer type"), { target: { value: "money" } });
     fireEvent.change(screen.getByLabelText("Save answer to field"), { target: { value: "application:monthly_revenue" } });
+    fireEvent.click(screen.getByLabelText(/Open this script in the dialler during calls/));
     fireEvent.click(screen.getByRole("button", { name: "Save script" }));
     await waitFor(() => expect(h.post).toHaveBeenCalledWith("/api/call-scripts", expect.objectContaining({
       name: "Renewals",

@@ -103,7 +103,6 @@ import WidgetSnapshotProvider from "@/native/WidgetSnapshotProvider";
 import PortalLauncherProvider from "@/native/PortalLauncherProvider"; // BF_PORTAL_BLOCK_v556
 import DialerPanel from "@/dialer/components/DialerPanel";
 import FloatingDialerButton from "@/dialer/components/FloatingDialerButton";
-import { CallScriptDock } from "@/callScripts/CallScriptDock"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
 import IncomingCallToast from "@/dialer/components/IncomingCallToast";
 import NativeCallBanner from "@/dialer/components/NativeCallBanner"; // BF_PORTAL_v817_IPAD_VOIP
 import ShareToDealProvider from "@/native/ShareToDealProvider"; // BF_PORTAL_BLOCK_v594
@@ -126,7 +125,6 @@ function AppShell() {
       <ShareToDealProvider />{/* BF_PORTAL_BLOCK_v594 */}
       <TeamNotifier />{/* BF_PORTAL_TEAM_NOTIFY_v644 */}
       <DialerPanel />
-      <CallScriptDock />
       <FloatingDialerButton />
       <IncomingCallToast />
       <NativeCallBanner />{/* BF_PORTAL_v817_IPAD_VOIP */}

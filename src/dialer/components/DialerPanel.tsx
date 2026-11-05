@@ -25,6 +25,7 @@ import { AddParticipantBar } from "./AddParticipantBar";
 import { TransferBar } from "./TransferBar";
 // BF_PORTAL_BLOCK_v311_QUICK_CALL_v1
 import QuickCallRow from "./QuickCallRow";
+import CallScriptRunner from "@/callScripts/CallScriptRunner"; // KS_ONE_CALL_SCRIPT
 
 const T = {
   panelBg: "#0a0a0a",
@@ -222,7 +223,43 @@ const AGENT_NOTES: string[] = [
   "No documents by voice - always the secure OTP link.",
 ];
 
-function IntakeScript() {
+// KS_ONE_CALL_SCRIPT - one call script system. This fold-out used to hold only the fixed intake script while a
+// separate "Call script" box opened beside the dialler (Growth and Pro). Now, with call scripts on the plan, it shows the
+// scripts from Settings > Call scripts, opening the dialler script for the call's contact and deal. On Starter it keeps
+// the fixed intake script. Internal staff-to-staff calls get none.
+function callSidOf(call: unknown): string | null {
+  const sid = (call as { parameters?: { CallSid?: string } } | null)?.parameters?.CallSid;
+  return typeof sid === "string" && /^CA[0-9a-f]{32}$/i.test(sid) ? sid : null;
+}
+
+export function DialerCallScript() {
+  const plan = usePlan();
+  const [open, setOpen] = useState(false);
+  const ctx = useDialer((s) => s.ctx);
+  const call = useDialer((s) => s.call);
+  if (ctx.isStaff) return null;
+  if (!hasFeature("call_scripts", plan)) return <FixedIntakeScript />;
+  const key = `${ctx.contactId ?? ""}|${ctx.applicationId ?? ""}`;
+  return (
+    <div style={{ borderTop: `1px solid ${T.border}`, background: T.surface }} data-testid="dialer-call-script">
+      <button onClick={() => setOpen((o) => !o)}
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 20px", background: "transparent", border: "none", color: T.text, cursor: "pointer" }}
+        title="Show or hide the call script" aria-expanded={open}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase", color: T.textMuted }}>Call script</span>
+        <span style={{ display: "grid", placeItems: "center", color: T.textMuted, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+          <Icon d="M6 9l6 6 6-6" size={16} />
+        </span>
+      </button>
+      {open && (
+        <div style={{ maxHeight: 320, overflowY: "auto", padding: "0 20px 14px" }}>
+          <CallScriptRunner key={key} compact inDialer contact_id={ctx.contactId ?? null} application_id={ctx.applicationId ?? null} call_sid={callSidOf(call)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FixedIntakeScript() {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ borderTop: `1px solid ${T.border}`, background: T.surface }}>
@@ -410,7 +447,7 @@ export default function DialerPanel() {
               onClick={() => me && conf && dialerApi.holdParticipant(conf.id, me.id, !me.on_hold)}
               disabled={!me || !conf} />
           </div>
-          <IntakeScript />
+          <DialerCallScript />
           <TranscriptFooter transcript={st.transcript} />
         </>
       )}
@@ -477,7 +514,7 @@ export default function DialerPanel() {
             </div>
           </div>
 
-          <IntakeScript />
+          <DialerCallScript />
           <TranscriptFooter transcript={st.transcript} />
         </>
       )}
