@@ -117,6 +117,14 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
   const [include, setInclude] = useState<string[]>([]);
   const [exclude, setExclude] = useState<string[]>([]);
   const [audCount, setAudCount] = useState<number | null>(null);
+  // KS_EMAIL_SUBSCRIPTION_TYPES_v1 - the campaign's email type; people who opted out of it are skipped.
+  const [subTypes, setSubTypes] = useState<Array<{ id: string; name: string; active: boolean }>>([]);
+  const [subTypeId, setSubTypeId] = useState("");
+  useEffect(() => {
+    Promise.resolve().then(() => api.get<{ data?: { types?: any[] }; types?: any[] }>(`${apiBase}/subscription-types`))
+      .then((r) => setSubTypes((Array.isArray(r?.data?.types ?? r?.types) ? (r?.data?.types ?? r?.types)! : []).filter((t: any) => t?.active)))
+      .catch(() => setSubTypes([]));
+  }, [apiBase]);
   const [subject, setSubject] = useState("");
   const [tpl, setTpl] = useState<Tpl>(DEFAULTS);
   const [testTo, setTestTo] = useState("");
@@ -150,20 +158,21 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
   }, [apiBase]);
 
   const set = (k: keyof Tpl, v: string) => setTpl((p) => ({ ...p, [k]: v }));
-  const count = include.length === 0 && exclude.length === 0 ? (seg?.all ?? 0) : (audCount ?? 0);
+  const count = include.length === 0 && exclude.length === 0 && !subTypeId ? (seg?.all ?? 0) : (audCount ?? 0);
   useEffect(() => {
-    if (include.length === 0 && exclude.length === 0) { setAudCount(null); return; }
+    if (include.length === 0 && exclude.length === 0 && !subTypeId) { setAudCount(null); return; }
     let alive = true;
     const t = setTimeout(() => {
       const qs = new URLSearchParams();
       if (include.length) qs.set("include", include.join(","));
       if (exclude.length) qs.set("exclude", exclude.join(","));
+      if (subTypeId) qs.set("subscriptionTypeId", subTypeId); // KS_EMAIL_SUBSCRIPTION_TYPES_v1
       api.get<{ data?: { n?: number }; n?: number }>(`${apiBase}/email/audience-count?${qs.toString()}`)
         .then((r) => { if (alive) setAudCount(Number(r?.data?.n ?? r?.n ?? 0)); })
         .catch(() => { if (alive) setAudCount(0); });
     }, 250);
     return () => { alive = false; clearTimeout(t); };
-  }, [apiBase, include, exclude]);
+  }, [apiBase, include, exclude, subTypeId]);
 
   useEffect(() => {
     let alive = true;
@@ -318,6 +327,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
       else {
         if (include.length) payload.tags = include;
         if (exclude.length) payload.excludeTags = exclude;
+        if (subTypeId) payload.subscriptionTypeId = subTypeId; // KS_EMAIL_SUBSCRIPTION_TYPES_v1
         // BF_PORTAL_SEND_LATER_v21 - a test send is always immediate.
         const iso = toIsoInstant(sendAtLocal);
         if (iso) payload.sendAt = iso;
@@ -422,6 +432,17 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
           <TagPicker title="Exclude tags" hint="Removed even if included" tags={seg?.segments ?? []} selected={exclude}
             onToggle={(t) => setExclude((p) => (p.includes(t) ? p.filter((x) => x !== t) : [...p, t]))} />
         </div>
+        {subTypes.length > 0 && (
+          <label htmlFor="email-sub-type" className="mt-2" style={{ display: "block", fontSize: "0.85rem", color: "var(--ui-text)" }}>
+            Email type
+            <select id="email-sub-type" value={subTypeId} onChange={(e) => setSubTypeId(e.target.value)}
+              style={{ display: "block", marginTop: 4, padding: "6px 8px", borderRadius: 8, border: "1px solid var(--ui-border)", background: "var(--ui-surface)", color: "var(--ui-text)" }}>
+              <option value="">No type (everyone not unsubscribed)</option>
+              {subTypes.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <span style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>People who turned this type off are skipped.</span>
+          </label>
+        )}
         <p className="mt-1" style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>Recipients: <strong style={{ color: "var(--ui-text)" }}>{count}</strong></p>
       </div>
 

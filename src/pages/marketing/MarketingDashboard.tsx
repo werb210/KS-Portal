@@ -10,6 +10,8 @@ import BrandedEmailComposer from "@/components/marketing/BrandedEmailComposer"; 
 import LinkClicksPanel from "@/components/marketing/LinkClicksPanel"; // BF_PORTAL_LINK_CLICKS_PANEL_v9
 import SequenceCanvas, { type BFSequenceStep } from "@/components/marketing/SequenceCanvas";
 import AbandonedPanel from "@/components/marketing/AbandonedPanel"; // BF_PORTAL_ABANDONED_PANEL_v49
+import EmailTypesPanel from "@/hubspotGaps2/EmailTypesPanel"; // KS_EMAIL_SUBSCRIPTION_TYPES_v1
+import LandingPagesPanel from "@/hubspotGaps2/LandingPagesPanel"; // KS_LANDING_PAGES_v1
 import ReferrersAndBrokers from "./ReferrersAndBrokers"; // BF_PORTAL_PARTNERS_TABS_v720 (wraps BFReferrerManagement)
 import DiagnosticsPanel from "@/pages/diagnostics/DiagnosticsPage";
 import NegativesPanel from "@/pages/diagnostics/NegativesPanel";
@@ -32,7 +34,7 @@ import LeadScoringPanel from "@/components/marketing/LeadScoringPanel";
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
 // data, two different places to look for it. BF now gets the tab too.
-type MarketingTab = "analytics" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps" | "report" | "kit" | "scoring"; // BF_PORTAL_v811_MOBILE_APPS - apps // KS_PORTAL_MARKETING_ADDON - report, kit, scoring
+type MarketingTab = "analytics" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps" | "report" | "kit" | "scoring" | "pages" | "email-types"; // KS_LANDING_PAGES_v1 pages, KS_EMAIL_SUBSCRIPTION_TYPES_v1 email-types // BF_PORTAL_v811_MOBILE_APPS - apps // KS_PORTAL_MARKETING_ADDON - report, kit, scoring
 // BF_PORTAL_GOOGLE_ADS_ANALYTICS_v707
 // BF_PORTAL_ADS_SERVICES_v709 - "Ads" section: one sub-tab per ad service
 // (Google, Microsoft, LinkedIn); every Google report sits under Google.
@@ -73,6 +75,8 @@ const MARKETING_TABS: { id: MarketingTab; label: string }[] = [
   { id: "sequences", label: "Sequences" },
   { id: "sms", label: "SMS" },
   { id: "email", label: "Email" },
+  { id: "email-types", label: "Email types" }, // KS_EMAIL_SUBSCRIPTION_TYPES_v1
+  { id: "pages", label: "Landing pages" }, // KS_LANDING_PAGES_v1
   { id: "links", label: "Links" }, // BF_PORTAL_BF_LINKS_TAB_v15
   { id: "ads", label: "Ads" }, // BF_PORTAL_GOOGLE_ADS_ANALYTICS_v707 + BF_PORTAL_ADS_SERVICES_v709
   { id: "apps", label: "Mobile apps" }, // BF_PORTAL_v811_MOBILE_APPS - Boreal Financial silo only
@@ -1515,6 +1519,8 @@ const MarketingDashboard = () => {
       )}
       {tab === "apps" && isBf && <MobileAppsPanel />}{/* BF_PORTAL_v811_MOBILE_APPS */}
       {tab === "email" && <BrandedEmailComposer />}
+      {tab === "email-types" && <EmailTypesPanel />}{/* KS_EMAIL_SUBSCRIPTION_TYPES_v1 */}
+      {tab === "pages" && <LandingPagesPanel />}{/* KS_LANDING_PAGES_v1 */}
       {tab === "links" && <LinkClicksPanel />}{/* BF_PORTAL_BF_LINKS_TAB_v15 */}
       {tab === "sms" && <SmsComposerPanel />}
       {tab === "sequences" && <SequencesPanel />}
