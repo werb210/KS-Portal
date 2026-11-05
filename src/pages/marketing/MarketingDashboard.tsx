@@ -51,7 +51,7 @@ const ADS_TABS: Array<[AdsTab, string]> = [
 // KS_PORTAL_MARKETING_ADDON - Google Ads results (Campaigns & Keywords, Website) are on every plan, and so is visitor
 // tracking; the rest of the Google Ads tools are Pro or the Marketing add-on.
 const MARKETING_TAB_FEATURE: Partial<Record<MarketingTab, string>> = {};
-const MARKETING_TAB_TOOL: Partial<Record<MarketingTab, MarketingTool>> = { scoring: "lead_scoring" };
+const MARKETING_TAB_TOOL: Partial<Record<MarketingTab, MarketingTool>> = { scoring: "lead_scoring", pages: "landing_pages" }; // KS_LANDING_PAGES_v1
 const ADS_TAB_TOOL: Partial<Record<AdsTab, MarketingTool>> = {
   story: "google_ads_full", negatives: "google_ads_full", audiences: "google_ads_full", health: "google_ads_full",
 };
@@ -1520,7 +1520,7 @@ const MarketingDashboard = () => {
       {tab === "apps" && isBf && <MobileAppsPanel />}{/* BF_PORTAL_v811_MOBILE_APPS */}
       {tab === "email" && <BrandedEmailComposer />}
       {tab === "email-types" && <EmailTypesPanel />}{/* KS_EMAIL_SUBSCRIPTION_TYPES_v1 */}
-      {tab === "pages" && <LandingPagesPanel />}{/* KS_LANDING_PAGES_v1 */}
+      {tab === "pages" && <AddonGate tool="landing_pages"><LandingPagesPanel /></AddonGate>}{/* KS_LANDING_PAGES_v1 - Marketing add-on only */}
       {tab === "links" && <LinkClicksPanel />}{/* BF_PORTAL_BF_LINKS_TAB_v15 */}
       {tab === "sms" && <SmsComposerPanel />}
       {tab === "sequences" && <SequencesPanel />}
