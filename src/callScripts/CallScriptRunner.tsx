@@ -2,9 +2,11 @@
 // saved as you go ("Save") and "Finish" puts the summary on the contact's timeline and fills mapped custom fields.
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Notice, button, errText, input, muted, quiet } from "@/settingsPack/ui";
+import { brandName } from "@/config/brand"; // KS_ONE_CALL_SCRIPT - "{company}" in talking points
 import { answerText, callScriptsApi, type Question, type Run, type RunTarget, type Script } from "./callScriptsApi";
 
-type Props = RunTarget & { compact?: boolean; onFinished?: (run: Run) => void };
+/** inDialer (KS_ONE_CALL_SCRIPT): the runner in the dialler opens the dialler script, else the first call script, by itself. */
+type Props = RunTarget & { compact?: boolean; inDialer?: boolean; onFinished?: (run: Run) => void };
 type Answers = { [id: string]: unknown };
 
 const label: CSSProperties = { display: "block", fontSize: 13, fontWeight: 600, margin: "10px 0 4px", color: "var(--ui-text)" };
@@ -50,7 +52,7 @@ function QuestionField({ q, value, onChange }: { q: Question; value: unknown; on
   );
 }
 
-export default function CallScriptRunner({ contact_id, application_id, call_sid, compact, onFinished }: Props) {
+export default function CallScriptRunner({ contact_id, application_id, call_sid, compact, inDialer, onFinished }: Props) {
   const [scripts, setScripts] = useState<Script[] | null>(null);
   const [script, setScript] = useState<Script | null>(null);
   const [run, setRun] = useState<Run | null>(null);
@@ -68,9 +70,16 @@ export default function CallScriptRunner({ contact_id, application_id, call_sid,
   }, [contact_id, application_id, hasRecord]);
 
   useEffect(() => {
-    void callScriptsApi.list().then((r) => setScripts(r.scripts)).catch((e) => setErr(errText(e, "Could not load call scripts.")));
+    void callScriptsApi.list().then((r) => {
+      setScripts(r.scripts);
+      // KS_ONE_CALL_SCRIPT - in the dialler, open the script an Admin chose for calls without a click.
+      if (inDialer) {
+        const first = r.scripts.find((s) => s.dialer_default) ?? r.scripts.find((s) => s.use_for === "calls" || s.use_for === "any") ?? null;
+        setScript((cur) => cur ?? first);
+      }
+    }).catch((e) => setErr(errText(e, "Could not load call scripts.")));
     void loadPast();
-  }, [loadPast]);
+  }, [loadPast, inDialer]);
 
   const pick = (id: string) => {
     setScript(scripts?.find((s) => s.id === id) ?? null); setRun(null); setAnswers({}); setOk(null); setErr(null);
@@ -106,7 +115,7 @@ export default function CallScriptRunner({ contact_id, application_id, call_sid,
       {script && script.sections.map((s) => (
         <section key={s.id} style={{ marginTop: 12, paddingTop: 8, borderTop: "1px solid var(--ui-border)" }} aria-label={s.title}>
           <h4 style={{ margin: "0 0 4px", fontSize: compact ? 14 : 15, color: "var(--ui-text)" }}>{s.title}</h4>
-          {s.body && <p style={{ ...muted, whiteSpace: "pre-wrap", margin: "0 0 4px", color: "var(--ui-text)" }}>{s.body}</p>}
+          {s.body && <p style={{ ...muted, whiteSpace: "pre-wrap", margin: "0 0 4px", color: "var(--ui-text)" }}>{s.body.replace(/\{company\}/g, brandName())}</p>}
           {s.questions.map((q) => <QuestionField key={q.id} q={q} value={answers[q.id]} onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))} />)}
         </section>
       ))}
