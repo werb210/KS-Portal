@@ -42,4 +42,4 @@ export function clientTourUrl(parentOrigin: string, sidePanel = false): string {
 }
 
 /** Where "Talk to us" on the last pop-up writes to (Keystone sales). */
-export const DEMO_CONTACT_EMAIL = "keystone@boreal.financial";
+export const DEMO_CONTACT_EMAIL = "sales@keystonecrm.online";

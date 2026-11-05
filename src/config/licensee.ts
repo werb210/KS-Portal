@@ -25,7 +25,7 @@ export const WEBSITE_URL: string = clean(import.meta.env.VITE_WEBSITE_URL) || CL
 
 // Where clients, referrers and lenders write for help. Each copy sets VITE_SUPPORT_EMAIL; the development copy uses
 // the Keystone operations mailbox.
-export const SUPPORT_EMAIL: string = String(import.meta.env.VITE_SUPPORT_EMAIL ?? "").trim() || "keystone@boreal.financial";
+export const SUPPORT_EMAIL: string = String(import.meta.env.VITE_SUPPORT_EMAIL ?? "").trim() || "support@keystonecrm.online";
 
 /** Host name only, e.g. for "sign in at <host>". */
 export const hostOf = (url: string): string => url.replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
