@@ -4,6 +4,7 @@
 // to theirs. Google Workspace needs no company step: each person connects in My Profile. Plain-English status, which
 // permissions, the last successful sync, and the fix for anything wrong.
 import { GMAIL_READ_PENDING } from "@/gmail/gmailApi"; // KS_PORTAL_GMAIL_INBOX
+import MetaLeadAdsCard from "@/hubspotGaps2/MetaLeadAdsCard"; // KS_META_LEAD_ADS_v1
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { primaryButton } from "@/plans/ui";
 import {
@@ -234,6 +235,7 @@ export default function ConnectionsSettings() {
       </p>
       <MicrosoftCard ms={data.microsoft} onChanged={() => load(true)} initialMessage={outcome} />
       <GoogleCard g={data.google} />
+      <MetaLeadAdsCard />{/* KS_META_LEAD_ADS_v1 */}
     </div>
   );
 }

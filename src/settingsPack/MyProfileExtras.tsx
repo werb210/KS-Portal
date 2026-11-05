@@ -5,6 +5,7 @@ import { api } from "@/api";
 import { LinkRow } from "./BookingSettings";
 import { MySessions } from "./SecuritySettings";
 import { Field, Notice, Section, Toggle, button, errText, input, muted } from "./ui";
+import NotificationSettings from "@/hubspotGaps2/NotificationSettings"; // KS_NOTIFICATION_TOPICS_v1
 
 type Defaults = { prompt_after_call: boolean; prompt_after_email: boolean; prompt_after_meeting: boolean; due_in_days: number; due_time: string; task_type: string; reminder_minutes: number | null };
 
@@ -73,6 +74,7 @@ export default function MyProfileExtras() {
   return (
     <div data-testid="my-profile-extras">
       <MyBookingLink />
+      <NotificationSettings />
       <FollowUpDefaults />
       <MyLeadRotation />
       <MySessions />

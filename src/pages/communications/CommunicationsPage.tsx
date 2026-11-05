@@ -1,3 +1,4 @@
+import WhatsAppBar, { type Channel as WaChannel } from "@/hubspotGaps2/WhatsAppBar"; // KS_WHATSAPP_v1
 import { Capacitor } from "@capacitor/core"; // BF_PORTAL_ONEDRIVE_ATTACHMENTS_v648
 import { assistantName } from "@/config/brand";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -103,6 +104,7 @@ type Message = {
   created_at: string;
   staff_name?: string | null;
   media_url?: string | null; // BF_PORTAL_SMS_MEDIA_v1
+  type?: string | null; // KS_WHATSAPP_v1 - 'sms' or 'whatsapp'
 };
 type Issue = {
   id: string;
@@ -163,7 +165,9 @@ function SmsTab({ forcedContact, onContactSelected }: { forcedContact?: Contact 
     media_url?: string | null; // BF_PORTAL_SMS_MEDIA_v1
     delivery_status?: string | null; // BF_PORTAL_BLOCK_v500
     delivery_error?: string | null;
+    type?: string | null; // KS_WHATSAPP_v1
   }>>([]);
+  const [channel, setChannel] = useState<WaChannel>("sms"); // KS_WHATSAPP_v1
   const [draft, setDraft] = useState("");
   // BF_PORTAL_BLOCK_v498_SMS_ATTACH_PICTURE - one picture or PDF per text (MMS).
   const [smsMedia, setSmsMedia] = useState<{ name: string; contentType: string; dataUrl: string } | null>(null);
@@ -418,7 +422,9 @@ function SmsTab({ forcedContact, onContactSelected }: { forcedContact?: Contact 
         direction: "outbound",
         created_at: new Date().toISOString(),
       }]);
-      await api.post("/api/communications/sms", {
+      // KS_WHATSAPP_v1 - on WhatsApp the same reply goes through WhatsApp (inside the 24-hour window).
+      if (channel === "whatsapp") await api.post("/api/communications/whatsapp", { to: selectedPhone, body: pendingBody, contactId: selectedContact.id });
+      else await api.post("/api/communications/sms", {
         // BF_PORTAL_BLOCK_v320_COMMS_SMS_SEND_URL_v1
         // Pre-fix this POSTed to /api/sms/send, which BF-Server src/app.ts:136
         // mounts as a stub returning HTTP 501 not_implemented ("SMS send
@@ -839,7 +845,7 @@ function SmsTab({ forcedContact, onContactSelected }: { forcedContact?: Contact 
                   body: m.body,
                   direction: m.direction,
                   authorRole: m.direction === "outbound" ? "self" : "other",
-                  authorName: m.direction === "outbound" ? "You" : selected.name,
+                  authorName: (m.type === "whatsapp" ? "WhatsApp \u00b7 " : "") + (m.direction === "outbound" ? "You" : selected.name), // KS_WHATSAPP_v1
                   created_at: m.created_at,
                   // BF_PORTAL_SMS_MEDIA_v1 - inbound MMS image via the BF-Server proxy.
                   // BF_PORTAL_v789_AUTHED_MEDIA - fetched with the Authorization header when opened,
@@ -861,6 +867,13 @@ function SmsTab({ forcedContact, onContactSelected }: { forcedContact?: Contact 
                 </div>
               );
             })() : null}
+            <WhatsAppBar
+              phone={selected?.phone ?? selected?.phone_e164 ?? selected?.mobile ?? null}
+              contactId={selected?.id ?? null}
+              channel={channel}
+              onChannel={setChannel}
+              onSent={() => { const p = selected?.phone ?? selected?.phone_e164 ?? selected?.mobile ?? null; if (selected?.id && p) loadMessages(selected.id, p); }}
+            />{/* KS_WHATSAPP_v1 */}
             <ComposerPulldowns channel="sms" onInsertText={(text) => setDraft((previous) => previous + (previous && !previous.endsWith(" ") ? " " : "") + text)} />
             {/* Compose — padding-right keeps send button clear of floating dialer */}
             <div
@@ -918,7 +931,7 @@ function SmsTab({ forcedContact, onContactSelected }: { forcedContact?: Contact 
                       void send();
                     }
                   }}
-                  placeholder={smsMedia ? `Attached: ${smsMedia.name} - add a message (optional)` : "Text message"}
+                  placeholder={smsMedia ? `Attached: ${smsMedia.name} - add a message (optional)` : channel === "whatsapp" ? "WhatsApp message" : "Text message"}
                   rows={1}
                   style={{
                     width: "100%",
