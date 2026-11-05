@@ -22,6 +22,7 @@ import SettingsOverview from "./tabs/SettingsOverview";
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
 import RetentionSettings from "./tabs/RetentionSettings"; // KS_PORTAL_v14_RETENTION
 import IdVerificationSettings from "@/kyc/IdVerificationSettings"; // KS_PORTAL_v22_KYC
+import VendorKeysSettings from "@/integrations/VendorKeysSettings"; // KS_PORTAL_VENDOR_KEYS
 import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
 import ConnectionsSettings from "./tabs/ConnectionsSettings"; // KS_PORTAL_M365_ONE_CLICK
 import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
@@ -116,6 +117,7 @@ const SettingsPage = () => {
       { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
       { id: "retention", label: "Retention & legal holds", visible: isAdmin, content: <RetentionSettings /> }, // KS_PORTAL_v14_RETENTION
       { id: "id-verification", label: "ID verification", visible: isAdmin && !isBI, content: <IdVerificationSettings /> }, // KS_PORTAL_v22_KYC
+      { id: "your-services", label: "Your services", visible: isAdmin && !isBI, content: <VendorKeysSettings /> }, // KS_PORTAL_VENDOR_KEYS - bring your own verification services
       // KS_PORTAL_SSO_API_KEYS - Admins: Microsoft / Google sign-in for staff, and API keys with the REST API docs.
       { id: "sso", label: "Single sign-on", visible: isAdmin && !isBI, content: <SsoSettings /> },
       { id: "api", label: "API", visible: isAdmin && !isBI, content: <ApiSettings /> },
