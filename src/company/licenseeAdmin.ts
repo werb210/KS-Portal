@@ -13,6 +13,7 @@ export const COMPANY_FIELDS = [
   "background_color", "font_family", // KS_PORTAL_v14_BRAND_FONT
   "assistant_name",
   "workspace_provider", // KS_PORTAL_v12_GOOGLE_WORKSPACE - m365 | google | both
+  "client_languages", // KS_CLIENT_LANGUAGES_v1 - "en,fr,es": the languages the client app offers
 ] as const;
 export const CONNECTION_FIELDS = ["twilio_main_number", "google_ads_customer_id", "office365_tenant_id"] as const;
 
@@ -36,6 +37,7 @@ export const FIELD_LABEL: Record<FormField, string> = {
   font_family: "Font",
   assistant_name: "Assistant name",
   workspace_provider: "Email, calendar and files",
+  client_languages: "Client app languages",
   twilio_main_number: "Main phone number (Twilio)",
   google_ads_customer_id: "Google Ads customer ID",
   office365_tenant_id: "Microsoft 365 tenant ID",

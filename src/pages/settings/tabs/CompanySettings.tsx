@@ -166,6 +166,32 @@ function FontField({ value, onChange, error }: { value: string; onChange: (v: st
   );
 }
 
+// KS_CLIENT_LANGUAGES_v1 - "en,fr,es". English cannot be turned off.
+const LANGS: Array<[string, string, string]> = [
+  ["en", "English", "Always on"],
+  ["fr", "French (Français)", "Canadian French: for Quebec and French-speaking clients"],
+  ["es", "Spanish (Español)", "For Spanish-speaking clients in the United States"],
+];
+export function ClientLanguages({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const on = new Set(["en", ...String(value || "en").split(",").map((x) => x.trim()).filter(Boolean)]);
+  const toggle = (code: string, checked: boolean) => {
+    const next = new Set(on);
+    if (checked) next.add(code); else next.delete(code);
+    onChange(["en", "fr", "es"].filter((c) => next.has(c)).join(","));
+  };
+  return (
+    <div role="group" aria-label="Client app languages" style={{ display: "grid", gap: 8 }}>
+      {LANGS.map(([code, label, hint]) => (
+        <label key={code} htmlFor={`client-lang-${code}`} style={{ display: "flex", gap: 10, alignItems: "flex-start", color: "var(--ui-text)" }}>
+          <input id={`client-lang-${code}`} type="checkbox" checked={on.has(code)} disabled={code === "en"}
+            onChange={(e) => toggle(code, e.target.checked)} style={{ width: 18, height: 18, marginTop: 2 }} />
+          <span><strong>{label}</strong><span style={{ display: "block", fontSize: 12, color: "var(--ui-text-muted)" }}>{hint}</span></span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 export default function CompanySettings() {
   const isAdmin = useIsAdmin();
   const [loaded, setLoaded] = useState(false);
@@ -306,6 +332,13 @@ export default function CompanySettings() {
           <BackgroundField value={form.background_color} onChange={set("background_color")} error={errors.background_color} />
           <FontField value={form.font_family} onChange={set("font_family")} error={errors.font_family} />
         </div>
+      </section>
+
+      {/* KS_CLIENT_LANGUAGES_v1 - English is always on; French and Spanish are optional. */}
+      <section style={card} data-testid="company-section-languages" id="client-languages">
+        <h3 style={h3}>Client app languages</h3>
+        <p style={muted}>Your clients choose their language on the client app's first screen and in its Settings. Sign-in codes and consent wording follow their choice. Your portal stays in English.</p>
+        <ClientLanguages value={form.client_languages} onChange={set("client_languages")} />
       </section>
 
       <section style={card} data-testid="company-section-assistant">
