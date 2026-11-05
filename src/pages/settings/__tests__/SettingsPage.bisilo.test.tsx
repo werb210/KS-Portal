@@ -86,6 +86,13 @@ describe("BF_PORTAL_BI_SILO_NAV_v56 — Settings tabs by silo", () => {
     expect(screen.getByRole("tab", { name: "Runtime Verification" })).toBeInTheDocument();
   });
 
+  it.each(["Staff", "Marketing"])("BF %s starts with My Profile, Content and AI Knowledge (KS_SETTINGS_YOU)", (role) => {
+    renderSettings("BF", role);
+    const names = Array.from(screen.getByRole("tablist", { name: "Settings tabs" }).querySelectorAll('[role="tab"]')).map((t) => t.textContent);
+    expect(names.slice(0, 3)).toEqual(["My Profile", "Content", "AI Knowledge"]);
+    expect(names).not.toContain("Users & roles");
+  });
+
   it("BI Staff sees only My Profile", () => {
     renderSettings("BI", "Staff");
     expect(screen.getByRole("tab", { name: "My Profile" })).toBeInTheDocument();

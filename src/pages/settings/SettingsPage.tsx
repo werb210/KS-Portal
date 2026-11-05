@@ -76,6 +76,11 @@ const SettingsPage = () => {
 
   const tabs = useMemo(
     () => [
+      // KS_SETTINGS_YOU - My Profile, Content and AI Knowledge come first and are there for every Broker (Staff),
+      // Marketing and Admin user. Maya tuning stays Admin-only inside AI Knowledge.
+      { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
+      { id: "content", label: "Content", visible: true, content: <ContentSettings isBI={isBI} hasTemplates={hasTemplates} canAutomate={(isAdmin || isMarketing) && hasAutomations} /> },
+      { id: "ai-knowledge", label: "AI Knowledge", visible: !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : <KnowledgeManager /> },
       // KS_PORTAL_v6_COMPANY - the licensee's company details, branding and connections (Admins only).
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       // KS_PORTAL_M365_ONE_CLICK - Microsoft 365 (one click for the company) and Google Workspace status (Admins only).
@@ -102,13 +107,10 @@ const SettingsPage = () => {
       { id: "security", label: "Security", visible: isAdmin, content: <SecuritySettings /> },
       { id: "privacy", label: "Privacy requests", visible: isAdmin && !isBI, content: <PrivacySettings /> },
       { id: "survey", label: "Client survey", visible: isAdmin && !isBI, content: <SurveySettings /> },
-      { id: "ai-knowledge", label: "AI Knowledge", visible: isAdmin && !isBI, content: isAdmin ? (<><KnowledgeManager /><div style={{ height: 28 }} /><MayaTuning /></>) : null },
-      { id: "profile", label: "My Profile", visible: true, content: <ProfileSettings /> },
       { id: "meeting-notes", label: "Meeting notes", visible: !isBI, content: <MeetingNotesSettings /> }, // KS_HUBSPOT_GAPS_1_MEETING_NOTES - Zoom / Google Meet
       { id: "runtime", label: "Runtime Verification", visible: !isBI, content: <RuntimeSettings /> },
       // BF_PORTAL_v864_CONTENT_TAB - Templates, Snippets, Collateral, the Library and the automations are sections of one
       // Content tab (tabs/ContentSettings.tsx); plan limits still apply to each section.
-      { id: "content", label: "Content", visible: true, content: <ContentSettings isBI={isBI} hasTemplates={hasTemplates} canAutomate={(isAdmin || isMarketing) && hasAutomations} /> },
       { id: "plan", label: "Plan", visible: canBilling, content: <PlanSettings /> }, // KS_PORTAL_v3_PLANS // KS_PORTAL_CUSTOM_ROLES
       // KS_PORTAL_BETA_v1 - beta features the brokerage can try (join, leave, feedback). Admins only.
       { id: "labs", label: "Labs", visible: isAdmin && !isBI, content: <LabsSettings /> },
