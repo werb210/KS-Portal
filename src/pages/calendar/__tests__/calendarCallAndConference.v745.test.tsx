@@ -96,7 +96,7 @@ describe("Meeting form conference option", () => {
     render(<MeetingPopup scope={{ kind: "contact", id: "c1" }} onClose={vi.fn()} onCreated={onCreated} />);
     const type = screen.getByRole("combobox") as HTMLSelectElement;
     expect(Array.from(type.options).map((o) => o.textContent)).toEqual([
-      "Microsoft Teams meeting (auto link)",
+      "Video meeting (auto link)", // KS_PORTAL_ZOOM_MEETINGS_v1 - Teams, Google Meet or Zoom
       "Phone call (we call the client)",
       "Conference call (dial-in code, up to 10 people)",
       "In person / other",

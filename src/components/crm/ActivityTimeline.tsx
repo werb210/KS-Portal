@@ -9,13 +9,22 @@ type FilterTab = "all" | "note" | "email" | "call" | "task" | "meeting";
 // non-joinable graph.microsoft.com API URLs that were showing up as noise.
 const TIMELINE_URL_RE = /https?:\/\/[^\s]+/i;
 
-function MeetingLink({ url }: { url: string }): JSX.Element | null {
-  const u = url.trim().replace(/[),.]+$/, "");
-  const lower = u.toLowerCase();
+/** KS_PORTAL_ZOOM_MEETINGS_v1 - the button text for a link in a meeting row; null for a Graph API url. */
+export function meetingLinkLabel(raw: string): string | null {
+  const lower = raw.trim().replace(/[),.]+$/, "").toLowerCase();
   if (lower.includes("graph.microsoft.com")) return null; // Graph API resource url, not user-joinable
   const isJoin = lower.includes("teams.microsoft.com") || lower.includes("meetup-join") || lower.includes("teams.live.com");
   const isRecording = lower.includes("sharepoint.com") || lower.includes("stream.") || lower.includes("/recording") || lower.includes("recordingcontenturl");
-  const label = isJoin ? "Join Teams meeting" : isRecording ? "View recording" : "Open link";
+  const host = lower.replace(/^https?:\/\//, "");
+  const isZoom = /^([a-z0-9-]+\.)?zoom\.us\/(j|my|w)\//.test(host);
+  const isMeet = host.startsWith("meet.google.com/");
+  return isJoin ? "Join Teams meeting" : isZoom ? "Join Zoom meeting" : isMeet ? "Join Google Meet" : isRecording ? "View recording" : "Open link";
+}
+
+function MeetingLink({ url }: { url: string }): JSX.Element | null {
+  const u = url.trim().replace(/[),.]+$/, "");
+  const label = meetingLinkLabel(u);
+  if (!label) return null;
   return (
     <a
       href={u}
