@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { requestFollowUp } from "@/settingsPack/FollowUpPrompt"; // KS_PORTAL_SETTINGS_PACK_v1_TASK_DEFAULTS
 import { brandName, conferenceDialText } from "@/config/brand";
 import { PopupShell, popupInputStyle } from "./PopupShell";
@@ -15,6 +15,11 @@ import { logBiActivity, type CrmTarget } from "@/api/biCrmActivity"; // BF_PORTA
 // BF_PORTAL_BLOCK_v336_MEETING_TYPE_v1
 // BF_PORTAL_MEETING_CONFERENCE_v745 - "conference" books a Boreal conference room (dial-in code) from the same form.
 type MeetingType = "teams" | "phone" | "conference" | "inperson";
+// KS_PORTAL_ZOOM_MEETINGS_v1 - a video meeting is Microsoft Teams, Google Meet or Zoom. Only the apps this person
+// connected are offered; the first one picked is the default for what they connected (Teams, then Meet, then Zoom).
+export type MeetingApp = "teams" | "google_meet" | "zoom";
+export const MEETING_APP_LABEL: Record<MeetingApp, string> = { teams: "Microsoft Teams", google_meet: "Google Meet", zoom: "Zoom" };
+type MeetingApps = { connected: Record<MeetingApp, boolean>; default: MeetingApp | null };
 /** Minutes between two ISO times, kept to what a conference room allows (15 to 240). */
 export function roomMinutes(startIso: string, endIso: string): number {
   const m = Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000);
@@ -39,6 +44,17 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [meetingType, setMeetingType] = useState<MeetingType>("teams");
+  const [apps, setApps] = useState<MeetingApps | null>(null); // KS_PORTAL_ZOOM_MEETINGS_v1
+  const [meetingApp, setMeetingApp] = useState<MeetingApp | null>(null);
+  useEffect(() => {
+    if (isBi) return;
+    let live = true;
+    Promise.resolve().then(() => api.get<{ data: MeetingApps }>("/api/o365/meetings/apps"))
+      .then((r) => { if (!live || !r?.data) return; setApps(r.data); setMeetingApp((cur) => cur ?? r.data.default); })
+      .catch(() => { /* older server: the video option stays "Video meeting (auto link)" and the server picks */ });
+    return () => { live = false; };
+  }, [isBi]);
+  const connectedApps = apps ? (Object.keys(MEETING_APP_LABEL) as MeetingApp[]).filter((a) => apps.connected[a]) : [];
   const [phone, setPhone] = useState(defaultPhone ?? "");
   const [roomResult, setRoomResult] = useState<{ ok: boolean; text: string } | null>(null); // BF_PORTAL_MEETING_CONFERENCE_v745
   const contactId = scope.kind === "contact" ? scope.id : undefined;
@@ -102,6 +118,7 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
           : meetingType === "inperson" ? location : "",
         meeting_type: meetingType,
         online: meetingType === "teams",
+        ...(meetingType === "teams" && meetingApp ? { meeting_app: meetingApp } : {}), // KS_PORTAL_ZOOM_MEETINGS_v1
         attendees: attendees
           .split(",").map(a => a.trim()).filter(Boolean)
           .map(address => ({ address })),
@@ -173,13 +190,27 @@ export function MeetingPopup({ scope, onClose, onCreated, defaultPhone, defaultE
         </div>
       )}
       <select value={meetingType} onChange={(e) => setMeetingType(e.target.value as MeetingType)} style={{ ...popupInputStyle, marginBottom: 8 }}>
-        <option value="teams">Microsoft Teams meeting (auto link)</option>
+        <option value="teams">{isBi ? "Microsoft Teams meeting (auto link)" : "Video meeting (auto link)"}</option>
         <option value="phone">Phone call (we call the client)</option>
         {!isBi && <option value="conference">Conference call (dial-in code, up to 10 people)</option>}
         <option value="inperson">In person / other</option>
       </select>
       {meetingType === "teams" && !isBi && (
-        <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>A Microsoft Teams join link is created automatically and included in the invite to attendees.</div>
+        <>
+          {connectedApps.length > 0 && (
+            <label style={{ display: "block", marginBottom: 8 }}>
+              <span style={{ display: "block", fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 3 }}>Meeting app</span>
+              <select data-testid="meeting-app" aria-label="Meeting app" value={meetingApp ?? ""} onChange={(e) => setMeetingApp(e.target.value as MeetingApp)} style={popupInputStyle}>
+                {connectedApps.map((a) => <option key={a} value={a}>{MEETING_APP_LABEL[a]}</option>)}
+              </select>
+            </label>
+          )}
+          <div style={{ fontSize: 12, color: "var(--ui-text-muted)", marginBottom: 8 }}>
+            {apps && connectedApps.length === 0
+              ? "Connect Microsoft 365, Google or Zoom in Settings to add a video link automatically."
+              : `A ${meetingApp ? MEETING_APP_LABEL[meetingApp] : "video"} join link is created automatically and included in the invite to attendees.`}
+          </div>
+        </>
       )}
       {meetingType === "phone" && (
         <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number to call" style={{ ...popupInputStyle, marginBottom: 8 }} />
