@@ -156,8 +156,13 @@ export function crmUnified(b: CrmBackend) {
     cleanupApply: (changes: CleanupChange[]) => post<{ batchId: string; applied: number; skipped: unknown[] }>(`${u}/cleanup/apply`, { changes }),
     cleanupBatches: () => get<CleanupBatch[]>(`${u}/cleanup/batches`),
     cleanupUndo: (batchId: string) => post<{ restored: number }>(`${u}/cleanup/batches/${batchId}/undo`, {}),
+    // BF_PORTAL_v907_CLEANUP_IGNORE
+    cleanupIgnore: (changes: CleanupChange[]) => post<{ ignored: number }>(`${u}/cleanup/ignore`, { changes }),
+    cleanupIgnoreClear: (entity: CrmEntity) => post<{ cleared: number }>(`${u}/cleanup/ignore/clear`, { entity }),
     summary: (entity: CrmEntity, id: string) => get<SummaryPayload | null>(`${u}/ai-summary/${entity}/${id}`),
     generateSummary: (entity: CrmEntity, id: string) => post<SummaryPayload>(`${u}/ai-summary/${entity}/${id}`, {}),
+    // BF_PORTAL_v907_MORE_SOURCES - public pages (LinkedIn profile URL, team / about page) found by web search.
+    moreSources: (entity: CrmEntity, id: string) => post<{ sources: Array<{ label: string; url: string; detail: string | null }>; photoUrl: string | null; summary: SummaryPayload | null }>(`${u}/ai-summary/${entity}/${id}/sources`, {}),
     async searchContacts(q: string): Promise<Array<{ id: string; name: string; email: string | null }>> {
       const r = await get<any>(`${b.contactsPath}?q=${encodeURIComponent(q)}&search=${encodeURIComponent(q)}&pageSize=10`);
       const list: any[] = Array.isArray(r) ? r : Array.isArray(r?.items) ? r.items : Array.isArray(r?.data) ? r.data : [];

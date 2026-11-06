@@ -66,6 +66,20 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
   const [error, setError] = useState<string | null>(null);
   const activeTab = activeTabFromPath(location.pathname);
 
+  // BF_PORTAL_v906_SBA_TAB_ONLY_SBA - the SBA Signing tab shows only on an SBA file: an SBA product, or an SBA lender
+  // among the lenders the file went to (BF-Server decides: isSba on /sba-signing). Never on a normal Canadian file.
+  const [isSba, setIsSba] = useState(false);
+  useEffect(() => {
+    if (!applicationId) return;
+    let cancelled = false;
+    setIsSba(false);
+    api.get<any>(`/api/applications/${encodeURIComponent(applicationId)}/sba-signing`)
+      .then((r) => { if (!cancelled) setIsSba(Boolean((r?.data ?? r)?.isSba)); })
+      .catch(() => { if (!cancelled) setIsSba(false); });
+    return () => { cancelled = true; };
+  }, [applicationId]);
+  const visibleTabs = TABS.filter((t) => t.key !== "sba-signing" || isSba || activeTab === "sba-signing");
+
   useEffect(() => {
     if (!applicationId) return;
     setError(null);
@@ -169,7 +183,7 @@ export default function ApplicationDetail({ applicationId: propId }: { applicati
       >
         {/* KS_PORTAL_v12_DEMO_FIXES - the sample file has no PGI referral or SBA signing: those tabs are left out of
             the demo rather than shown with errors. */}
-        {TABS.filter((tab) => !isLiveDemo() || (tab.key !== "pgi" && tab.key !== "sba-signing")).map((tab) => {
+        {visibleTabs.filter((tab) => !isLiveDemo() || (tab.key !== "pgi" && tab.key !== "sba-signing")).map((tab) => {
           const active = tab.key === activeTab;
           return (
             <button

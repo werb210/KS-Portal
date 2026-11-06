@@ -51,9 +51,11 @@ describe("Payments on an application", () => {
       : { connected: true, problem: null, links: [] });
     h.post.mockResolvedValue({ link: link(), sent: ["email"], refused: { sms: "The contact has not agreed to texts." } });
     render(<PaymentLinksPanel applicationId="app-1" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Request a payment" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Request a fee payment" }));
+    // BF_PORTAL_v906_PAYMENT_BASIS - the request starts from the signed fee agreement (or an invoice).
+    fireEvent.click(await screen.findByLabelText(/The fee in the signed fee agreement/));
     await waitFor(() => expect(screen.getByLabelText("Amount (CAD)")).toHaveValue("2000"));
-    expect(screen.getByLabelText("What it is for")).toHaveValue("Broker fee (2% of funding)");
+    expect(screen.getByLabelText("What it is for (shown to the client)")).toHaveValue("Broker fee (2% of funding)");
     fireEvent.click(screen.getByLabelText(/Send by text/));
     fireEvent.click(screen.getByRole("button", { name: "Create and send" }));
     await waitFor(() => expect(h.post).toHaveBeenCalledWith("/api/payments/links", {
@@ -67,7 +69,7 @@ describe("Payments on an application", () => {
     h.get.mockResolvedValue({ connected: false, problem: null, links: [] });
     render(<PaymentLinksPanel contactId="c1" />);
     expect(await screen.findByText(/connect your Stripe account in Settings > Payments/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Request a payment" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Request a fee payment" })).toBeNull();
   });
 
   it("every status pill is readable (4.5:1 or better)", () => {
