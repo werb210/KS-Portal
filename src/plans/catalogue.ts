@@ -18,7 +18,7 @@ export const FEATURES: FeatureInfo[] = [
   // KS_PORTAL_MARKETING_ADDON - every plan markets to its own client list; Google Ads and LinkedIn Ads results everywhere.
   { key: "marketing", plan: "starter", label: "Marketing to your own client list: email and text campaigns, sequences, templates and a website lead form", description: "Email and text campaigns, drip sequences, campaign templates, a lead form for your website and a campaign report, within your plan's monthly limits." },
   { key: "ads_results", plan: "starter", label: "Google Ads and LinkedIn Ads results, Google Analytics connection", description: "See what your Google Ads and LinkedIn Ads spend and bring in, and connect Google Analytics." },
-  { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (20% referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner and you earn 20% of the partner's commission on every bound policy." },
+  { key: "pgi_referrals", plan: "starter", label: "Personal Guarantee Insurance referrals (flat referral fee)", description: "Clients can add Personal Guarantee Insurance; the file goes to our insurance partner. Where permitted, you earn a flat referral fee for each qualified referral, whether or not a policy is bound." }, // KS_PORTAL_PGI_REFERRAL_FEE_v1
   // KS_PORTAL_v20_CRM_FIELDS - every plan.
   { key: "custom_fields", plan: "starter", label: "Custom fields", description: "Add your own fields to contacts, companies and deals (licence numbers, renewal dates, equipment type), with lists, filters, exports and imports." },
   // KS_PORTAL_PLAN_FIXES - the iPad staff portal app on every plan; calls recorded on every plan, playback growth and up.

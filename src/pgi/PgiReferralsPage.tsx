@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { pgiApi, money, statusStyle, type PgiListRow } from "@/pgi/pgiApi";
 import { Chip } from "@/pgi/PgiTab";
-import { PGI_PARTNER_NAME, PGI_REFERRAL_FEE_PERCENT } from "@/pgi/partner";
+import { PGI_PARTNER_NAME } from "@/pgi/partner"; // KS_PORTAL_PGI_REFERRAL_FEE_v1 - no percentage: a flat fee per qualified referral
 
 const th: CSSProperties = { textAlign: "left", padding: "8px 10px", fontSize: 12, color: "var(--ui-text-muted)", borderBottom: "1px solid var(--ui-border)", whiteSpace: "nowrap" };
 const td: CSSProperties = { padding: "10px", fontSize: 14, color: "var(--ui-text)", borderBottom: "1px solid var(--ui-border)", verticalAlign: "top" };
@@ -26,7 +26,7 @@ export default function PgiReferralsPage() {
     <div style={{ padding: 24, color: "var(--ui-text)", maxWidth: 1100 }} data-testid="pgi-referrals-page">
       <h1 style={{ fontSize: 24, margin: "0 0 4px" }}>PGI referrals</h1>
       <p style={{ fontSize: 14, color: "var(--ui-text-muted)", margin: "0 0 16px" }}>
-        Personal Guarantee Insurance is placed by our insurance partner, {PGI_PARTNER_NAME}. You earn {PGI_REFERRAL_FEE_PERCENT}% of the partner's commission on every policy that binds.
+        Personal Guarantee Insurance is placed by our insurance partner, {PGI_PARTNER_NAME}. Where permitted, you earn a flat referral fee for each qualified referral, whether or not a policy is bound, paid through Keystone under your agreement. Not available in Quebec.
         {earned.length > 0 && <> Referral fees recorded so far: <strong data-testid="pgi-fee-total">{money(total, earned[0]?.referral_fee_currency ?? "CAD")}</strong>.</>}
       </p>
       {error && <p role="alert">{error}</p>}

@@ -1,10 +1,11 @@
 // KS_PORTAL_v9_PGI - the application's "PGI insurance" tab. Personal Guarantee Insurance is placed by the insurance
-// partner; this brokerage refers the file and earns a referral fee (20% of the partner's commission) when the policy
+// partner; this brokerage refers the file and, where permitted, earns a flat referral fee per qualified referral (paid
+// whether or not a policy binds; the insurance partner's terms). Was: 20% of the partner's commission when the policy
 // binds. The tab shows: the referral status, the insurer's document checklist mapped onto this file (with an upload
 // button per missing item), the fields the insurer still needs, the message thread with the partner, and the fee.
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { pgiApi, SLOT_STATE_STYLE, money, statusStyle, type ChecklistRow, type PgiMessage, type PgiSlot, type PgiView } from "@/pgi/pgiApi";
-import { PGI_PARTNER_NAME, PGI_REFERRAL_FEE_PERCENT } from "@/pgi/partner";
+import { PGI_PARTNER_NAME } from "@/pgi/partner"; // KS_PORTAL_PGI_REFERRAL_FEE_v1 - no percentage: a flat fee per qualified referral
 
 const card: CSSProperties = { padding: 16, border: "1px solid var(--ui-border)", borderRadius: 12, background: "var(--ui-surface-strong)", color: "var(--ui-text)", marginBottom: 16 };
 const h3: CSSProperties = { margin: "0 0 8px", fontSize: 16, color: "var(--ui-text)" };
@@ -224,7 +225,7 @@ export default function PgiTab({ applicationId }: { applicationId: string }) {
       <section style={card} data-testid="pgi-not-referred">
         <h3 style={h3}>Personal Guarantee Insurance</h3>
         <p style={{ fontSize: 14, margin: "4px 0 12px" }}>
-          The client did not ask for PGI. If they want it, refer the file to our insurance partner, {PGI_PARTNER_NAME}. You earn a referral fee of {PGI_REFERRAL_FEE_PERCENT}% of the partner's commission when the policy binds.
+          The client did not ask for PGI. If they want it, refer the file to our insurance partner, {PGI_PARTNER_NAME}. Where permitted, you earn a flat referral fee for each qualified referral, whether or not a policy is bound. Don't give insurance advice; the partner handles that.
         </p>
         <button type="button" style={button} data-testid="pgi-refer" onClick={() => run(() => pgiApi.start(applicationId), "Referred to the insurance partner.")}>Refer for PGI</button>
         {notice && <p role="status" style={{ ...muted, color: "var(--ui-text)" }}>{notice}</p>}
@@ -251,7 +252,7 @@ export default function PgiTab({ applicationId }: { applicationId: string }) {
             Referral fee: <strong>{money(r.referral_fee.amount, r.referral_fee.currency)}</strong>{r.referral_fee.status ? ` (${r.referral_fee.status})` : ""}
           </p>
         ) : (
-          <p style={muted}>Referral fee: {PGI_REFERRAL_FEE_PERCENT}% of the partner's commission, recorded when the policy binds.</p>
+          <p style={muted}>Referral fee: a flat fee for this referral once it qualifies, whether or not a policy is bound. The amount is in your Keystone agreement.</p>
         )}
         {notice && <p role="status" style={{ ...muted, color: "var(--ui-text)" }}>{notice}</p>}
       </section>
