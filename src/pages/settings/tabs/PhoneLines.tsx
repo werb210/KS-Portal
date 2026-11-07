@@ -9,6 +9,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { api } from "@/api";
 import FeatureGate from "@/plans/FeatureGate";
+import KeepNumberPanel from "@/pages/settings/porting/KeepNumberPanel"; // KS_PORTAL_NUMBER_PORTING_v1
 
 type Kind = "main" | "toll_free" | "direct";
 type Line = { id: string; name: string; email: string | null; direct_number: string | null };
@@ -283,6 +284,12 @@ export default function PhoneLines(): JSX.Element {
             ))}
           </details>
         </FeatureGate>
+      </section>
+
+      {/* KS_PORTAL_NUMBER_PORTING_v1 - the same choice as the set-up wizard's "Your phone numbers" step. */}
+      <section style={section} aria-labelledby="keep-number-h">
+        <h3 id="keep-number-h" style={{ fontSize: 16, margin: 0, color: "var(--ui-text)" }}>Keep your existing number</h3>
+        <KeepNumberPanel />
       </section>
     </div>
   );
