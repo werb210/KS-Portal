@@ -97,7 +97,7 @@ describe("keep your existing number", () => {
     fireEvent.click(within(bea).getByRole("button", { name: "Continue to the letter of authorization" }));
 
     await waitFor(() => expect(h.post).toHaveBeenCalledWith("/api/port-requests", expect.anything()));
-    const body = h.post.mock.calls[0][1];
+    const body = h.post.mock.calls[0]![1];
     expect(body).toMatchObject({
       carrier: "telus", account_number: "998877", pin: "4321", account_name: "Acme Lending Inc.", forwarding_tested: true,
       service_address: { line1: "1 Test Way", city: "Calgary", region: "AB", postal_code: "T2P 1A1", country: "CA" },
@@ -146,7 +146,7 @@ describe("keep your existing number", () => {
   it("says plainly when the server is not linked to Keystone operations", async () => {
     h.get.mockResolvedValue({ ok: true, ops_ready: false, message: "This server is not linked to Keystone operations yet.", requests: [], people: PEOPLE, main_line: null });
     render(<KeepNumberPanel />);
-    expect((await screen.findAllByRole("alert"))[0].textContent).toMatch(/not linked/);
+    expect((await screen.findAllByRole("alert"))[0]!.textContent).toMatch(/not linked/);
     expect(within(screen.getByTestId("number-choice-u-bea")).getByRole("radio", { name: "Keep my existing number" })).toHaveProperty("disabled", true);
   });
 });
