@@ -9,6 +9,10 @@ import { primaryButton, secondaryButton } from "@/plans/ui";
 import { HelpArticle } from "@/pages/help/HelpCenter";
 import { setupError, type SetupRole, type SetupStep, type StepStatus } from "./setupApi";
 import { useSetupStore } from "./setupStore";
+import KeepNumberPanel from "@/pages/settings/porting/KeepNumberPanel"; // KS_PORTAL_NUMBER_PORTING_v1
+
+/** KS_PORTAL_NUMBER_PORTING_v1 - this step opens its choice inside the wizard instead of going to a page. */
+export const IN_WIZARD_STEPS = new Set(["phone_numbers"]);
 
 const HEADING: Record<SetupRole, string> = {
   admin: "Set up your brokerage",
@@ -83,7 +87,8 @@ export function StepCard({ step, number, onDo, onHelp, onStatus, busy }: {
 }) {
   const [copied, setCopied] = useState(false);
   const titleId = `setup-step-${step.key}`;
-  const primaryLabel = step.external_url ? "Open your client app" : step.link ? "Do it now" : "Show me how";
+  const inWizard = IN_WIZARD_STEPS.has(step.key);
+  const primaryLabel = step.external_url ? "Open your client app" : inWizard ? "Choose" : step.link ? "Do it now" : "Show me how";
   const copy = () => {
     if (!step.external_url) return;
     void navigator.clipboard?.writeText(step.external_url).then(() => setCopied(true)).catch(() => setCopied(false));
@@ -107,7 +112,7 @@ export function StepCard({ step, number, onDo, onHelp, onStatus, busy }: {
         </p>
       )}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <button type="button" style={step.status === "done" ? secondary : primary} onClick={() => onDo(step)}>{step.status === "done" && step.link && !step.external_url ? "Open" : primaryLabel}</button>
+        <button type="button" style={step.status === "done" ? secondary : primary} onClick={() => onDo(step)}>{step.status === "done" && step.link && !step.external_url && !inWizard ? "Open" : primaryLabel}</button>
         {step.external_url && <button type="button" style={secondary} onClick={copy}>{copied ? "Link copied" : "Copy the link"}</button>}
         {step.help_slug && (step.link || step.external_url) && <button type="button" style={secondary} onClick={() => onHelp(step.help_slug)}>Help</button>}
         {step.status === "todo" && step.can_mark_done && (
@@ -127,14 +132,19 @@ export default function SetupWizard() {
   const navigate = useNavigate();
   const { wizard, open, setOpen, setStatus, dismiss } = useSetupStore();
   const [helpSlug, setHelpSlug] = useState<string | null>(null);
+  const [panel, setPanel] = useState<string | null>(null); // KS_PORTAL_NUMBER_PORTING_v1
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   if (!open || !wizard) return null;
 
-  const close = () => { setHelpSlug(null); setError(null); setOpen(false); };
+  const close = () => { setHelpSlug(null); setPanel(null); setError(null); setOpen(false); };
   const onDo = (step: SetupStep) => {
     if (step.external_url) {
       window.open(step.external_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (IN_WIZARD_STEPS.has(step.key)) {
+      setPanel(step.key);
       return;
     }
     if (!step.link) {
@@ -170,6 +180,20 @@ export default function SetupWizard() {
       <div data-testid="setup-wizard" style={{ color: "var(--ui-text)" }}>
         {helpSlug ? (
           <HelpArticle slug={helpSlug} onBack={() => setHelpSlug(null)} backLabel="Back to set-up" />
+        ) : panel === "phone_numbers" ? (
+          <div data-testid="setup-phone-numbers">
+            <button type="button" style={quiet} onClick={() => setPanel(null)}>Back to set-up</button>
+            <h3 style={{ fontSize: 17, margin: "10px 0 4px", color: "var(--ui-text)" }}>Your phone numbers</h3>
+            <KeepNumberPanel onUseNewForEveryone={() => {
+              const s = wizard.steps.find((x) => x.key === "phone_numbers");
+              if (s && s.status !== "done") void onStatus(s, "done");
+              setPanel(null);
+            }} />
+            <p style={{ fontSize: 13, color: "var(--ui-text-muted)", marginTop: 12 }}>
+              You can come back to this any time in Settings, Phone lines.{" "}
+              <button type="button" style={{ ...quiet, minHeight: 0, padding: 0, border: 0, textDecoration: "underline" }} onClick={() => setHelpSlug("keep-your-existing-number")}>How keeping a number works</button>
+            </p>
+          </div>
         ) : (
           <>
             <p style={{ margin: "8px 0 12px", fontSize: 15, lineHeight: 1.5, color: "var(--ui-text)" }}>{INTRO[wizard.role]}</p>
