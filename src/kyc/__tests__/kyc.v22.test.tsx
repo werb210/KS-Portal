@@ -68,8 +68,9 @@ describe("ID verification tab", () => {
     setPlan(true);
     h.get.mockResolvedValue({ ok: true, application_id: "app-1", provider: { key: "onfido", label: "Entrust IDV", configured: false, hosted: true }, people: [], verifications: [] });
     renderWithRole(<IdVerificationTab applicationId="app-1" />, "Staff");
-    expect(await screen.findByText(/not set up yet/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Send verification request" })).toBeDisabled();
+    // BF_PORTAL_v906_KYC_NOT_CONNECTED - a clear "Not connected" state instead of a send button.
+    expect(await screen.findByTestId("kyc-not-connected")).toHaveTextContent("Not connected.");
+    expect(screen.queryByRole("button", { name: "Send verification request" })).toBeNull();
   });
 
   it("status chips are readable (contrast 4.5:1 or better)", () => {

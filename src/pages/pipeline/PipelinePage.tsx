@@ -9,6 +9,7 @@ import { fetchRetention, lockMessage, refusedDeleteMessage } from "@/retention/r
 import TeamFilter from "@/teams/TeamFilter"; // KS_PORTAL_v20_TEAMS
 import CustomFieldFilters from "@/crmFields/CustomFieldFilters"; // KS_PORTAL_v20_CRM_FIELDS
 import { filterParams, useCustomFields, type CustomFilter } from "@/crmFields/customFieldsApi"; // KS_PORTAL_v20_CRM_FIELDS
+import { pipelinesApi } from "@/pipelines/pipelinesApi"; // BF_PORTAL_v909_LENDING_STAGE_DISPLAY
 import { patchStatusWithFundingGate } from "@/brokerTools/fundingGate"; // KS_BROKER_TOOLS_1_FUNDING_CONDITIONS
 
 // BF_PORTAL_FRAUD_HOLD_v34 - Fraud and Hold are parking columns. Neither
@@ -74,6 +75,15 @@ type Card = {
   productCategory?: string | null;
   product_category?: string | null;
 };
+
+// BF_PORTAL_v909_LENDING_STAGE_DISPLAY - the stages in the order set in Settings (built-in order for any not set).
+export function orderedStages(display: Record<string, { position: number }>): Stage[] {
+  return [...STAGES].sort((a, b) => {
+    const pa = display[a]?.position ?? STAGES.indexOf(a);
+    const pb = display[b]?.position ?? STAGES.indexOf(b);
+    return pa - pb || STAGES.indexOf(a) - STAGES.indexOf(b);
+  });
+}
 
 // v696: every card must land in exactly one column, otherwise it inflates the
 // header count without rendering (the "34 counted, 1 shown" bug). Any card whose
@@ -150,9 +160,33 @@ export default function PipelinePage() {
   const [cfFilters, setCfFilters] = useState<CustomFilter[]>([]);
   const { fields: appFields } = useCustomFields("application");
   const cfKey = JSON.stringify(cfFilters);
+  // BF_PORTAL_v906_PIPELINE_SEARCH - search every deal across all stages on the server (business name, contact name,
+  // email, phone, application id). The board shows at most 500 cards, so filtering only what is loaded misses deals.
+  // BF_PORTAL_v909_LENDING_STAGE_DISPLAY - Settings > CRM set-up > Pipelines can rename, hide and reorder the lending
+  // stages. Only the board's display changes; cards, moves and reports keep the built-in stage keys.
+  const [stageDisplay, setStageDisplay] = useState<Record<string, { label: string; hidden: boolean; position: number }>>({});
+  useEffect(() => {
+    let live = true;
+    Promise.resolve().then(() => pipelinesApi.list())
+      .then((r) => {
+        const lending = r?.pipelines?.find((p) => p.system);
+        if (!live || !lending) return;
+        setStageDisplay(Object.fromEntries(lending.stages.map((st, i) => [st.key ?? st.name, { label: st.label ?? st.name, hidden: st.hidden === true, position: typeof st.position === "number" ? st.position : i }])));
+      })
+      .catch(() => { /* older server or no access: the built-in names and order */ });
+    return () => { live = false; };
+  }, []);
+  const boardStages = orderedStages(stageDisplay);
+  const stageLabel = (st: Stage) => stageDisplay[st]?.label || st;
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const load = useCallback(() => {
-    const params: Record<string, string | number> = { ...filterParams(cfFilters), ...(teamId ? { team_id: teamId } : {}), ...(showDrafts ? { include_drafts: 1 } : {}) };
+    const params: Record<string, string | number> = { ...filterParams(cfFilters), ...(teamId ? { team_id: teamId } : {}), ...(showDrafts ? { include_drafts: 1 } : {}), ...(search ? { q: search } : {}) };
     api<{ items: Card[] }>("/api/portal/applications", {
       params: Object.keys(params).length ? params : undefined,
     })
@@ -161,7 +195,7 @@ export default function PipelinePage() {
       ))
       .catch(() => setCards([]))
       .finally(() => setLoading(false));
-  }, [showDrafts, teamId, cfKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showDrafts, teamId, cfKey, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
 
@@ -256,22 +290,36 @@ export default function PipelinePage() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--ui-text)", margin: 0 }}>Sales Pipeline</h1>
           <label style={{ fontSize: 13, color: "var(--ui-text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <input type="checkbox" checked={showDrafts} onChange={(event) => setShowDrafts(event.target.checked)} />
             Show drafts
           </label>
           <TeamFilter value={teamId} onChange={setTeamId} />
+          {/* BF_PORTAL_v906_PIPELINE_SEARCH */}
+          <input
+            type="search"
+            aria-label="Search all deals"
+            data-testid="pipeline-search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Escape") setSearchInput(""); }}
+            placeholder="Search deals: business, contact, email, phone or ID"
+            style={{ width: 320, maxWidth: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--ui-border)", fontSize: 13 }}
+          />
         </div>
-        <span style={{ fontSize: 13, color: "var(--ui-text-muted)" }}>{cards.length} applications</span>
+        <span style={{ fontSize: 13, color: "var(--ui-text-muted)" }} data-testid="pipeline-count">
+          {search ? `${cards.length} match${cards.length === 1 ? "" : "es"} for "${search}"` : `${cards.length} applications`}
+        </span>
       </div>
       <CustomFieldFilters fields={appFields} value={cfFilters} onChange={setCfFilters} />{/* KS_PORTAL_v20_CRM_FIELDS */}
       <LenderReferralIssues />{/* BF_PORTAL_v827_REFERRAL_PIPELINE_CARD - lender files still importing or that could not be read */}
       <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 16, alignItems: "flex-start" }}>
-        {STAGES.map((stage) => {
+        {boardStages.map((stage) => {
           const col = cards.filter((c) => effectiveStage(c) === stage);
+          if (stageDisplay[stage]?.hidden && col.length === 0) return null; // BF_PORTAL_v909_LENDING_STAGE_DISPLAY
           const isTarget = dragOver === stage && dragging !== null;
           return (
             // BF_PORTAL_PIPELINE_DND_v35 - the column is the drop target.
@@ -290,7 +338,7 @@ export default function PipelinePage() {
               }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10,
                 padding: "6px 2px", borderBottom: "2px solid var(--ui-text-muted)" }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ui-text-muted)" }}>{stage}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--ui-text-muted)" }} title={stageLabel(stage) !== stage ? `Stage: ${stage}` : undefined}>{stageLabel(stage)}</span>
                 <span style={{ fontSize: 11, background: "var(--ui-surface-muted)", color: "var(--ui-text-muted)",
                   borderRadius: 20, padding: "1px 8px", fontWeight: 600 }}>
                   {col.length}

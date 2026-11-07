@@ -434,6 +434,10 @@ export function createShim(opts: ShimOptions) {
 
     // credit summary
     ["GET", new RegExp(`^/api/credit-summary-v2/${ID}$`), (_r, m) => ok(creditSummary(m[1]!))],
+    // BF_PORTAL_v906 port - the step states on the Credit Summary and the SBA check behind the SBA Signing tab.
+    ["GET", new RegExp(`^/api/credit-summary-v2/${ID}/steps$`), () => raw({ steps: [] })],
+    ["GET", /^\/api\/users\/me$/, () => raw({ profile_image_url: null })], // BF_PORTAL_v909_AVATARS - the top bar's photo
+    ["GET", new RegExp(`^/api/applications/${ID}/sba-signing$`), () => ok({ isSba: false })],
     ["POST", new RegExp(`^/api/credit-summary-v2/${ID}/generate$`), (_r, m) => ok(creditSummary(m[1]!))],
     ["PUT", new RegExp(`^/api/credit-summary-v2/${ID}/sections/[^/]+$`), (_r, m) => ok(creditSummary(m[1]!))],
     ["POST", new RegExp(`^/api/credit-summary-v2/${ID}/submit$`), (_r, m) => {

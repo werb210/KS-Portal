@@ -2,6 +2,7 @@ import WhatsAppBar, { type Channel as WaChannel } from "@/hubspotGaps2/WhatsAppB
 import { Capacitor } from "@capacitor/core"; // BF_PORTAL_ONEDRIVE_ATTACHMENTS_v648
 import { assistantName } from "@/config/brand";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { UserAvatar } from "@/components/ui/UserAvatar"; // BF_PORTAL_v909_AVATARS
 import { api } from "@/api";
 import { contactDisplayName } from "@/utils/contactName";
 import { getAuthToken } from "@/lib/authToken"; // BF_PORTAL_BLOCK_v752_TEAM_TAB
@@ -1930,6 +1931,23 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
   // BF_PORTAL_BLOCK_v832_INBOX_FLAG_AND_BULK — flag + bulk multi-select.
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // BF_PORTAL_v908_INBOX_SELECT_EXIT - Select mode ends with Done, Escape, or a click outside the toolbar and the list.
+  const inboxToolbarRef = useRef<HTMLDivElement | null>(null);
+  const inboxListRef = useRef<HTMLDivElement | null>(null);
+  const exitSelect = useCallback(() => { setBulkMode(false); setSelectedIds(new Set()); }, []);
+  useEffect(() => {
+    if (!bulkMode) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") exitSelect(); };
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node | null;
+      if (!t) return;
+      if (inboxToolbarRef.current?.contains(t) || inboxListRef.current?.contains(t)) return;
+      exitSelect();
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
+  }, [bulkMode, exitSelect]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const togglePick = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -2125,7 +2143,7 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
     <div style={{ display: "flex", flexDirection: "column", flex: 1, width: "100%", height: "100%", minHeight: 0, background: "var(--ui-surface-strong)", color: "var(--ui-text)", position: "relative" }}>
       {/* BF_PORTAL_INBOX_FULLWIDTH_TOOLBAR_v1 - every inbox control in one full-width row across the top */}
       {/* KS_PORTAL_FIXES_v893 - the row wraps instead of running off the right edge on small screens */}
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: "1px solid var(--ui-border)" }}>
+      <div ref={inboxToolbarRef} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: "1px solid var(--ui-border)" }}>
         <button type="button" onClick={() => setComposeOpen(true)} style={{ padding: "8px 12px", border: "none", borderRadius: 4, background: "var(--ui-accent-blue)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>+ Compose</button>
         <select value={active} onChange={(e) => setActive(e.target.value)} style={{ minWidth: 150, padding: 8, border: "1px solid var(--ui-border)", borderRadius: 4, background: "var(--ui-surface-strong)", color: "var(--ui-text)" }}>
           {mailboxOptions.map(o => <option key={o.value || "self"} value={o.value}>{o.label}</option>)}
@@ -2143,12 +2161,14 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
           <option value="asc">Oldest first</option>
         </select>
         <span style={{ fontSize: 12, color: "var(--ui-text-muted)", whiteSpace: "nowrap" }}>{unreadCount > 0 ? `${unreadCount} unread` : "All read"}</span>
-        <button type="button" onClick={() => { setBulkMode((v) => !v); setSelectedIds(new Set()); }} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 4, border: "1px solid var(--ui-border)", background: bulkMode ? "rgba(47, 168, 106, 0.12)" : "var(--ui-surface-strong)", cursor: "pointer", whiteSpace: "nowrap" }}>{bulkMode ? "Cancel" : "Select"}</button>
+        <button type="button" onClick={() => { setBulkMode((v) => !v); setSelectedIds(new Set()); }} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 4, border: "1px solid var(--ui-border)", background: bulkMode ? "rgba(47, 168, 106, 0.12)" : "var(--ui-surface-strong)", cursor: "pointer", whiteSpace: "nowrap" }}>{bulkMode ? "Done" : "Select"}</button>
         <button type="button" onClick={() => setReconnectAttempts((n) => n + 1)} disabled={loading} style={{ marginLeft: "auto", padding: "6px 10px", border: "1px solid var(--ui-border)", borderRadius: 4, background: "var(--ui-surface-muted)", color: "var(--ui-text-muted)", fontSize: 12, cursor: loading ? "default" : "pointer", whiteSpace: "nowrap" }}>{loading ? "Refreshing..." : "↻ Refresh"}</button>
         {/* KS_PORTAL_FIXES_v893 - the Select options sit on their own row underneath */}
         {bulkMode && (
           <div data-testid="inbox-bulk-actions" style={{ flexBasis: "100%", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 12, color: "var(--ui-text-muted)", whiteSpace: "nowrap" }}>{selectedIds.size} selected</span>
+            <button type="button" data-testid="inbox-select-done" onClick={exitSelect} style={{ fontSize: 12, padding: "6px 10px", borderRadius: 4, border: "1px solid #1e3a8a", background: "#1e3a8a", color: "#ffffff", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>Done</button>
+            <span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>Esc or a click outside the list also ends Select.</span>
             <button type="button" disabled={bulkBusy || selectedIds.size === 0} onClick={() => void bulkMarkRead(true)} style={{ fontSize: 12, padding: "6px 8px", borderRadius: 4, border: "1px solid var(--ui-border)", background: "var(--ui-surface-strong)", cursor: bulkBusy || selectedIds.size === 0 ? "default" : "pointer", whiteSpace: "nowrap" }}>Mark read</button>
             <button type="button" disabled={bulkBusy || selectedIds.size === 0} onClick={() => void bulkMarkRead(false)} style={{ fontSize: 12, padding: "6px 8px", borderRadius: 4, border: "1px solid var(--ui-border)", background: "var(--ui-surface-strong)", cursor: bulkBusy || selectedIds.size === 0 ? "default" : "pointer", whiteSpace: "nowrap" }}>Mark unread</button>
             <button type="button" disabled={bulkBusy || selectedIds.size === 0} onClick={() => void bulkFlag()} style={{ fontSize: 12, padding: "6px 8px", borderRadius: 4, border: "1px solid var(--ui-border)", background: "var(--ui-surface-strong)", cursor: bulkBusy || selectedIds.size === 0 ? "default" : "pointer", whiteSpace: "nowrap" }}>Flag</button>
@@ -2196,7 +2216,7 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
           </button>
         </div>
       )}
-      <div style={{ borderRight: "1px solid var(--ui-border)", display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
+      <div ref={inboxListRef} style={{ borderRight: "1px solid var(--ui-border)", display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {loading && <div style={{ padding: 16, color: "var(--ui-text-muted)" }}>Loading…</div>}
           {err && <div style={{ padding: 16, color: "#b00020" }}>{err}</div>}
@@ -2215,7 +2235,7 @@ function InboxTab({ unreadOnly = false }: { unreadOnly?: boolean }) {
               )}
               <button
                 type="button"
-                onClick={() => setSelectedId(m.id)}
+                onClick={() => (bulkMode ? togglePick(m.id) : setSelectedId(m.id))}
                 style={{
                   display: "block", flex: 1, width: "100%", textAlign: "left",
                   padding: "12px 88px 12px 12px", border: "none",
@@ -2968,7 +2988,7 @@ export function TeamStatusEditor({ current, onDone }: { current?: TeamStatusRow;
     </div>
   );
 }
-type TeamUser = { id: string; name: string; email: string | null };
+type TeamUser = { id: string; name: string; email: string | null; avatar_url?: string | null }; // BF_PORTAL_v909_AVATARS
 
 function teamCurrentUserId(): string | null {
   try {
@@ -3530,7 +3550,7 @@ function TeamTab({ onUnreadChange }: { onUnreadChange?: (n: number) => void }) {
                 const mine = m.sender_id === myId;
                 return (
                   <div key={m.id} style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "70%" }}>
-                    {!mine && <div style={{ fontSize: 11, color: "var(--ui-text-muted)", marginBottom: 2 }}>{m.bot || userName(m.sender_id)}</div>}
+                    {!mine && <div style={{ fontSize: 11, color: "var(--ui-text-muted)", marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>{!m.bot && <UserAvatar name={userName(m.sender_id)} url={users.find((x) => x.id === m.sender_id)?.avatar_url ?? null} size={20} />}{m.bot || userName(m.sender_id)}</div>}{/* BF_PORTAL_v909_AVATARS */}
                     {m.reply_to && (
                       <div style={{ fontSize: 12, color: "var(--ui-text-muted)", borderLeft: "2px solid var(--ui-border)", paddingLeft: 8, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 260 }}>
                         {userName(m.reply_to.sender_id)}: {m.reply_to.body || "\u2026"}
