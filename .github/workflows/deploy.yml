@@ -76,7 +76,8 @@ jobs:
         run: |
           if [ -z "$AZURE_STORAGE_CONNECTION_STRING" ]; then echo "::notice::KS_SITES_STORAGE_CONNECTION_STRING is not set: the shared build was not published"; exit 0; fi
           # The Static Web Apps step builds in a container as root: clear what it left before building again.
-          sudo rm -rf node_modules dist
+          sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE"
+          rm -rf node_modules dist
           npm ci
           npm run build
           node scripts/shared-csp.mjs dist "$KS_DOMAIN"
