@@ -1,3 +1,4 @@
+import { SERVER_URL } from "@/config/licensee"; // KS_SHARED_APP_BUILD_v1 - VITE_API_BASE was never set
 import { normalizePhone } from "@/utils/normalizePhone";
 import { setAuthToken } from "@/lib/authToken";
 import { readSessionItem, writeSessionItem } from "@/lib/secureStore"; // BF_PORTAL_v789_NATIVE_SESSION_MEMORY
@@ -20,7 +21,7 @@ export async function verifyOtp(code: string) {
 
     const phone = normalizePhone(storedPhone);
 
-    const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/auth/otp/verify`, {
+    const res = await fetch(`${SERVER_URL}/api/auth/otp/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
