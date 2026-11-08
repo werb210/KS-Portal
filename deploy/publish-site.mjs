@@ -67,7 +67,8 @@ const TYPES = {
 /** The blob folder of one brokerage's app: "<code>/<app>/" in the container `sites`. */
 export function blobPrefix(code, app) {
   if (!SITE_APPS.includes(app)) throw new Error(`Unknown app "${app}" (expected ${SITE_APPS.join(" or ")})`);
-  if (!CODE_RE.test(String(code)) || String(code).includes("--")) {
+  // KS_SHARED_APP_BUILD_v1 - "_shared" is the one build every brokerage without its own gets.
+  if (code !== "_shared" && (!CODE_RE.test(String(code)) || String(code).includes("--"))) {
     throw new Error(`Brokerage code "${code}" must be 3-32 lowercase letters, numbers or single hyphens`);
   }
   return `${code}/${app}/`;
