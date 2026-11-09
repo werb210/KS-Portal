@@ -396,6 +396,9 @@ export function summarize(node: WorkflowNode, ctx: SummaryContext = {}): string 
     case "add_note": return str(p.body) ? "Add note: \"" + clip(str(p.body)) + "\"" : "Add note";
     case "set_contact_field": return str(p.field) ? "Set " + fieldLabel(str(p.field), catalog) + " to " + (str(p.value) ? valueLabel(str(p.field), str(p.value), catalog) : "(empty)") : "Set a contact property";
     case "set_application_stage": return "Set application stage to " + (str(p.stage) || "(choose a stage)");
+    // KS_PORTAL_CUSTOM_EVERYWHERE_v1
+    case "set_custom_field": return str(p.field) ? "Set " + fieldLabel(str(p.field), catalog) + " to " + (str(p.value) || "(empty)") : "Set one of your properties";
+    case "move_pipeline_stage": return str(p.stage) ? "Move to " + ((catalog?.pipelines ?? []).find((x) => x.id === str(p.pipeline))?.name ?? "pipeline") + ": " + str(p.stage) : "Move the deal in one of your pipelines";
     case "add_tag": return "Add tag \"" + (str(p.tag) || "?") + "\"";
     case "remove_tag": return "Remove tag \"" + (str(p.tag) || "?") + "\"";
     case "add_to_list": return "Add to list: " + (ctx.lists?.find((l) => l.id === str(p.listId))?.name ?? (str(p.listId) || "choose a list"));
@@ -463,6 +466,8 @@ export function missingParams(node: WorkflowNode, nodes: Record<string, Workflow
     case "add_note": need("body", "Write the note"); break;
     case "set_contact_field": need("field", "Choose a property"); break;
     case "set_application_stage": need("stage", "Choose a stage"); break;
+    case "set_custom_field": need("field", "Choose a property"); break; // KS_PORTAL_CUSTOM_EVERYWHERE_v1
+    case "move_pipeline_stage": need("pipeline", "Choose a pipeline"); need("stage", "Choose a stage"); break;
     case "add_tag":
     case "remove_tag": need("tag", "Choose a tag"); break;
     case "add_to_list":

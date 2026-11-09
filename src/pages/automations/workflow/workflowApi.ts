@@ -64,6 +64,9 @@ export function normalizeCatalog(raw: unknown): Catalog {
     stages: asArray(c.stages).map((x) => isObj(x) ? s(x.key ?? x.name ?? x.label) : s(x)),
     events: asArray(c.events).filter(isObj).map((e) => ({ key: s(e.key), label: s(e.label ?? e.key) })),
     tokens: asArray(c.tokens).map((x) => isObj(x) ? s(x.key ?? x.token) : s(x)).filter(Boolean),
+    // KS_PORTAL_CUSTOM_EVERYWHERE_v1
+    customFields: asArray(c.customFields).filter(isObj).map((f) => ({ key: s(f.key), label: s(f.label ?? f.key), type: s(f.type) || "text", options: normOptions(f.options) })),
+    pipelines: asArray(c.pipelines).filter(isObj).map((p) => ({ id: s(p.id), name: s(p.name), stages: asArray(p.stages).map(s) })),
   };
 }
 

@@ -74,6 +74,9 @@ export const ACTIONS: ActionDef[] = [
 
   { key: "set_contact_field", label: "Set contact property", title: "Edit record", group: "Edit record", category: "edit", make: () => act("set_contact_field", { field: "", value: "" }) },
   { key: "set_application_stage", label: "Set application stage", title: "Edit record", group: "Edit record", category: "edit", make: () => act("set_application_stage", { stage: "" }) },
+  // KS_PORTAL_CUSTOM_EVERYWHERE_v1
+  { key: "set_custom_field", label: "Set one of your properties", title: "Edit record", group: "Edit record", category: "edit", make: () => act("set_custom_field", { field: "", value: "" }) },
+  { key: "move_pipeline_stage", label: "Move deal in one of your pipelines", title: "Edit record", group: "Edit record", category: "edit", make: () => act("move_pipeline_stage", { pipeline: "", stage: "" }) },
   { key: "add_tag", label: "Add tag", title: "Edit record", group: "Edit record", category: "edit", make: () => act("add_tag", { tag: "" }) },
   { key: "remove_tag", label: "Remove tag", title: "Edit record", group: "Edit record", category: "edit", make: () => act("remove_tag", { tag: "" }) },
 

@@ -24,6 +24,8 @@ export type Brand = {
   /** KS_PORTAL_v14_BRAND_FONT - "" = the portal's own background / font. */
   background_color: string;
   font_family: string;
+  /** KS_PORTAL_BRAND_ASSETS_v1 - the browser tab icon ("" = the portal's own). */
+  favicon_url: string;
   urls: { server: string; portal: string; client: string; website: string };
 };
 
@@ -53,6 +55,7 @@ export function defaultBrand(): Brand {
     workspace_provider: "m365",
     background_color: "",
     font_family: "",
+    favicon_url: "",
     urls: { server: "", portal: "", client: "", website: "" },
   };
 }
@@ -84,6 +87,7 @@ function normalize(raw: unknown): Brand {
     workspace_provider: ((v: string) => (v === "google" || v === "both" ? v : "m365"))(str(r.workspace_provider).toLowerCase()),
     background_color: /^#[0-9a-f]{6}$/i.test(str(r.background_color)) ? str(r.background_color) : "",
     font_family: /^[A-Za-z0-9][A-Za-z0-9 -]{0,59}$/.test(str(r.font_family)) ? str(r.font_family) : "",
+    favicon_url: /^https:\/\//i.test(str(r.favicon_url)) ? str(r.favicon_url) : "",
     urls: { server: str(urls.server), portal: str(urls.portal), client: str(urls.client), website: str(urls.website) },
   };
 }
@@ -135,7 +139,20 @@ export function portalTitle(): string { return `${current.company_name} Portal`;
 
 function applyDocumentTitle(): void {
   try {
-    if (typeof document !== "undefined") document.title = portalTitle();
+    if (typeof document !== "undefined") {
+      document.title = portalTitle();
+      // KS_PORTAL_BRAND_ASSETS_v1 - the brokerage's favicon in the browser tab.
+      if (current.favicon_url) {
+        let link = document.querySelector<HTMLLinkElement>("link[rel='icon'][data-brand]");
+        if (!link) {
+          link = document.createElement("link");
+          link.rel = "icon";
+          link.setAttribute("data-brand", "1");
+          document.head.appendChild(link);
+        }
+        link.href = current.favicon_url;
+      }
+    }
   } catch { /* no DOM */ }
 }
 
@@ -167,6 +184,7 @@ export async function loadBrand(timeoutMs = 2500, opts: { fresh?: boolean } = {}
     const next = normalize(body.licensee);
     writeCache(next);
     setBrand(next);
+    applyDocumentTitle(); // KS_PORTAL_BRAND_ASSETS_v1 - title and favicon follow the fresh copy
     return true;
   } catch {
     return false;

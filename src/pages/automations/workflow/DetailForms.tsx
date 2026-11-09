@@ -308,6 +308,43 @@ export function NodeDetails({ node, onChange, ctx }: { node: WorkflowNode; onCha
         </select>
       </Field>
     );
+    // KS_PORTAL_CUSTOM_EVERYWHERE_v1
+    case "set_custom_field": {
+      const custom = catalog.customFields ?? [];
+      return (
+        <>
+          <Field title="Property" hint={custom.length ? undefined : "No properties yet. Add them under Settings > CRM set-up > Properties."}>
+            <select aria-label="Your property" value={str(p.field)} onChange={(e) => onChange({ ...node, params: { ...p, field: e.target.value, value: "" } })} style={full}>
+              <option value="">Choose a property</option>
+              {custom.map((f) => <option key={f.key} value={f.key}>{f.label}</option>)}
+            </select>
+          </Field>
+          {str(p.field) && <Field title="New value" hint="You can use tokens such as {{first_name}}."><ValueInput ariaLabel="New value" catalog={catalog} fieldKey={str(p.field)} value={str(p.value)} onChange={(v) => set("value", v)} /></Field>}
+        </>
+      );
+    }
+    case "move_pipeline_stage": {
+      const pipelines = catalog.pipelines ?? [];
+      const chosen = pipelines.find((x) => x.id === str(p.pipeline) || x.name === str(p.pipeline));
+      return (
+        <>
+          <Field title="Pipeline" hint={pipelines.length ? undefined : "No pipelines yet. Add one under Settings > CRM set-up > Pipelines."}>
+            <select aria-label="Pipeline" value={chosen?.id ?? ""} onChange={(e) => onChange({ ...node, params: { ...p, pipeline: e.target.value, stage: "" } })} style={full}>
+              <option value="">Choose a pipeline</option>
+              {pipelines.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+          </Field>
+          {chosen && (
+            <Field title="Stage">
+              <select aria-label="Pipeline stage" value={str(p.stage)} onChange={(e) => set("stage", e.target.value)} style={full}>
+                <option value="">Choose a stage</option>
+                {chosen.stages.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </Field>
+          )}
+        </>
+      );
+    }
     case "add_tag":
     case "remove_tag": return text("tag", "Tag");
     case "add_to_list":

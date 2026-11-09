@@ -93,7 +93,9 @@ const SERVER_DATE_FIELDS = [
 ];
 export function dateFields(catalog: Catalog): Array<{ key: string; label: string }> {
   const fromCatalog = catalog.fields.filter((f) => f.type === "date").map((f) => ({ key: f.key, label: f.label }));
-  return fromCatalog.length ? fromCatalog : SERVER_DATE_FIELDS;
+  // KS_PORTAL_CUSTOM_EVERYWHERE_v1 - the brokerage's date properties come in the catalog too; keep the built-in ones.
+  const seen = new Set(fromCatalog.map((f) => f.key));
+  return [...SERVER_DATE_FIELDS.filter((f) => !seen.has(f.key)), ...fromCatalog];
 }
 
 /** The params a new trigger of this type starts with. */
