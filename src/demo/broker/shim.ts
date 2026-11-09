@@ -83,6 +83,46 @@ export function createShim(opts: ShimOptions) {
     product_category: c.product,
   }));
 
+  // KS_PORTAL_DEMO_CURRENT_FEATURES - sample Dashboard numbers, Maya tables and lead scores from the board's cards.
+  let demoDashboard: unknown = null;
+  const boardCards = () => [mainCard(), ...otherCards()];
+  const dashboardMetrics = () => {
+    const cards = boardCards();
+    const pipelineByStage: Record<string, number> = {};
+    for (const c of cards) pipelineByStage[String(c.pipeline_state)] = (pipelineByStage[String(c.pipeline_state)] ?? 0) + 1;
+    return { activeApplications: cards.length, dealsWonThisMonth: 1, commissionEarned: 12_400, newLeadsToday: 3, pipelineByStage };
+  };
+  const askDemoReport = (q: string) => {
+    const t = q.toLowerCase();
+    const group_by = /product|type/.test(t) ? "product" : /owner|staff|who/.test(t) ? "owner" : "stage";
+    const measure = /amount|total|value|\$/.test(t) ? "total_amount" : "count";
+    const label = group_by === "product" ? "product" : group_by === "owner" ? "owner" : "stage";
+    return { kind: "table", spec: { title: `Applications by ${label}`, object: "applications", group_by, measure, days: null } };
+  };
+  const demoTable = (rawSpec: string | null) => {
+    let spec: { title?: string; group_by?: string; measure?: string } = {};
+    try { spec = JSON.parse(rawSpec ?? "{}"); } catch { spec = {}; }
+    const by = spec.group_by === "product" ? "product_category" : spec.group_by === "owner" ? "owner" : "pipeline_state";
+    const sum = spec.measure === "total_amount";
+    const acc = new Map<string, number>();
+    for (const c of boardCards() as Array<Record<string, unknown>>) {
+      const k = by === "owner" ? (c.owner_user_id ? prospect().name || "You" : "Unassigned") : String(c[by] ?? "Not set").replace(/_/g, " ");
+      acc.set(k, (acc.get(k) ?? 0) + (sum ? Number(c.requested_amount ?? 0) : 1));
+    }
+    const label = spec.group_by === "product" ? "Product" : spec.group_by === "owner" ? "Owner" : "Stage";
+    return { title: spec.title ?? `Applications by ${label.toLowerCase()}`, columns: [label, sum ? "Total requested" : "Applications"],
+      rows: [...acc.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => ({ label: k, value: v })), measure: sum ? "total_amount" : "count", refreshed_at: new Date().toISOString() };
+  };
+  const demoLeadScores = (ids: unknown) => {
+    const out: Record<string, { score: number; grade: "hot" | "warm" | "cold"; breakdown: Array<{ label: string; points: number }> }> = {};
+    (Array.isArray(ids) ? ids : []).forEach((id, i) => {
+      const score = [82, 55, 34, 71, 18][i % 5]!;
+      out[String(id)] = { score, grade: score >= 70 ? "hot" : score >= 40 ? "warm" : "cold", breakdown: [{ label: "Sample score", points: score }] };
+    });
+    return out;
+  };
+
+
   const nameOf = (id: string) => (isMain(id) ? BUSINESS.legal_name : OTHER_CARDS.find((c) => c.id === decodeURIComponent(id))?.name ?? "Sample application");
 
   const docRow = (d: (typeof DOCS)[number]) => {
@@ -539,6 +579,16 @@ export function createShim(opts: ShimOptions) {
     ["GET", /^\/api\/telephony\/quick-call$/, () => ok({ staff: [], slots: [] })], // KS_PORTAL_v12_DEMO_FIXES
     ["POST", /^\/api\/telephony\/presence\/heartbeat$/, () => ok({ onCall: false })],
     ["GET", /^\/api\/communications\/messages-list$/, () => ok({ conversations: [] })],
+    // KS_PORTAL_DEMO_CURRENT_FEATURES - the Dashboard with "Ask Maya for a report" (live tables) and lead score badges,
+    // so the presenter can show them on the sample data. A saved Dashboard layout lives only in this tab.
+    ["GET", /^\/api\/dashboard\/metrics$/, () => raw(dashboardMetrics())],
+    ["GET", /^\/api\/dashboard\/analytics$/, () => raw({})],
+    ["GET", /^\/api\/reports\/catalog$/, () => raw({ role: "Staff", reports: [] })],
+    ["GET", /^\/api\/reports\/layouts$/, () => raw({ silo: "BF", canPublishTeamTabs: false, tabs: [], dashboard: demoDashboard, teamTabs: [] })],
+    ["PUT", /^\/api\/reports\/layouts$/, (r) => { demoDashboard = r.body?.dashboard ?? null; return raw({ ok: true }); }],
+    ["POST", /^\/api\/reports\/ask$/, (r) => raw(askDemoReport(String(r.body?.question ?? "")))],
+    ["GET", /^\/api\/reports\/maya-table$/, (r) => raw(demoTable(r.query.get("spec")))],
+    ["POST", /^\/api\/lead-scores\/lookup$/, (r) => raw({ ok: true, enabled: true, scores: demoLeadScores(r.body?.contact_ids) })],
     ["GET", /^\/api\/notifications$/, () => ok({ items: [] })],
     ["POST", /^\/api\/notifications\/read-all$/, () => ok({ ok: true })],
     ["GET", /^\/api\/lender-referrals$/, () => ok({ referrals: [] })],
