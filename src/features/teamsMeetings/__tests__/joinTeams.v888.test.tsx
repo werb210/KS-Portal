@@ -25,11 +25,11 @@ describe("join a Teams meeting in the portal", () => {
   });
 
   it("asks BF-Server for a token for this meeting and opens the call in the portal", async () => {
-    h.call.mockResolvedValue({ token: "t", expiresOn: "2030-01-01T00:00:00Z", acsUserId: "8:acs:x", displayName: "Alex Tester (Boreal Financial)", joinUrl: JOIN, subject: "Lender review", startsAt: null });
+    h.call.mockResolvedValue({ token: "t", expiresOn: "2030-01-01T00:00:00Z", acsUserId: "8:acs:x", displayName: "Alex Tester (Sample Brokerage)", joinUrl: JOIN, subject: "Lender review", startsAt: null });
     render(<JoinTeamsButton joinUrl={JOIN} calendarEventId="AAMk-test" title="Lender review" />);
     expect(screen.getByTestId("join-teams-open-teams")).toHaveAttribute("href", JOIN);
     fireEvent.click(screen.getByTestId("join-teams-in-app"));
-    expect(await screen.findByTestId("acs-call")).toHaveTextContent("Alex Tester (Boreal Financial) in " + JOIN);
+    expect(await screen.findByTestId("acs-call")).toHaveTextContent("Alex Tester (Sample Brokerage) in " + JOIN);
     expect(h.silos).toEqual(["BF"]);
     expect(h.call).toHaveBeenCalledWith("/api/meetings/acs-token", { method: "POST", body: { joinUrl: JOIN, calendarEventId: "AAMk-test" } });
     fireEvent.click(screen.getByRole("button", { name: "Close" }));

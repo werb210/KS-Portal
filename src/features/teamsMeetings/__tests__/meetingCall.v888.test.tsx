@@ -36,7 +36,7 @@ vi.mock("@azure/communication-calling", () => ({
 import TeamsMeetingCall, { endMessage } from "../TeamsMeetingCall";
 
 const JOIN = "https://teams.microsoft.com/l/meetup-join/19%3ameeting_test%40thread.v2/0";
-const ticket = { token: "t", acsUserId: "8:acs:x", displayName: "Alex Tester (Boreal Financial)", joinUrl: JOIN };
+const ticket = { token: "t", acsUserId: "8:acs:x", displayName: "Alex Tester (Sample Brokerage)", joinUrl: JOIN };
 
 beforeEach(() => { h.state.call = null; h.state.joined = []; h.state.audio = true; });
 
@@ -45,7 +45,7 @@ describe("the in-app Teams meeting screen", () => {
     const onEnded = vi.fn();
     render(<TeamsMeetingCall ticket={ticket} onEnded={onEnded} />);
     await waitFor(() => expect(h.state.call).not.toBeNull());
-    expect(h.state.agentOptions).toEqual({ displayName: "Alex Tester (Boreal Financial)" });
+    expect(h.state.agentOptions).toEqual({ displayName: "Alex Tester (Sample Brokerage)" });
     const [locator, opts] = h.state.joined[0];
     expect(locator).toEqual({ meetingLink: JOIN });
     expect(opts.videoOptions.localVideoStreams).toHaveLength(1);
