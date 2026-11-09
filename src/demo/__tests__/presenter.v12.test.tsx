@@ -143,6 +143,7 @@ describe("the presenter portal", () => {
 
     // Every key screen.
     const landmarks: Record<string, () => Element | null> = {
+      dashboard: () => document.querySelector('[data-testid="dashboard-home"]'), // KS_PORTAL_DEMO_CURRENT_FEATURES
       pipeline: () => screen.queryAllByText("Juniper Hollow Millwork Ltd.")[0] ?? null,
       documents: () => document.querySelector('[data-testid="documents-drop-target"]'),
       financials: () => document.querySelector("main table"),

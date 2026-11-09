@@ -21,6 +21,7 @@ import StatusBar from "../StatusBar";
 import { presenterNav } from "./PresenterStart";
 
 export const PRESENTER_JUMPS: Array<{ key: string; label: string; route: string }> = [
+  { key: "dashboard", label: "Dashboard", route: "/portal" }, // KS_PORTAL_DEMO_CURRENT_FEATURES - Ask Maya for a report
   { key: "pipeline", label: "Pipeline", route: "/pipeline" },
   { key: "documents", label: "Documents", route: appTab("documents") },
   { key: "financials", label: "Financials", route: appTab("financials") },
