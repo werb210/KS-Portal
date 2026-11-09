@@ -141,6 +141,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
   const [libName, setLibName] = useState("");
   // BF_PORTAL_EMAIL_SYMMETRIC_LAYOUT_v5
   const [resend, setResend] = useState(false); // BF_PORTAL_BLOCK_v206_EMAIL_LIB
+  const [skipTexted, setSkipTexted] = useState(false); // KS_PORTAL_SKIP_TEXTED_v1
   const [emailTpls, setEmailTpls] = useState<EmailLibraryTemplate[]>([]); // BF_PORTAL_TEMPLATE_ANALYTICS_v1
   const [currentTemplateId, setCurrentTemplateId] = useState<string | null>(null); // BF_PORTAL_TEMPLATE_ANALYTICS_v1
   const heroRef = useRef<HTMLInputElement>(null);
@@ -166,21 +167,22 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
   }, [apiBase, consentTick]);
 
   const set = (k: keyof Tpl, v: string) => setTpl((p) => ({ ...p, [k]: v }));
-  const count = include.length === 0 && exclude.length === 0 && !subTypeId ? (seg?.all ?? 0) : (audCount ?? 0);
+  const count = include.length === 0 && exclude.length === 0 && !subTypeId && !skipTexted ? (seg?.all ?? 0) : (audCount ?? 0);
   useEffect(() => {
-    if (include.length === 0 && exclude.length === 0 && !subTypeId) { setAudCount(null); return; }
+    if (include.length === 0 && exclude.length === 0 && !subTypeId && !skipTexted) { setAudCount(null); return; }
     let alive = true;
     const t = setTimeout(() => {
       const qs = new URLSearchParams();
       if (include.length) qs.set("include", include.join(","));
       if (exclude.length) qs.set("exclude", exclude.join(","));
+      if (skipTexted) qs.set("skipTexted", "1"); // KS_PORTAL_SKIP_TEXTED_v1
       if (subTypeId) qs.set("subscriptionTypeId", subTypeId); // KS_EMAIL_SUBSCRIPTION_TYPES_v1
       api.get<{ data?: { n?: number }; n?: number }>(`${apiBase}/email/audience-count?${qs.toString()}`)
         .then((r) => { if (alive) setAudCount(Number(r?.data?.n ?? r?.n ?? 0)); })
         .catch(() => { if (alive) setAudCount(0); });
     }, 250);
     return () => { alive = false; clearTimeout(t); };
-  }, [apiBase, include, exclude, subTypeId, consentTick]);
+  }, [apiBase, include, exclude, subTypeId, consentTick, skipTexted]);
 
   useEffect(() => {
     let alive = true;
@@ -335,6 +337,7 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
       else {
         if (include.length) payload.tags = include;
         if (exclude.length) payload.excludeTags = exclude;
+        if (skipTexted) payload.skipTextedDays = 7; // KS_PORTAL_SKIP_TEXTED_v1
         if (subTypeId) payload.subscriptionTypeId = subTypeId; // KS_EMAIL_SUBSCRIPTION_TYPES_v1
         // BF_PORTAL_SEND_LATER_v21 - a test send is always immediate.
         const iso = toIsoInstant(sendAtLocal);
@@ -451,6 +454,10 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
             <span style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>People who turned this type off are skipped.</span>
           </label>
         )}
+        <label className="mt-1 text-sm flex items-center gap-1" style={labelStyle}>{/* KS_PORTAL_SKIP_TEXTED_v1 */}
+          <input type="checkbox" checked={skipTexted} onChange={(e) => setSkipTexted(e.target.checked)} data-testid="skip-texted" />
+          Skip contacts who got a marketing text in the last 7 days
+        </label>
         <p className="mt-1" style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>Recipients: <strong style={{ color: "var(--ui-text)" }}>{count}</strong></p>
         <EmailConsentGap apiBase={apiBase} tags={include} onRecorded={() => setConsentTick((x) => x + 1)} />
       </div>
