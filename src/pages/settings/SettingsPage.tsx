@@ -129,65 +129,80 @@ const SettingsPage = () => {
     [isAdmin, isStaff, isBI, hasTemplates, hasAutomations, isMarketing, canUsers, canBilling]
   );
 
+  // KS_PORTAL_SETTINGS_GROUPED_v1 - same layout as BF-Portal v885/v892: a list of groups on the left (YOU for everyone,
+  // BROKERAGE SET-UP for Admins), each group one page with its sections stacked. Old addresses (/settings/phone-menu ...)
+  // open their group and scroll to the section. Plan features keep their badge and locked card per section.
   const safeTabs = Array.isArray(tabs) ? tabs : [];
-  const availableTabs = safeTabs.filter((tab) => tab.visible);
+  const visibleSections = safeTabs.filter((tab) => tab.visible);
+  const groups = SETTINGS_GROUPS.filter((g) => isAdmin || g.heading === "YOU" || (g.id === "plan" && canBilling))
+    .map((g) => ({ ...g, sections: g.sectionIds.map((id) => visibleSections.find((t) => t.id === id)).filter((t): t is (typeof visibleSections)[number] => Boolean(t)) }))
+    .filter((g) => g.sections.length > 0);
   const requestedTabId = tabParam ?? searchParams.get("tab");
   // BF_PORTAL_v864_CONTENT_TAB - the old tabs forward to their section of Content, so links and bookmarks keep working.
   const legacySection = isContentSection(requestedTabId) ? requestedTabId : null;
-  const activeTabId = legacySection ? "content" : requestedTabId;
-  const fallbackTabId = availableTabs.some((tab) => tab.id === "profile") ? "profile" : availableTabs[0]?.id ?? "profile";
-  const resolvedTabId = availableTabs.some((tab) => tab.id === activeTabId) ? activeTabId : fallbackTabId;
-  const activeTab = availableTabs.find((tab) => tab.id === resolvedTabId) ?? availableTabs[0];
-  // v694: land directly on the tabbed view (default My Profile) instead of the card chooser.
-  const showOverview = false;
+  const activeId = legacySection ? "content" : requestedTabId === "content-ai" ? "content" : requestedTabId;
+  const groupOf = (id: string | null | undefined) => groups.find((g) => g.id === id) ?? groups.find((g) => g.sections.some((t) => t.id === id));
+  const fallbackGroup = groups.find((g) => g.id === "profile") ?? groups[0];
+  const activeGroup = groupOf(activeId) ?? fallbackGroup;
+  const resolvedTabId = activeGroup && (activeGroup.id === activeId || activeGroup.sections.some((t) => t.id === activeId)) ? String(activeId) : activeGroup?.id ?? "profile";
+  const focusSection = activeGroup && activeGroup.id !== resolvedTabId ? resolvedTabId : null;
 
   useEffect(() => {
     if (legacySection) {
       navigate(`/settings/content?section=${legacySection}`, { replace: true });
       return;
     }
-    if (!tabParam) {
-      navigate(`/settings/${resolvedTabId}`, { replace: true });
-      return;
-    }
-    if (tabParam && resolvedTabId !== tabParam) {
-      navigate(`/settings/${resolvedTabId}`, { replace: true });
-    }
-  }, [activeTabId, navigate, resolvedTabId, tabParam, legacySection]);
+    if (tabParam !== resolvedTabId) navigate(`/settings/${resolvedTabId}`, { replace: true });
+  }, [navigate, resolvedTabId, tabParam, legacySection]);
 
+  useEffect(() => {
+    if (!focusSection) return;
+    const el = typeof document !== "undefined" ? document.getElementById(`settings-section-${focusSection}`) : null;
+    if (el && typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "start" });
+  }, [focusSection]);
+
+  let lastHeading = "";
   return (
     <RequireRole roles={["Admin", "Staff", "Marketing"]}>
       <ErrorBoundary>
         <SettingsSectionLayout>
-          {showOverview ? (
-            <SettingsOverview />
-          ) : availableTabs.length === 0 ? (
+          {groups.length === 0 ? (
             <div className="settings-panel" role="status">
               <h2>Settings</h2>
               <p>No settings sections are available for your account.</p>
             </div>
           ) : (
-            <div className="settings-layout">
-              <div className="settings-tabs" role="tablist" aria-label="Settings tabs" style={{ display: "flex", flexDirection: "row", gap: 4, borderBottom: "1px solid var(--ui-border)", marginBottom: 24, flexWrap: "wrap" }}>
-                {availableTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={tab.id === resolvedTabId}
-                    className={`settings-tab ${tab.id === resolvedTabId ? "is-active" : ""}`}
-                    style={{ padding: "8px 16px", borderRadius: "6px 6px 0 0", whiteSpace: "nowrap" }}
-                    onClick={() => navigate(`/settings/${tab.id}`)}
-                  >
-                    {tab.label}
-                    {TAB_FEATURE[tab.id] && <LockedBadge feature={TAB_FEATURE[tab.id]!} />}
-                  </button>
-                ))}
+            <div className="settings-grouped">
+              <style>{GROUPED_CSS}</style>
+              <div className="settings-groups" role="tablist" aria-label="Settings tabs" aria-orientation="vertical">
+                {groups.map((g) => {
+                  const heading = g.heading !== lastHeading && isAdmin ? g.heading : "";
+                  lastHeading = g.heading;
+                  return (
+                    <div key={g.id} style={{ display: "contents" }}>
+                      {heading && <div className="settings-group-heading">{heading}</div>}
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={g.id === activeGroup?.id}
+                        className={`settings-group ${g.id === activeGroup?.id ? "is-active" : ""}`}
+                        onClick={() => navigate(`/settings/${g.id}`)}
+                      >
+                        {g.label}
+                        {g.sections.length === 1 && TAB_FEATURE[g.sections[0]!.id] && <LockedBadge feature={TAB_FEATURE[g.sections[0]!.id]!} />}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="settings-content" role="tabpanel">
-                <ErrorBoundary>
-                  {activeTab && TAB_FEATURE[activeTab.id] ? <FeatureGate key={activeTab.id} feature={TAB_FEATURE[activeTab.id]!}>{activeTab.content}</FeatureGate> : activeTab?.content}
-                </ErrorBoundary>
+              <div className="settings-content" role="tabpanel" aria-label={activeGroup?.label}>
+                {activeGroup && activeGroup.sections.length > 1 && <h2 className="settings-group-title">{activeGroup.label}</h2>}
+                {activeGroup?.sections.map((t) => (
+                  <section key={t.id} id={`settings-section-${t.id}`} className="settings-group-section" aria-label={t.label}>
+                    {activeGroup.sections.length > 1 && <h3 className="settings-section-title">{t.label}{TAB_FEATURE[t.id] && <LockedBadge feature={TAB_FEATURE[t.id]!} />}</h3>}
+                    <ErrorBoundary>{TAB_FEATURE[t.id] ? <FeatureGate key={t.id} feature={TAB_FEATURE[t.id]!}>{t.content}</FeatureGate> : t.content}</ErrorBoundary>
+                  </section>
+                ))}
               </div>
             </div>
           )}
@@ -196,6 +211,47 @@ const SettingsPage = () => {
     </RequireRole>
   );
 };
+
+// KS_PORTAL_SETTINGS_GROUPED_v1 - the groups (BF-Portal's list plus Keystone's own Company, Plan, Labs and Help).
+export const SETTINGS_GROUPS: Array<{ id: string; label: string; heading: string; sectionIds: string[] }> = [
+  { id: "profile", label: "My Profile", heading: "YOU", sectionIds: ["profile"] },
+  { id: "content", label: "Content", heading: "YOU", sectionIds: ["content"] },
+  { id: "ai-knowledge", label: "AI Knowledge", heading: "YOU", sectionIds: ["ai-knowledge"] },
+  { id: "meeting-notes", label: "Meeting notes", heading: "YOU", sectionIds: ["meeting-notes"] },
+  { id: "help", label: "Help", heading: "YOU", sectionIds: ["help"] },
+  { id: "company", label: "Company", heading: "BROKERAGE SET-UP", sectionIds: ["company", "connections"] },
+  { id: "plan", label: "Plan and billing", heading: "BROKERAGE SET-UP", sectionIds: ["plan"] },
+  { id: "team", label: "Team and roles", heading: "BROKERAGE SET-UP", sectionIds: ["users", "teams"] },
+  { id: "crm", label: "CRM set-up", heading: "BROKERAGE SET-UP", sectionIds: ["properties", "pipelines"] },
+  { id: "phone-group", label: "Phone", heading: "BROKERAGE SET-UP", sectionIds: ["phone", "phone-menu", "call-queues", "call-scripts", "lead-rotation", "blocked-numbers", "never-log", "booking"] },
+  { id: "money", label: "Money", heading: "BROKERAGE SET-UP", sectionIds: ["payments"] },
+  { id: "risk", label: "Risk and ID checks", heading: "BROKERAGE SET-UP", sectionIds: ["id-verification", "your-services"] },
+  { id: "sign-in", label: "Sign-in and security", heading: "BROKERAGE SET-UP", sectionIds: ["security", "sso"] },
+  { id: "records", label: "Privacy and records", heading: "BROKERAGE SET-UP", sectionIds: ["retention", "privacy", "survey"] },
+  { id: "integrations", label: "Integrations", heading: "BROKERAGE SET-UP", sectionIds: ["webhooks", "api", "import"] },
+  { id: "deal-tools-group", label: "Deal tools", heading: "BROKERAGE SET-UP", sectionIds: ["deal-tools"] },
+  { id: "labs-group", label: "Labs", heading: "BROKERAGE SET-UP", sectionIds: ["labs"] },
+  { id: "system", label: "System check", heading: "BROKERAGE SET-UP", sectionIds: ["runtime"] },
+];
+
+const GROUPED_CSS = `
+.settings-grouped { display: flex; gap: 24px; align-items: flex-start; }
+.settings-groups { width: 230px; flex: 0 0 230px; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--ui-border); border-radius: 12px; padding: 10px; position: sticky; top: 12px; }
+.settings-group-heading { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--ui-text-muted); padding: 10px 10px 4px; }
+.settings-group { text-align: left; font-size: 15px; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--ui-text); cursor: pointer; }
+.settings-group:hover { background: var(--ui-surface-muted); }
+.settings-group.is-active { background: var(--ui-surface-strong); color: var(--ui-text); font-weight: 600; box-shadow: inset 3px 0 0 #2FA86A; }
+.settings-content { flex: 1; min-width: 0; }
+.settings-group-title { margin: 0 0 8px; font-size: 22px; }
+.settings-group-section { padding: 16px 0 24px; border-bottom: 1px solid var(--ui-border); scroll-margin-top: 12px; }
+.settings-group-section:last-child { border-bottom: 0; }
+.settings-section-title { margin: 0 0 12px; font-size: 18px; }
+@media (max-width: 820px) {
+  .settings-grouped { flex-direction: column; }
+  .settings-groups { width: 100%; flex: none; position: static; flex-direction: row; flex-wrap: wrap; }
+  .settings-group-heading { width: 100%; }
+}
+`;
 
 export default SettingsPage;
 

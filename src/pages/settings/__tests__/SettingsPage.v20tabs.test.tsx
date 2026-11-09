@@ -37,9 +37,10 @@ beforeEach(() => {
 describe("Settings: Properties, Teams and Webhooks tabs", () => {
   it("Admins see the three tabs; Properties works on every plan", () => {
     open("properties", "Admin");
-    expect(screen.getByRole("tab", { name: /^Properties/ })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /^Teams/ })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /^Webhooks/ })).toBeInTheDocument();
+    // KS_PORTAL_SETTINGS_GROUPED_v1 - Properties is in "CRM set-up", Teams in "Team and roles", Webhooks in "Integrations".
+    expect(screen.getByRole("tab", { name: /^CRM set-up/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Team and roles/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Integrations/ })).toBeInTheDocument();
     expect(screen.getByTestId("properties-mock")).toBeInTheDocument();
   });
 
@@ -57,7 +58,7 @@ describe("Settings: Properties, Teams and Webhooks tabs", () => {
 
   it("Staff do not see them", () => {
     open("profile", "Staff");
-    expect(screen.queryByRole("tab", { name: /^Properties/ })).toBeNull();
-    expect(screen.queryByRole("tab", { name: /^Webhooks/ })).toBeNull();
+    expect(screen.queryByRole("tab", { name: /^CRM set-up/ })).toBeNull();
+    expect(screen.queryByRole("tab", { name: /^Integrations/ })).toBeNull();
   });
 });

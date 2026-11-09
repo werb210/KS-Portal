@@ -149,7 +149,7 @@ describe("Settings page gating", () => {
     __setPlanForTests({ ...fallbackPlan(), source: "server", plan: "growth", effective_plan: "growth", features: { sso: false, api_access: false } });
     renderTab("sso");
     expect(await screen.findByTestId("feature-locked-sso")).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /^API/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Integrations/ })).toBeInTheDocument(); // KS_PORTAL_SETTINGS_GROUPED_v1 - API is in Integrations
     expect(h.get).not.toHaveBeenCalledWith("/api/sso-settings");
   });
 
