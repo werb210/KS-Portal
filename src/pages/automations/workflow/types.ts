@@ -67,6 +67,9 @@ export type Catalog = {
   stages: string[];
   events: Array<{ key: string; label: string }>;
   tokens: string[];
+  /** KS_PORTAL_CUSTOM_EVERYWHERE_v1 - the brokerage's own properties and extra pipelines (from the catalog). */
+  customFields?: FieldDef[];
+  pipelines?: Array<{ id: string; name: string; stages: string[] }>;
 };
 
 export type ListRef = { id: string; name: string };

@@ -8,6 +8,7 @@ import { applyBrand, loadBrand } from "@/config/brand";
 import {
   CONNECTION_FIELDS, FIELD_LABEL, HEX_COLOR, MIN_CONTRAST, contrastRatio, emptyForm, loadCompany, primaryContrastProblem,
   saveCompany, type CompanyForm, type FormField,
+  BRAND_ASSET_ACCEPT, uploadBrandAsset, // KS_PORTAL_BRAND_ASSETS_v1
 } from "@/company/licenseeAdmin";
 import { primaryButton, useIsAdmin } from "@/plans/ui";
 import FraudProtectionCard from "@/fraud/FraudProtectionCard"; // KS_PORTAL_v7_FRAUD
@@ -322,7 +323,12 @@ export default function CompanySettings() {
           <strong style={{ fontSize: 15 }}>{form.company_name || "Your company"}</strong>
         </div>
         <div style={grid}>
-          {text("logo_url", { type: "url", placeholder: "https://example.com/logo.png", hint: "A web address starting with https://. Leave blank to show your initial." })}
+          <BrandAssetUpload kind="logo" label="Upload your logo" hint="PNG, JPG, WebP or SVG, up to 2 MB. A wide logo on a transparent background works best." currentUrl={form.logo_url} onUploaded={set("logo_url")} />
+          <BrandAssetUpload kind="favicon" label="Upload your favicon" hint="The small icon in the browser tab. A square PNG (512 x 512) or an ICO file." currentUrl={form.favicon_url} onUploaded={set("favicon_url")} />
+        </div>
+        <div style={{ ...grid, marginTop: 14 }}>
+          {text("logo_url", { type: "url", placeholder: "https://example.com/logo.png", hint: "Or paste a web address starting with https://. Leave blank to show your initial." })}
+          {text("favicon_url", { type: "url", placeholder: "https://example.com/favicon.png", hint: "Or paste a web address starting with https://. Leave blank to use the standard icon." })}
         </div>
         <div style={{ ...grid, marginTop: 14 }}>
           <ColorField field="primary_color" value={form.primary_color} onChange={set("primary_color")} error={errors.primary_color} />
@@ -401,4 +407,51 @@ export default function CompanySettings() {
       <div style={{ marginTop: 20 }}><QuickBooksCard /></div>
     </div>
   );
+}
+
+// KS_PORTAL_BRAND_ASSETS_v1 - pick a file, upload it, and show it. The server saves the address straight away, so the
+// form value is updated to match (saving the form again keeps it).
+function BrandAssetUpload({ kind, label, hint, currentUrl, onUploaded }: {
+  kind: "logo" | "favicon"; label: string; hint: string; currentUrl: string; onUploaded: (url: string) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true); setError(null);
+    const r = await uploadBrandAsset(kind, file);
+    setBusy(false);
+    if (r.ok) {
+      onUploaded(r.url);
+      toast.success(kind === "logo" ? "Logo uploaded." : "Favicon uploaded.");
+      if (kind === "favicon") setFavicon(r.url);
+      void loadBrand(2500, { fresh: true });
+    } else setError(r.message);
+  };
+  const id = `brand-upload-${kind}`;
+  return (
+    <div data-testid={`brand-upload-${kind}`}>
+      <label htmlFor={id} style={{ display: "block", fontWeight: 600, fontSize: 13, marginBottom: 6 }}>{label}</label>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/^https:\/\//i.test(currentUrl)
+          ? <img src={currentUrl} alt="" style={{ height: kind === "logo" ? 36 : 24, width: kind === "logo" ? "auto" : 24, maxWidth: 140, objectFit: "contain", borderRadius: 4, border: "1px solid var(--ui-border)", padding: 2 }} />
+          : <span style={{ fontSize: 12, color: "var(--ui-text-muted)" }}>None yet</span>}
+        <input id={id} type="file" accept={BRAND_ASSET_ACCEPT[kind]} disabled={busy} onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ""; }} />
+      </div>
+      <p style={{ fontSize: 12, color: error ? "var(--ui-danger, #b42318)" : "var(--ui-text-muted)", margin: "6px 0 0" }} role={error ? "alert" : undefined}>{busy ? "Uploading..." : error ?? hint}</p>
+    </div>
+  );
+}
+
+/** Points the page's browser-tab icon at the brokerage's favicon. */
+export function setFavicon(url: string): void {
+  if (typeof document === "undefined" || !/^https:\/\//i.test(url)) return;
+  let link = document.querySelector<HTMLLinkElement>("link[rel='icon'][data-brand]");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    link.setAttribute("data-brand", "1");
+    document.head.appendChild(link);
+  }
+  link.href = url;
 }

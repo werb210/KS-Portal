@@ -81,24 +81,28 @@ export function PipelineSnapshotCard({ d: initial }: { d: any }) {
 }
 
 const CUSTOM_KEY = "bf_custom_report_v769";
-const LABELS: Record<string, string> = { applications: "Applications", contacts: "Contacts", tasks: "Tasks", stage: "Stage", product: "Product", source: "Lead source", owner: "Owner", month: "Month", lifecycle: "Lifecycle stage", status: "Status", assignee: "Assignee", type: "Type", count: "Count", amount: "Total amount", funded: "Funded", average_amount: "Average amount", opted_out: "Opted out of texts", overdue: "Overdue", completed: "Completed" };
+const LABELS: Record<string, string> = { applications: "Applications", contacts: "Contacts", tasks: "Tasks", stage: "Stage", product: "Product", source: "Lead source", owner: "Owner", month: "Month", lifecycle: "Lifecycle stage", status: "Status", assignee: "Assignee", type: "Type", count: "Count", amount: "Total amount", funded: "Funded", average_amount: "Average amount", opted_out: "Opted out of texts", overdue: "Overdue", completed: "Completed",
+  companies: "Companies", pipeline: "Pipeline", pipeline_stage: "Pipeline and stage" }; // KS_PORTAL_CUSTOM_EVERYWHERE_v1
 const label = (k: string) => LABELS[k] ?? k;
 export function CustomReportCard({ d: initial }: { d: any }) {
   const saved = (() => { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? "null"); } catch { return null; } })();
   const [cfg, setCfg] = useState<{ entity: string; groupBy: string; measure: string; days: number }>(saved ?? { entity: initial.entity ?? "applications", groupBy: initial.groupBy ?? "stage", measure: initial.measure ?? "count", days: 90 });
   const [d, setD] = useState<any>(initial);
-  const menu: Record<string, { groups: string[]; measures: string[] }> = d.menu ?? initial.menu ?? {};
+  const menu: Record<string, { groups: string[]; measures: string[]; custom?: { groups: Array<{ key: string; label: string }>; measures: Array<{ key: string; label: string }> } }> = d.menu ?? initial.menu ?? {};
+  // KS_PORTAL_CUSTOM_EVERYWHERE_v1 - the brokerage's own properties come with their labels.
+  const customLabels = new Map<string, string>(Object.values(menu).flatMap((m) => [...(m.custom?.groups ?? []), ...(m.custom?.measures ?? [])].map((x) => [x.key, x.label] as [string, string])));
+  const label = (k: string) => customLabels.get(k) ?? LABELS[k] ?? k;
   const team = useReportTeam();
   useEffect(() => {
     let off = false;
     try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(cfg)); } catch { /* private mode */ }
-    api.get(withTeam(`/api/reports/data/custom_report?entity=${cfg.entity}&groupBy=${cfg.groupBy}&measure=${cfg.measure}&days=${cfg.days}`, team)).then((r) => { if (!off) setD(r); }).catch(() => undefined);
+    api.get(withTeam(`/api/reports/data/custom_report?entity=${encodeURIComponent(cfg.entity)}&groupBy=${encodeURIComponent(cfg.groupBy)}&measure=${encodeURIComponent(cfg.measure)}&days=${cfg.days}`, team)).then((r) => { if (!off) setD(r); }).catch(() => undefined);
     return () => { off = true; };
   }, [cfg.entity, cfg.groupBy, cfg.measure, cfg.days, team]);
   const setEntity = (entity: string) => { const m = menu[entity]; setCfg({ ...cfg, entity, groupBy: m?.groups[0] ?? "month", measure: m?.measures[0] ?? "count" }); };
   const rows: Array<{ label: string; value: number }> = d.rows ?? [];
   const max = Math.max(1, ...rows.map((r) => r.value));
-  const isMoney = /amount/.test(cfg.measure);
+  const isMoney = /amount/.test(cfg.measure) || (/^(sum|avg)_cf:/.test(cfg.measure) && /\$|amount|value|price|cost/i.test(label(cfg.measure)));
   const sel: CSSProperties = { padding: "4px 6px", borderRadius: 6, border: "1px solid var(--ui-border)", background: "var(--ui-surface-strong)", color: "var(--ui-text)" };
   return <>
     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", margin: "0 0 10px", fontSize: 13 }}>
@@ -124,6 +128,16 @@ export function renderReport(report: string, d: any): ReactNode {
   if (report === "pipeline_snapshot") return <PipelineSnapshotCard d={d} />;
   if (report === "issues_report") return <><p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--ui-text-muted)" }}>Last {d.days} days. {d.note}</p><T headers={["Month", "Opened", "Resolved", "Median days to resolve"]} rows={(d.byMonth ?? []).map((r: any) => [r.label, r.opened, r.resolved, r.median_days === null ? "-" : r.median_days + " d"])} /><div style={{ height: 10 }} /><T headers={["Open now", "Open", "In progress", "Oldest (days)"]} rows={(d.open ?? []).map((r: any) => [r.label, r.open, r.in_progress, r.oldest_days])} /></>;
   if (report === "custom_report") return <CustomReportCard d={d} />;
+  // KS_PORTAL_CUSTOM_EVERYWHERE_v1 - every pipeline the brokerage created, stage by stage.
+  if (report === "your_pipelines") {
+    const list: any[] = d.pipelines ?? [];
+    if (!list.length) return <p style={{ fontSize: 13, color: "var(--ui-text-muted)" }}>{d.note ?? "No pipelines yet."}</p>;
+    const money = (n: number) => "$" + Math.round(Number(n) || 0).toLocaleString();
+    return <>{list.map((p: any) => <div key={p.pipeline} style={{ marginBottom: 14 }}>
+      <h4 style={{ margin: "0 0 6px", fontSize: 14 }}>{p.pipeline} <span style={{ fontWeight: 400, color: "var(--ui-text-muted)" }}>· {p.open_deals} open · {money(p.weighted_amount)} weighted</span></h4>
+      <T headers={["Stage", "Deals", "Amount", "Odds", "Weighted"]} rows={(p.stages ?? []).map((st: any) => [st.name, st.deals, money(st.amount), st.probability + "%", money(st.weighted)])} />
+    </div>)}</>;
+  }
   // BF_PORTAL_REPORTS11_14_v768 - cards for BF-Server v785 reports.
   if (report === "email_performance") return <><p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--ui-text-muted)" }}>Last {d.days} days. {d.note}</p><T headers={["Staff member", "Sent", "Opened"]} rows={(d.staff ?? []).map((r: any) => [r.label, r.sent, r.opened])} /><div style={{ height: 10 }} /><T headers={["Sequence", "Sent", "Opened", "Clicked"]} rows={(d.sequences ?? []).map((r: any) => [r.label, r.sent, r.opened, r.clicked])} /><div style={{ height: 10 }} /><T headers={["Template", "Sent", "Opened", "Clicked"]} rows={(d.templates ?? []).map((r: any) => [r.label, r.sent, r.opened, r.clicked])} /></>;
   if (report === "sms_campaign_performance") return <><p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--ui-text-muted)" }}>Last {d.days} days. {d.note}</p><T headers={["Campaign", "Sent", "Delivered", "Failed", "Clicked", "Replied", "Opted out"]} rows={(d.campaigns ?? []).map((r: any) => [r.label, r.sent, r.delivered, r.failed, r.clicked, r.replied, r.opted_out])} /><div style={{ height: 10 }} /><T headers={["Sequence", "Sent", "Delivered", "Failed", "Clicked"]} rows={(d.sequences ?? []).map((r: any) => [r.label, r.sent, r.delivered, r.failed, r.clicked])} /></>;

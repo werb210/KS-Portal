@@ -14,6 +14,7 @@ export const COMPANY_FIELDS = [
   "assistant_name",
   "workspace_provider", // KS_PORTAL_v12_GOOGLE_WORKSPACE - m365 | google | both
   "client_languages", // KS_CLIENT_LANGUAGES_v1 - "en,fr,es": the languages the client app offers
+  "favicon_url", // KS_PORTAL_BRAND_ASSETS_v1 - the browser tab icon
 ] as const;
 export const CONNECTION_FIELDS = ["twilio_main_number", "google_ads_customer_id", "office365_tenant_id"] as const;
 
@@ -38,6 +39,7 @@ export const FIELD_LABEL: Record<FormField, string> = {
   assistant_name: "Assistant name",
   workspace_provider: "Email, calendar and files",
   client_languages: "Client app languages",
+  favicon_url: "Favicon URL",
   twilio_main_number: "Main phone number (Twilio)",
   google_ads_customer_id: "Google Ads customer ID",
   office365_tenant_id: "Microsoft 365 tenant ID",
@@ -172,3 +174,24 @@ export function primaryContrastProblem(primary: string): string | null {
 }
 
 export const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
+// KS_PORTAL_BRAND_ASSETS_v1 - upload the logo or favicon (POST /api/licensee/brand-asset, Admin). Answers with the new
+// address; the server has already saved it as logo_url / favicon_url.
+export const BRAND_ASSET_ACCEPT: Record<"logo" | "favicon", string> = {
+  logo: "image/png,image/jpeg,image/webp,image/svg+xml",
+  favicon: "image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico",
+};
+export async function uploadBrandAsset(kind: "logo" | "favicon", file: File): Promise<{ ok: true; url: string } | { ok: false; message: string }> {
+  if (file.size > 2 * 1024 * 1024) return { ok: false, message: "The file is larger than 2 MB." };
+  const fd = new FormData();
+  fd.append("kind", kind);
+  fd.append("file", file);
+  try {
+    const r = await api.post<{ ok?: boolean; url?: string; message?: string }>("/api/licensee/brand-asset", fd);
+    if (r && r.url) return { ok: true, url: r.url };
+    return { ok: false, message: r?.message ?? "The upload did not finish." };
+  } catch (e) {
+    const msg = (e as { message?: string; data?: { message?: string } } | null)?.data?.message ?? (e as { message?: string } | null)?.message;
+    return { ok: false, message: msg || "The upload did not finish." };
+  }
+}
