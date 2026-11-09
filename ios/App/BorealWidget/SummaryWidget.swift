@@ -10,8 +10,8 @@ struct BorealSummaryWidget: Widget {
         AppIntentConfiguration(kind: "BorealPortalSummary", intent: SummaryConfiguration.self, provider: SummaryProvider()) { entry in
             SummaryWidgetView(entry: entry).containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Boreal Portal")
-        .description("Your actionable Boreal command centre.")
+        .configurationDisplayName("Keystone Portal")
+        .description("Your Keystone command centre.")
         // BF_PORTAL_BLOCK_v592_WIDGET_SIZES - iPad extra-large, plus the three lock-screen sizes.
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge, .accessoryInline, .accessoryCircular, .accessoryRectangular])
     }
@@ -27,9 +27,9 @@ struct SummaryWidgetView: View {
     private var isAccessory: Bool { family == .accessoryInline || family == .accessoryCircular || family == .accessoryRectangular }
     var body: some View {
         if entry.needsData && isAccessory {
-            Text("Open Boreal").widgetURL(URL(string: "bfportal://dashboard")!) // BF_PORTAL_BLOCK_v592_WIDGET_SIZES
+            Text("Open Keystone").widgetURL(URL(string: "bfportal://dashboard")!) // BF_PORTAL_BLOCK_v592_WIDGET_SIZES
         } else if entry.needsData {
-            VStack(spacing: 4) { Text("Boreal").font(.headline); Text("Open the portal once to update").font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center) }
+            VStack(spacing: 4) { Text("Keystone").font(.headline); Text("Open the portal once to update").font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center) }
                 .widgetURL(URL(string: "bfportal://dashboard")!)
         } else {
             switch family {
@@ -218,7 +218,7 @@ struct RectangularSummary: View {
     var body: some View {
         let items = attention(entry)
         VStack(alignment: .leading, spacing: 1) {
-            Text("Boreal \(entry.silo.rawValue)").font(.headline).lineLimit(1)
+            Text("Keystone").font(.headline).lineLimit(1)
             if let first = items.first { Text("\(first.count) \(first.label)").lineLimit(1) }
             else { Text("No urgent items").lineLimit(1) }
             if let task = entry.summary.nextTask { Text("Next: \(task.title)").lineLimit(1) }

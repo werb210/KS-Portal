@@ -32,7 +32,7 @@ protocol PortalVoiceListener: AnyObject {
 // BF_PORTAL_v817_IPAD_VOIP - the last Twilio access token, this app only, readable after
 // first unlock so a PushKit launch on a locked iPad can still use it, never synced off device.
 enum PortalVoiceKeychain {
-    static let service = "com.borealfinancial.portal.voice"
+    static let service = "com.keystonecrm.portal.voice"
     static let account = "twilio-access-token"
 
     private static func query() -> [String: Any] {
@@ -493,7 +493,7 @@ final class PortalVoiceEngine: NSObject {
     private func reportPlaceholder(handle: String?, reason: CXCallEndedReason, completion: (() -> Void)?) {
         let uuid = UUID()
         let update = CXCallUpdate()
-        let value = (handle?.isEmpty == false ? handle : nil) ?? "Boreal"
+        let value = (handle?.isEmpty == false ? handle : nil) ?? "Keystone"
         update.remoteHandle = CXHandle(type: .generic, value: value)
         update.localizedCallerName = value
         update.hasVideo = false

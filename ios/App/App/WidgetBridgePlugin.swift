@@ -106,7 +106,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 // group, so the widget extension cannot read it), readable after first unlock so
 // a background task can use it, never synced off the device.
 enum WidgetRefreshSession {
-    static let service = "com.boreal.portal.widget-refresh"
+    static let service = "com.keystonecrm.portal.widget-refresh"
 
     private static func query(_ account: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
@@ -149,8 +149,8 @@ enum WidgetRefreshSession {
 
 // BF_PORTAL_WIDGET_SELF_REFRESH_v384
 enum WidgetBackgroundRefresh {
-    static let taskId = "com.boreal.portal.widget-refresh"
-    static let group = "group.com.borealfinancial.portal"
+    static let taskId = "com.keystonecrm.portal.widget-refresh"
+    static let group = "group.com.keystonecrm.portal"
     static let silos = ["BF", "BI", "SLF"]
 
     static func register() {
