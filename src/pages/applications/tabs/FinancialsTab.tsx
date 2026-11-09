@@ -14,8 +14,9 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 // BF_PORTAL_BLOCK_v189_TAB_FIXES_ROUNDUP_v1 — switched off the @/utils/api strict envelope wrapper
 import { api } from "@/api";
-
+import { formatMoneyValue } from "@/utils/labels";
 import { FINANCIAL_LINES, financialLineFor } from "./financialLines"; // BF_PORTAL_v906_FINANCIAL_LINES
+
 interface Props { applicationId?: string }
 
 type FinancialDoc = {
@@ -48,6 +49,8 @@ const NUMERIC_FIELD_LABELS = new Set([
 ]);
 
 const NUMERIC_TOKEN_RE = /^[$\-]?[\d,.\s]+%?$/;
+const BARE_AMOUNT_RE = /^-?\$?\s*(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?$/;
+const NOT_MONEY_RE = /(^|_)(name|number|no|sin|bn|phone|year|years|date|percent|pct|ratio|count|employees|postal|zip|id|term|months|days|score|age)(_|$)/;
 
 function normalizeFieldLabel(label: string): string {
   return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
@@ -58,9 +61,12 @@ function renderFinancialValue(labelKey: string, rawValue: unknown, forceNumeric 
   // strings — coerce before any string ops so `.split` can't throw
   // "(t || "").split is not a function".
   const text = rawValue == null ? "" : String(rawValue);
-  if (!forceNumeric && !NUMERIC_FIELD_LABELS.has(normalizeFieldLabel(labelKey))) return text || "—";
+  // v884: a bare amount (230436.87) reads as money ($230,436.87) unless the field is a name, number, date or count.
+  const key = normalizeFieldLabel(labelKey);
+  const money = BARE_AMOUNT_RE.test(text.trim()) && !NOT_MONEY_RE.test(key) ? formatMoneyValue(text.trim()) : text;
+  if (!forceNumeric && !NUMERIC_FIELD_LABELS.has(key)) return money || "—";
   const nonNumericTokens = text.split(/\s+/).filter(Boolean).filter((token) => !NUMERIC_TOKEN_RE.test(token)).length;
-  if (nonNumericTokens <= 3) return text || "—";
+  if (nonNumericTokens <= 3) return money || "—";
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
       <span title={text} style={{ color: "var(--ui-text-muted)" }}>—</span>

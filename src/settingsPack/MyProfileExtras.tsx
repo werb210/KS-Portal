@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/api";
 import { LinkRow } from "./BookingSettings";
 import { MySessions } from "./SecuritySettings";
+import { MyQueueAvailability } from "@/callQueues/CallQueuesSettings"; // BF_PORTAL_v887_MY_QUEUE_SWITCH
 import { Field, Notice, Section, Toggle, button, errText, input, muted } from "./ui";
 import NotificationSettings from "@/hubspotGaps2/NotificationSettings"; // KS_NOTIFICATION_TOPICS_v1
 
@@ -77,6 +78,7 @@ export default function MyProfileExtras() {
       <NotificationSettings />
       <FollowUpDefaults />
       <MyLeadRotation />
+      <MyQueueAvailability compact />{/* BF_PORTAL_v887_MY_QUEUE_SWITCH - "available for queue calls" for everyone */}
       <MySessions />
     </div>
   );

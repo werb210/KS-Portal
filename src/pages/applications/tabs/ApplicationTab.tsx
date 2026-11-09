@@ -27,6 +27,8 @@ import { formatMoneyOrRange } from "@/utils/moneyRange"; // BF_PORTAL_BLOCK_v864
 import { api } from "@/api"; // BF_PORTAL_BLOCK_v817_REMIND_CLIENT
 import ProductQuestionsPanel from "@/pages/applications/tabs/ProductQuestionsPanel"; // BF_PORTAL_PRODUCT_QUESTIONS_v292
 import { placeCall } from "@/native/dialerLauncher";
+import { APPLICANT_NAME_MISSING_NOTE, applicantNameMissing, applicantNameMissingMessage } from "./applicantName"; // BF_PORTAL_v851_APPLICANT_NAME
+import { SigningNotifyCard, readSigningNotify, type SigningNotify } from "./signingNotify"; // BF_PORTAL_v857_SIGNING_NOTIFY
 
 type AnyRecord = Record<string, any>;
 import { maskSin } from "@/lib/sensitive";
@@ -79,12 +81,13 @@ function readFlatPartner(applicant: AnyRecord, fdApplicant: AnyRecord): AnyRecor
 // BF_PORTAL_BLOCK_v_SIGNING_INDICATOR_v1 — staff-facing signing-state chip in the
 // application header, driven by the server's derived /details `signing.status`:
 //   signed | started (SignNow group minted) | ready (lender finalized, awaiting) | not_started.
-const SIGNING_FALLBACK = { label: "Sign: not started", bg: "var(--ui-surface-muted)", fg: "var(--ui-text-muted)" };
+// v884: every chip reads at 7:1 or better (the grey "not started" chip used muted text on a muted surface).
+const SIGNING_FALLBACK = { label: "Sign: not started", bg: "var(--ui-surface-muted)", fg: "var(--ui-text)" };
 export function signingBadgeView(status?: string): { label: string; bg: string; fg: string } {
   const map: Record<string, { label: string; bg: string; fg: string }> = {
-    signed: { label: "Signed", bg: "#dcfce7", fg: "#166534" },
-    started: { label: "Signing started", bg: "#fef3c7", fg: "#92400e" },
-    ready: { label: "Ready to sign", bg: "#e0e7ff", fg: "#3730a3" },
+    signed: { label: "Signed", bg: "#dcfce7", fg: "#14532d" },
+    started: { label: "Signing started", bg: "#fef3c7", fg: "#78350f" },
+    ready: { label: "Ready to sign", bg: "#e0e7ff", fg: "#312e81" },
     not_started: SIGNING_FALLBACK,
   };
   return map[String(status ?? "not_started")] ?? SIGNING_FALLBACK;
@@ -96,7 +99,7 @@ function SigningBadge({ status }: { status?: string }) {
     <span
       data-testid="signing-badge"
       data-status={String(status ?? "not_started")}
-      style={{ background: v.bg, color: v.fg, borderRadius: 999, padding: "4px 12px", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}
+      style={{ background: v.bg, color: v.fg, border: "1px solid rgba(15, 23, 42, 0.18)", borderRadius: 999, padding: "4px 12px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}
     >
       {v.label}
     </span>
@@ -115,6 +118,7 @@ function signingReasonLabel(reason?: string): string {
     case "docs_not_accepted": return "Documents not all accepted";
     case "tasks_incomplete": return "Client tasks not all complete";
     case "signing_unavailable": return "Signing service unavailable";
+    case "applicant_name_missing": return "Add the applicant's name first"; // BF_PORTAL_v851_APPLICANT_NAME
     case "signed": return "Already signed";
     case "started": return "Signing in progress";
     case "ready": return "Ready to send";
@@ -179,6 +183,8 @@ export default function ApplicationTab({ application }: Props) {
   const [v_resetBusy, v_setResetBusy] = useState(false); // BF_PORTAL_RESET_SIGNING_v1
   const [v860_markBusy, v860_setMarkBusy] = useState(false); // BF_PORTAL_v860_MARK_SIGNED
   const [v860_marked, v860_setMarked] = useState(false); // BF_PORTAL_v860_MARK_SIGNED
+  const [v851_nameError, v851_setNameError] = useState<string | null>(null); // BF_PORTAL_v851_APPLICANT_NAME
+  const [v857_notify, v857_setNotify] = useState<SigningNotify | null>(null); // BF_PORTAL_v857_SIGNING_NOTIFY
   useEffect(() => {
     if (!v784_appId) return;
     let active = true;
@@ -203,6 +209,7 @@ export default function ApplicationTab({ application }: Props) {
         if (!active) return;
         const d = ((r as any)?.data ?? r) as { reason?: string; canSend?: boolean; isSba?: boolean };
         v_setSign({ reason: String(d?.reason ?? "unknown"), canSend: Boolean(d?.canSend), isSba: Boolean(d?.isSba) });
+        v857_setNotify((prev) => prev ?? readSigningNotify((d as { signing?: { notify?: unknown } })?.signing?.notify)); // BF_PORTAL_v857_SIGNING_NOTIFY
       })
       .catch(() => { /* non-fatal */ });
     return () => { active = false; };
@@ -275,15 +282,26 @@ export default function ApplicationTab({ application }: Props) {
     if (again && typeof window !== "undefined" && !window.confirm("Every owner signs the application and SBA forms again. The new signed copies replace the old ones. Continue?")) return;
     v_setSignBusy(true);
     v_setSignNote(null);
+    v851_setNameError(null); // BF_PORTAL_v851_APPLICANT_NAME
+    v857_setNotify(null); // BF_PORTAL_v857_SIGNING_NOTIFY
     try {
       const r = await api.post<{ data?: { ok?: boolean; reason?: string } } & { ok?: boolean; reason?: string }>(
         `/api/applications/${encodeURIComponent(v784_appId)}/resend-signing`, again ? { again: true } : {},
       );
       const d = ((r as any)?.data ?? r) as { ok?: boolean; reason?: string };
-      if (d?.ok) v_setSignNote("Signing sent ✓ - the client signs in their portal"); // BF_PORTAL_SBA_ONE_BUTTON_v771
+      // BF_PORTAL_v857_SIGNING_NOTIFY - the server reports every signer: email / text sent (to where, when) or why not.
+      const v857 = readSigningNotify({ ...((d as { notify?: object })?.notify ?? {}), signers: (d as { signers?: unknown })?.signers, replaced: (d as { replaced?: boolean })?.replaced === true });
+      if (d?.ok && v857 && v857.signers.length > 0) v857_setNotify(v857);
+      else if (d?.ok && (d as { sessionStatus?: string })?.sessionStatus === "signed") v_setSignNote("Already signed - nothing to send");
+      else if (d?.ok && v_sign?.isSba) v_setSignNote("SBA signing started - each owner's status is on the SBA Signing tab"); // BF_PORTAL_SBA_ONE_BUTTON_v771
+      else if (d?.ok) v_setSignNote("Not sent - the signing document is ready but the server did not report any email or text");
+      else if (applicantNameMissingMessage(d)) v851_setNameError(applicantNameMissingMessage(d)); // BF_PORTAL_v851_APPLICANT_NAME
       else v_setSignNote(`Not sent — ${signingReasonLabel(d?.reason)}`);
-    } catch {
-      v_setSignNote("Could not send for signing");
+    } catch (e: unknown) {
+      // BF_PORTAL_v851_APPLICANT_NAME - BF-Server refuses (422 applicant_name_missing) rather than send to "Unknown": say so.
+      const nameMsg = applicantNameMissingMessage(e);
+      if (nameMsg) v851_setNameError(nameMsg);
+      else v_setSignNote("Could not send for signing");
     } finally {
       v_setSignBusy(false);
     }
@@ -346,6 +364,9 @@ export default function ApplicationTab({ application }: Props) {
 
   // Call Client button (v424 -- hand off to the Boreal Dialer on native builds)
   const applicantName = joinName(applicant) || businessName;
+  // BF_PORTAL_v851_APPLICANT_NAME - empty or "Unknown (application started)" -> signing is refused by the server.
+  const v851_nameMissing = applicantNameMissing(applicant, fdApplicant);
+  const v851_showNameNote = (v851_nameMissing || Boolean(v851_nameError)) && (application as any)?.signing?.status !== "signed";
   // BF_PORTAL_APPLICANT_CRM_LINK_v1 - the applicant name links to their CRM record.
   // BF_PORTAL_PARTNER_CRM_LINK_v1 - application_contacts already stores one row
   // per role ('applicant' / 'partner'), written at submit. Read those so BOTH
@@ -522,11 +543,26 @@ export default function ApplicationTab({ application }: Props) {
           {"⚠ Signing not sent — "}{signingReasonLabel(v_sign.reason)}{"."}{v_sign.reason === "collateral_incomplete" ? " Complete the Collateral & Facility card on the Lenders tab, then Send for signing." : ""}
         </div>
       )}
+      {v851_showNameNote && (
+        <div
+          data-testid="applicant-name-missing"
+          role="alert"
+          style={{ background: "#fef2f2", border: "1px solid #f87171", color: "#991b1b", borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 14, fontWeight: 700, lineHeight: 1.4 }}
+        >
+          <div>{APPLICANT_NAME_MISSING_NOTE}</div>
+          {v851_nameError && (
+            <div data-testid="applicant-name-missing-server" style={{ marginTop: 4, fontWeight: 600, color: "#7f1d1d" }}>
+              {`Send for signing was refused: ${v851_nameError}.`}
+            </div>
+          )}
+        </div>
+      )}
       {v_signNote && (
         <div style={{ background: "var(--ui-surface-muted)", border: "1px solid var(--ui-border)", color: (v_signNote.startsWith("Not sent") || v_signNote.startsWith("Could not")) ? "#b91c1c" : "#16a34a", borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600 }} role="status">
           {v_signNote}
         </div>
       )}
+      {v857_notify && <SigningNotifyCard notify={v857_notify} />}{/* BF_PORTAL_v857_SIGNING_NOTIFY */}
       <div style={{ background: "var(--ui-surface-muted)", border: "1px solid var(--ui-border)", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ui-text)", marginBottom: 8 }}>
           Client Tasks
@@ -641,7 +677,7 @@ export default function ApplicationTab({ application }: Props) {
       <SectionGroup title="Applicant">
         <Field label="Name" value={
           applicantContactId
-            ? <Link to={`/crm/contacts/${applicantContactId}`} style={styles.link}>{fmt(joinName(applicant) || "—")}</Link>
+            ? <Link to={`/crm/contacts/${applicantContactId}`} style={styles.link} title="Open the CRM contact">{fmt(joinName(applicant) || "—")}</Link>
             : fmt(joinName(applicant) || "—")
         } />
         <Field label="Title" value={fmt(applicant.title || fdApplicant.title)} />
@@ -661,7 +697,7 @@ export default function ApplicationTab({ application }: Props) {
         <SectionGroup title="Partner">
           <Field label="Name" value={
             partnerContactId
-              ? <Link to={`/crm/contacts/${partnerContactId}`} style={styles.link}>{fmt(joinName(partner) || "—")}</Link>
+              ? <Link to={`/crm/contacts/${partnerContactId}`} style={styles.link} title="Open the CRM contact">{fmt(joinName(partner) || "—")}</Link>
               : fmt(joinName(partner) || "—")
           } />
           <Field label="Title" value={fmt(partner.title)} />
@@ -783,7 +819,7 @@ function CompactField({ label, value }: { label: string; value: ReactNode }) {
 }
 
 function Email({ value }: { value: string }) {
-  return <a href={`mailto:${value}`} style={styles.link}>{value}</a>;
+  return <a href={`mailto:${value}`} style={styles.link} title={`Email ${value}`}>{value}</a>;
 }
 
 function Anchor({ href }: { href: string }) {
@@ -832,7 +868,9 @@ const styles: Record<string, CSSProperties> = {
     // BF_PORTAL_BLOCK_v_DOC_NAME_CONTRAST_v1 — was faint green bg + blue text (washed
     // out + mismatched). Use a readable accent-tinted chip.
     background: "color-mix(in srgb, var(--ui-accent-blue) 16%, transparent)",
-    color: "var(--ui-accent-fg)",
+    // v884: the stage chip text is the body text colour, so it reads in both themes and every silo.
+    color: "var(--ui-text)",
+    border: "1px solid var(--ui-border)",
     borderRadius: 999,
     padding: "4px 12px",
     fontSize: 12,
@@ -880,7 +918,8 @@ const styles: Record<string, CSSProperties> = {
     textOverflow: "ellipsis",
   },
   fieldValueHighlight: { fontSize: 18, color: "var(--ui-text)", fontWeight: 700 },
-  link: { color: "var(--ui-accent-fg)", textDecoration: "none" },
+  // BF_PORTAL_v857_SIGNING_NOTIFY - was var(--ui-accent-fg): 50% navy + 50% white in the BF silo, so these links read as greyed out.
+  link: { color: "var(--ui-text)", textDecoration: "underline", textDecorationColor: "var(--ui-text-muted)", textUnderlineOffset: 3 },
   ownerList: { display: "flex", flexDirection: "column", gap: 12, gridColumn: "1 / -1" },
   ownerCard: { background: "var(--ui-surface-muted)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--ui-border)" },
   ownerHeader: { fontSize: 14, fontWeight: 700, marginBottom: 8, color: "var(--ui-text)" },

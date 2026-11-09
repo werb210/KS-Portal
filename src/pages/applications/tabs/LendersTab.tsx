@@ -34,6 +34,7 @@ import ProductCategoryPicker from "@/pages/applications/tabs/ProductCategoryPick
 import BrokerDealPanel from "@/components/applications/BrokerDealPanel"; // BF_PORTAL_BLOCK_v522_BROKER_IMPORT
 import LenderApiPanel from "./LenderApiPanel"; // KS_PORTAL_LENDER_API
 import FeeAgreementPanel from "@/components/applications/FeeAgreementPanel"; // BF_PORTAL_FEE_AGREEMENT_v709
+import { humanizeCode, productNameWords } from "@/utils/labels";
 // BF_PORTAL_PRODUCT_QUESTIONS_v292 - BF-Server v289 refuses to send while product questions are unanswered.
 type ProductQuestionsSummary = { blocking?: boolean; message?: string | null } | null | undefined;
 // BF_PORTAL_RESIGN_REQUEST_v295 - BF-Server v293 flags when the client signed before a switch to Line of Credit.
@@ -73,7 +74,7 @@ const styles = {
   banner: { padding: "10px 14px", borderRadius: 6, fontSize: 13, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 } as const,
   bannerStale: { background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e" } as const,
   bannerError: { background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c" } as const,
-  table: { width: "100%", borderCollapse: "collapse" as const, background: "var(--ui-surface-strong)", borderRadius: 8, overflow: "hidden", border: "1px solid var(--ui-border)" } as const,
+  table: { width: "100%", borderCollapse: "collapse" as const, background: "var(--ui-surface-strong)", borderRadius: 8, border: "1px solid var(--ui-border)" } as const,
   th: { textAlign: "left" as const, padding: "10px 14px", fontSize: 12, fontWeight: 600, color: "var(--ui-text-muted)", background: "var(--ui-surface-muted)", borderBottom: "1px solid var(--ui-border)" } as const,
   td: { padding: "12px 14px", fontSize: 13, color: "var(--ui-text)", borderBottom: "1px solid var(--ui-border-soft)", verticalAlign: "middle" as const } as const,
   pill: { display: "inline-block", padding: "2px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600 } as const,
@@ -88,7 +89,8 @@ const styles = {
   lockedTitle: { fontWeight: 700, color: "var(--ui-text)", fontSize: 15, marginBottom: 6 } as const,
   lockedHint: { fontSize: 13, color: "var(--ui-text-muted)", marginBottom: 12 } as const,
   lockedItem: { fontSize: 13, color: "var(--ui-text)", padding: "6px 0", borderBottom: "1px dashed var(--ui-border-soft)" } as const,
-  footer: { position: "sticky" as const, bottom: 0, marginTop: 16, padding: "12px 20px", background: "var(--ui-surface-strong)", borderTop: "1px solid var(--ui-border)", display: "flex", justifyContent: "flex-end", gap: 8 } as const,
+  // v884: the sticky Send bar floats above the table (shadow + border) so it no longer looks like a gap that cuts a row off.
+  footer: { position: "sticky" as const, bottom: 0, zIndex: 5, marginTop: 16, padding: "12px 20px", background: "var(--ui-surface-strong)", border: "1px solid var(--ui-border)", borderRadius: 10, boxShadow: "0 -6px 16px rgba(15, 23, 42, 0.12)", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, flexWrap: "wrap" as const } as const,
   sendFeedback: { flex: "1 1 auto", alignSelf: "center", whiteSpace: "pre-line" as const, fontSize: 13, fontWeight: 600 } as const,
   modalOverlay: { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 } as const,
   modalCard: { background: "var(--ui-surface-strong)", border: "1px solid var(--ui-border)", borderRadius: 10, padding: 20, width: 420, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" as const, boxShadow: "0 12px 40px rgba(0,0,0,0.2)" } as const,
@@ -104,19 +106,31 @@ function formatAmount(n: number | null | undefined): string {
   return `$${Math.round(n).toLocaleString()}`;
 }
 
-function formatRange(match: LenderMatch): string {
-  const lo = (match as any).amountMin ?? null;
-  const hi = (match as any).amountMax ?? null;
-  if (lo === null && hi === null) return "—";
+// BF_PORTAL_v887_LENDER_RANGE - the min-max amount from the lender's product. Amounts can arrive as text (large
+// numbers from Postgres); a maximum of 0 is an empty box, not $0. With nothing on file it says so in words.
+function rangeAmount(v: unknown, isMax: boolean): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(String(v).replace(/[$,\s]/g, ""));
+  if (!Number.isFinite(n) || n < 0 || (isMax && n === 0)) return null;
+  return n;
+}
+
+export function formatRange(match: Pick<LenderMatch, "amountMin" | "amountMax">): string {
+  const lo = rangeAmount((match as any).amountMin, false);
+  const hi = rangeAmount((match as any).amountMax, true);
+  if (lo === null && hi === null) return "No range on file";
+  if (hi === null) return `From ${formatAmount(lo)}`;
+  if (lo === null) return `Up to ${formatAmount(hi)}`;
   return `${formatAmount(lo)} – ${formatAmount(hi)}`;
 }
 
-function getLikelihoodPercent(match: LenderMatch): number | null {
+export function getLikelihoodPercent(match: LenderMatch): number | null {
   const raw = (match as any).matchPercent ?? (match as any).matchPercentage ?? (match as any).matchScore ?? null;
   if (raw === null || raw === undefined || raw === "") return null;
   const n = typeof raw === "number" ? raw : Number(String(raw).replace("%", ""));
   if (!Number.isFinite(n)) return null;
-  return n > 1 ? Math.round(n) : Math.round(n * 100);
+  // BF_PORTAL_v887_LENDER_RANGE - BF-Server sends whole percents (0-100); only a true fraction (0.82) is scaled.
+  return n > 0 && n < 1 ? Math.round(n * 100) : Math.round(n);
 }
 
 function formatLikelihood(match: LenderMatch): string {
@@ -574,7 +588,7 @@ function describeSendFailure(err: unknown): string {
 
     // BF_PORTAL_SEND_PENDING_CONFIRM_v1 - envelope.outstanding is what the
     // locked state lists; if any remain here the file is going out incomplete.
-    const outstanding = (envelope.outstanding ?? []).map((c) => String(c).replace(/_/g, " "));
+    const outstanding = (envelope.outstanding ?? []).map((c) => humanizeCode(c)); // BF_PORTAL_v887_PRODUCT_LABELS
     if (outstanding.length > 0) {
       const lenderCount = selectedIds.length;
       const proceed = window.confirm(
@@ -734,7 +748,7 @@ function describeSendFailure(err: unknown): string {
             <div style={styles.lockedItem}>(no outstanding categories returned)</div>
           ) : (
             (envelope.outstanding ?? []).map((cat) => (
-              <div key={cat} style={styles.lockedItem}>{String(cat).replace(/_/g, " ")}</div>
+              <div key={cat} style={styles.lockedItem}>{humanizeCode(cat)}</div>
             ))
           )}
         </div>
@@ -928,10 +942,10 @@ function describeSendFailure(err: unknown): string {
                         {v_downloadMap.get(String(m.lenderId))}
                       </div>
                     )}
-                    {m.productName ? <div style={{ fontSize: 11, color: "var(--ui-text-muted)", marginTop: 2 }}>{m.productName}</div> : null}
+                    {m.productName ? <div style={{ fontSize: 11, color: "var(--ui-text-muted)", marginTop: 2 }}>{productNameWords(m.productName)}</div> : null}
                   </td>
-                  <td style={styles.td}>{m.productCategory ?? "—"}</td>
-                  <td style={styles.td}>{formatRange(m)}</td>
+                  <td style={styles.td}>{m.productCategory ? humanizeCode(m.productCategory) : "Not set"}</td>
+                  <td style={styles.td} data-testid={`lender-range-${m.id}`}>{formatRange(m)}</td>
                   <td style={styles.td}>
                     <span style={{ ...styles.pill, background: pctColors?.bg ?? "transparent", color: pctColors?.fg ?? "inherit" }}>
                       {formatLikelihood(m)}
