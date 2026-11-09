@@ -9,7 +9,7 @@ import { formatSendAt, pendingSends, sendJobCancelPath, sendJobsPath, type Sched
 import { CLIENT_URL } from "@/config/licensee"; // KS_PORTAL_v1_LICENSEE
 import CampaignSendOptions, { CampaignEmailAllowance, DEFAULT_SEND_OPTIONS, sendOptionsPayload, type SendOptions } from "./CampaignSendOptions"; // KS_PORTAL_MARKETING_ADDON
 import { serverMessage } from "@/plans/marketing"; // KS_PORTAL_MARKETING_ADDON
-import EmailConsentGap from "./EmailConsentGap"; // KS_PORTAL_EMAIL_CONSENT_v1
+// KS_PORTAL_EMAIL_ALL_CONTACTS_v1 - no consent banner: every contact with an email is a recipient (parity with BF v917).
 
 // BF_PORTAL_EMAIL_PREVIEW_WIDTH_v1 - render at the email's desktop width and
 // scale the canvas, rather than triggering its mobile breakpoint in the pane.
@@ -459,7 +459,6 @@ export default function BrandedEmailComposer({ apiBase = "/api/marketing" }: { a
           Skip contacts who got a marketing text in the last 7 days
         </label>
         <p className="mt-1" style={{ color: "var(--ui-text-muted)", fontSize: "0.8rem" }}>Recipients: <strong style={{ color: "var(--ui-text)" }}>{count}</strong></p>
-        <EmailConsentGap apiBase={apiBase} tags={include} onRecorded={() => setConsentTick((x) => x + 1)} />
       </div>
 
       <div className="grid gap-2 md:grid-cols-2 mt-3">
