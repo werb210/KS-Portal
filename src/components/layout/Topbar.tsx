@@ -122,14 +122,8 @@ const Topbar = ({ onToggleSidebar }: TopbarProps) => {
         >
           ☰
         </button>
+        {/* KS_PORTAL_NO_GREETING_AVATAR - no picture beside "Hello" (parity with BF-Portal v928); the user menu keeps it. */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="Profile" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--accent-neutral)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 12 }}>
-              {avatarInitials}
-            </div>
-          )}
           <h1 className="topbar__title" style={{ color: "var(--ui-text)", margin: 0, fontSize: 20, fontWeight: 700 }}>
             {greeting}
           </h1>
