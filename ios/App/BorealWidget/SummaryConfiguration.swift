@@ -13,25 +13,18 @@ enum MetricChoice: String, AppEnum {
 }
 
 enum SiloChoice: String, AppEnum {
-    case followApp, bf, bi, slf
+    // KS_PORTAL_OWN_APP_ID_v1 - Keystone has no silos, so the widget always follows the portal.
+    case followApp
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Business"
     static var caseDisplayRepresentations: [SiloChoice: DisplayRepresentation] = [
-        .followApp: "Follow the portal", .bf: "Boreal Financial",
-        .bi: "Boreal Risk Management", .slf: "SLF"
+        .followApp: "Follow the portal"
     ]
-    var silo: WidgetSilo {
-        switch self {
-        case .followApp: return WidgetSilo(rawValue: WidgetStore.silo ?? "BF") ?? .bf
-        case .bf: return .bf
-        case .bi: return .bi
-        case .slf: return .slf
-        }
-    }
+    var silo: WidgetSilo { WidgetSilo(rawValue: WidgetStore.silo ?? "BF") ?? .bf }
 }
 
 struct SummaryConfiguration: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Boreal Portal"
-    static var description = IntentDescription("Pick the business and what each tile shows.")
+    static var title: LocalizedStringResource = "Keystone Portal"
+    static var description = IntentDescription("Pick what each tile shows.")
     @Parameter(title: "Business", default: .followApp) var silo: SiloChoice
     @Parameter(title: "First", default: .pipeline) var first: MetricChoice
     @Parameter(title: "Second", default: .tasksDueToday) var second: MetricChoice

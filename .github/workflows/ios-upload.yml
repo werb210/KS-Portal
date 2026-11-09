@@ -97,7 +97,7 @@ jobs:
         run: |
           {
             echo "### Uploaded to App Store Connect (TestFlight)"
-            echo "- App: Boreal Staff Portal (iPad)"
+            echo "- App: Keystone Staff Portal (iPad)"
             echo "- Build number: $BUILD_NUMBER"
             echo "- Notes: ${NOTES:-none}"
             echo "Apple processes the build for 10-30 minutes, then it appears in TestFlight."

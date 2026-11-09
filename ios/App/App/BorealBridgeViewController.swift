@@ -79,7 +79,7 @@ public class BiometricUnlockPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func authenticate(_ call: CAPPluginCall) {
-        let reason = call.getString("reason") ?? "Unlock Boreal Portal"
+        let reason = call.getString("reason") ?? "Unlock Keystone Portal"
         let context = LAContext()
         context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, _ in
             DispatchQueue.main.async { call.resolve(["ok": success]) }

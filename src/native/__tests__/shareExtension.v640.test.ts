@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const IOS = "ios/App";
-const GROUP = "group.com.borealfinancial.portal";
+const GROUP = "group.com.keystonecrm.portal";
 const read = (p: string) => readFileSync(IOS + "/" + p, "utf8");
 
 describe("share extension", () => {
@@ -17,7 +17,7 @@ describe("share extension", () => {
     expect(pbx).toContain("name = BorealShare; productName = BorealShare;");
     expect(pbx).toContain('productType = "com.apple.product-type.app-extension"');
     expect(pbx).toContain("BorealShare.appex in Embed");
-    expect(pbx).toContain("PRODUCT_BUNDLE_IDENTIFIER = com.borealfinancial.portal.share;");
+    expect(pbx).toContain("PRODUCT_BUNDLE_IDENTIFIER = com.keystonecrm.portal.share;");
   });
   it("accepts photos and files from the share sheet", () => {
     const plist = read("BorealShare/Info.plist");

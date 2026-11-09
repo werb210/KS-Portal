@@ -42,7 +42,7 @@ describe("widget snapshots", () => {
     for (const silo of ["BF"] as const) { // KS_PORTAL_v1_NO_BI - one silo
       expect(h.api).toHaveBeenCalledWith("/api/widget/summary", { headers: { "X-Silo": silo } });
       expect(h.setItem).toHaveBeenCalledWith({
-        group: "group.com.borealfinancial.portal",
+        group: "group.com.keystonecrm.portal",
         key: `widget_summary_${silo}`,
         value: expect.stringContaining(`"silo":"${silo}"`),
       });

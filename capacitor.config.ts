@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.boreal.portal',
-  appName: 'Boreal Staff Portal',
+  appId: 'com.keystonecrm.portal',
+  appName: 'Keystone Staff Portal',
   webDir: 'dist',
   ios: {
     contentInset: 'always',

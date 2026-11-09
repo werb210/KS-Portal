@@ -26,7 +26,7 @@ describe("iPad VoIP native config", () => {
     expect(pbx).toContain("PortalVoiceEngine.swift in Sources */,");
     expect(pbx).toContain("BorealVoicePlugin.swift in Sources */,");
     // the company bundle id is untouched
-    expect(pbx).toMatch(/PRODUCT_BUNDLE_IDENTIFIER = com\.borealfinancial\.portal;/);
+    expect(pbx).toMatch(/PRODUCT_BUNDLE_IDENTIFIER = com\.keystonecrm\.portal;/);
   });
 
   it("PushKit starts at launch and the plugin is registered with the bridge", () => {

@@ -50,9 +50,9 @@ describe("native wiring", () => {
   it("registers, schedules and permits the refresh task", () => {
     expect(delegate).toContain("WidgetBackgroundRefresh.register()");
     expect(delegate).toContain("func sceneDidEnterBackground(_ scene: UIScene)");
-    expect(plist).toContain("<string>com.boreal.portal.widget-refresh</string>");
+    expect(plist).toContain("<string>com.keystonecrm.portal.widget-refresh</string>");
     expect(plist).toContain("<key>UIBackgroundModes</key>");
-    expect(plugin).toContain('static let taskId = "com.boreal.portal.widget-refresh"');
+    expect(plugin).toContain('static let taskId = "com.keystonecrm.portal.widget-refresh"');
   });
   it("only refreshes fields the summary call owns and stops on 401", () => {
     expect(plugin).toContain('for field in ["tasksDueToday", "unreadMessages"]');
