@@ -3,6 +3,7 @@
 // (expandable body + read status) and calls (audio playback + transcript),
 // newest-first. Replaces the old stacked ActivityTimeline + bottom
 // ContactEmailFeed/ContactCallFeed sections.
+import TranscriptSearch from "@/components/crm/TranscriptSearch"; // CALL_TRANSCRIPT_SEARCH_v1
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import FeatureGate from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS - recordings (Growth) and call summaries (Growth)
 import { crmApi, type Scope, type TimelineItem } from "@/api/crm";
@@ -254,10 +255,7 @@ function CallCard({ call, isOpen, onToggle }: { call: CallRow; isOpen: boolean; 
           {isOpen ? "Hide transcript" : "Show transcript"}
         </button>
         {isOpen && (
-        <div style={{ marginTop: 6 }}>
-          {call.transcript_summary && <div style={{ fontSize: 13, color: "var(--ui-text-muted)", fontStyle: "italic", marginBottom: 6 }}>{call.transcript_summary}</div>}
-          {call.transcript_text && <div style={{ fontSize: 13, color: "var(--ui-text)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{call.transcript_text}</div>}
-        </div>
+        <TranscriptSearch summary={call.transcript_summary} text={call.transcript_text} />
         )}
         </FeatureGate>
       )}
