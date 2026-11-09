@@ -75,7 +75,7 @@ describe("Settings tabs", () => {
     const names = await tabs(starter());
     expect(names).not.toContain("Templates");
     expect(names).not.toContain("Snippets");
-    expect(names).toContain("Phone lines");
+    expect(names).toContain("Phone"); // KS_PORTAL_SETTINGS_GROUPED_v1 - Phone lines sits in the Phone group
   });
 
   it("Growth: Templates and Snippets are there", async () => {
