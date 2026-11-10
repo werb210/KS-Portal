@@ -24,7 +24,7 @@ export type Batch = {
   status: string;
   columns: string[];
   mapping: Record<string, string>;
-  options: { stage_map?: Record<string, string>; counts?: Record<string, number> };
+  options: { stage_map?: Record<string, string>; counts?: Record<string, number>; marketing_contacts?: boolean };
   total_rows: number;
   processed_rows: number;
   created_count: number;
@@ -72,8 +72,9 @@ export async function uploadImportFile(file: File, source: Source, recordType: R
   return api.post<UploadResult>(`${BASE}/uploads`, form);
 }
 
-export const setMapping = async (id: string, mapping: Record<string, string>, stageMap: Record<string, string>) =>
-  (await api.put<{ batch: Batch }>(`${BASE}/batches/${id}/mapping`, { mapping, options: { stage_map: stageMap } })).batch;
+// KS_PORTAL_MARKETING_CONTACTS_v1 - extra.marketing_contacts: imported contacts become marketing contacts.
+export const setMapping = async (id: string, mapping: Record<string, string>, stageMap: Record<string, string>, extra: { marketing_contacts?: boolean } = {}) =>
+  (await api.put<{ batch: Batch }>(`${BASE}/batches/${id}/mapping`, { mapping, options: { stage_map: stageMap, marketing_contacts: extra.marketing_contacts === true } })).batch;
 export const getPreview = (id: string) => api.get<Preview>(`${BASE}/batches/${id}/preview`, { params: { limit: 25 } });
 export const startDryRun = async (id: string) => (await api.post<{ batch: Batch }>(`${BASE}/batches/${id}/dry-run`)).batch;
 export const startRun = async (id: string) => (await api.post<{ batch: Batch }>(`${BASE}/batches/${id}/run`)).batch;

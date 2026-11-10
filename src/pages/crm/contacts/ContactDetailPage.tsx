@@ -138,6 +138,20 @@ export default function ContactDetailPage() {
           <Field label="Status"  value={contact.lead_status ?? null} />
           <Field label="Stage"   value={contact.lifecycle_stage ?? null} />
           <Field label="Owner"   value={contact.owner_name ?? null} />
+          {/* KS_PORTAL_MARKETING_CONTACTS_v1 - only marketing contacts get campaign emails and texts. */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={fieldLabel}>Marketing contact</div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
+              <input type="checkbox" data-testid="contact-marketing-toggle" checked={contact.marketing_contact !== false}
+                onChange={async (e) => {
+                  const next = e.target.checked;
+                  setContact((c) => (c ? { ...c, marketing_contact: next } : c));
+                  try { await api.patch(`/api/crm/contacts/${id}`, { marketing_contact: next }); }
+                  catch (err) { setContact((c) => (c ? { ...c, marketing_contact: !next } : c)); window.alert(`Could not save: ${err instanceof Error ? err.message : String(err)}`); }
+                }} />
+              {contact.marketing_contact !== false ? "Yes - gets campaign emails and texts" : "No - kept in the CRM, not marketed to"}
+            </label>
+          </div>
           <Field label="Created" value={contact.created_at ? formatDateTimeShort(contact.created_at) : null} />
           {contact.source && <Field label="Source" value={humanizeCode(contact.source)} />}
         </div>

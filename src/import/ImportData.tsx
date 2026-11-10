@@ -121,6 +121,7 @@ export default function ImportData() {
   // Upload
   const [source, setSource] = useState<Source>("spreadsheet");
   const [recordType, setRecordType] = useState<RecordType>("contacts");
+  const [marketingContacts, setMarketingContacts] = useState(false); // KS_PORTAL_MARKETING_CONTACTS_v1
   const [file, setFile] = useState<File | null>(null);
   // Mapping
   const [batch, setBatch] = useState<Batch | null>(null);
@@ -186,7 +187,7 @@ export default function ImportData() {
   };
 
   const open = (b: Batch) => {
-    setBatch(b); setMappingState(b.mapping ?? {}); setStageMap(b.options?.stage_map ?? {}); setColumns(b.columns ?? []);
+    setBatch(b); setMappingState(b.mapping ?? {}); setStageMap(b.options?.stage_map ?? {}); setMarketingContacts(b.options?.marketing_contacts === true); setColumns(b.columns ?? []);
     setError(null); setNotice(null);
     if (b.status === "uploaded") { setStep(b.record_type === "keystone" ? "preview" : "map"); if (b.record_type === "keystone") void loadPreview(b.id); }
     else setStep("job");
@@ -216,7 +217,7 @@ export default function ImportData() {
 
   const toPreview = () => run(async () => {
     if (!batch) return;
-    const b = await setMapping(batch.id, mapping, stageMap);
+    const b = await setMapping(batch.id, mapping, stageMap, { marketing_contacts: marketingContacts });
     setBatch(b);
     await loadPreview(b.id);
     setStep("preview");
@@ -224,7 +225,7 @@ export default function ImportData() {
 
   const applyStages = () => run(async () => {
     if (!batch) return;
-    const b = await setMapping(batch.id, batch.record_type === "keystone" ? {} : mapping, stageMap);
+    const b = await setMapping(batch.id, batch.record_type === "keystone" ? {} : mapping, stageMap, { marketing_contacts: marketingContacts });
     setBatch(b);
     await loadPreview(b.id);
     setNotice("Stage choices saved.");
@@ -232,7 +233,7 @@ export default function ImportData() {
 
   const doDryRun = () => run(async () => {
     if (!batch) return;
-    if (Object.keys(stageMap).length) setBatch(await setMapping(batch.id, batch.record_type === "keystone" ? {} : mapping, stageMap));
+    if (Object.keys(stageMap).length) setBatch(await setMapping(batch.id, batch.record_type === "keystone" ? {} : mapping, stageMap, { marketing_contacts: marketingContacts }));
     setBatch(await startDryRun(batch.id));
     setStep("job");
   });
@@ -382,6 +383,12 @@ export default function ImportData() {
       {step === "map" && batch && (
         <Section title={`2. Match columns: ${typeLabel(presets, batch.record_type)}`} testId="import-map">
           <p style={muted}>{batch.file_name}: {batch.total_rows.toLocaleString()} rows. Columns we recognised are already chosen. Leave a field on "Not imported" to skip it.</p>
+          {batch.record_type === "contacts" && (
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, margin: "0 0 12px" }}>{/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
+              <input type="checkbox" data-testid="import-marketing-contacts" checked={marketingContacts} onChange={(e) => setMarketingContacts(e.target.checked)} />
+              Make these marketing contacts (they get campaign emails and texts, which count toward your monthly email allowance). Unticked, they are kept in the CRM but not marketed to; a "Marketing contact" column (Yes / No) overrides this per row.
+            </label>
+          )}
           {saved.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <label htmlFor="import-saved" style={label}>Use a saved mapping</label>
