@@ -26,6 +26,7 @@ import VendorKeysSettings from "@/integrations/VendorKeysSettings"; // KS_PORTAL
 import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
 import ConnectionsSettings from "./tabs/ConnectionsSettings"; // KS_PORTAL_M365_ONE_CLICK
 import LabsSettings from "./tabs/LabsSettings"; // KS_PORTAL_BETA_v1
+import YourDocumentsSettings from "@/licenseeDocs/YourDocumentsSettings"; // KS_PORTAL_LICENSEE_DOCUMENTS
 import HelpPage from "@/pages/help/HelpPage"; // KS_PORTAL_v6_SUPPORT
 import ImportData from "@/import/ImportData"; // KS_PORTAL_v16_DATA_IMPORT
 import FeatureGate, { LockedBadge } from "@/plans/FeatureGate"; // KS_PORTAL_v3_PLANS
@@ -95,6 +96,7 @@ const SettingsPage = () => {
       { id: "payments", label: "Payments", visible: isAdmin && !isBI, content: <PaymentsSettings /> }, // Stripe Connect (growth+)
       { id: "call-scripts", label: "Call scripts", visible: isAdmin && !isBI, content: <CallScriptsSettings /> }, // playbooks (growth+)
       { id: "pipelines", label: "Pipelines", visible: isAdmin && !isBI, content: <PipelinesSettings /> }, // extra pipelines (growth 3, pro unlimited)
+      { id: "your-documents", label: "Your documents", visible: (isAdmin || isStaff) && !isBI, content: <YourDocumentsSettings isAdmin={isAdmin} /> }, // KS_PORTAL_LICENSEE_DOCUMENTS
       { id: "deal-tools", label: "Deal tools", visible: (isAdmin || isStaff) && !isBI, content: <DealToolsSettings isAdmin={isAdmin} /> }, // KS_BROKER_TOOLS
       { id: "call-queues", label: "Call queues", visible: (isAdmin || isStaff) && !isBI, content: <CallQueuesSettings /> }, // pro: live panel (Admins), my availability
       { id: "phone", label: "Phone lines", visible: isAdmin && !isBI, content: <PhoneLines /> }, // BF_PORTAL_PHONE_LINES_v689
@@ -229,6 +231,7 @@ export const SETTINGS_GROUPS: Array<{ id: string; label: string; heading: string
   { id: "sign-in", label: "Sign-in and security", heading: "BROKERAGE SET-UP", sectionIds: ["security", "sso"] },
   { id: "records", label: "Privacy and records", heading: "BROKERAGE SET-UP", sectionIds: ["retention", "privacy", "survey"] },
   { id: "integrations", label: "Integrations", heading: "BROKERAGE SET-UP", sectionIds: ["webhooks", "api", "import"] },
+  { id: "your-documents-group", label: "Your documents", heading: "BROKERAGE SET-UP", sectionIds: ["your-documents"] }, // KS_PORTAL_LICENSEE_DOCUMENTS
   { id: "deal-tools-group", label: "Deal tools", heading: "BROKERAGE SET-UP", sectionIds: ["deal-tools"] },
   { id: "labs-group", label: "Labs", heading: "BROKERAGE SET-UP", sectionIds: ["labs"] },
   { id: "system", label: "System check", heading: "BROKERAGE SET-UP", sectionIds: ["runtime"] },

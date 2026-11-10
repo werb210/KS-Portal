@@ -417,6 +417,19 @@ export default function LendersTab({ applicationId }: Props) {
   const [sigMsgs, setSigMsgs] = useState<Record<string, { ok: boolean; text: string }>>({});
   const sigMsg = savedTermSheet ? sigMsgs[savedTermSheet.offerId] ?? null : null; // review fix: each offer keeps its own result
   const setSigMsg = (offerId: string, m: { ok: boolean; text: string } | null) => setSigMsgs((cur) => { const next = { ...cur }; if (m) next[offerId] = m; else delete next[offerId]; return next; });
+  // KS_PORTAL_LICENSEE_DOCUMENTS - re-issue the lender's offer on the brokerage's own term sheet (Settings > Your documents).
+  const [ownTsBusy, setOwnTsBusy] = useState(false);
+  const [ownTsMsg, setOwnTsMsg] = useState<{ offerId: string; ok: boolean; text: string } | null>(null); // review fix: its own message, not the signature-send one
+  const applyOwnTermSheet = async (offerId: string) => {
+    if (ownTsBusy) return;
+    setOwnTsBusy(true); setOwnTsMsg(null);
+    try {
+      const r = await api.post<{ message?: string }>(`/api/licensee-documents/offers/${encodeURIComponent(offerId)}/term-sheet`, {});
+      setOwnTsMsg({ offerId, ok: true, text: r?.message ?? "Your term sheet is now this offer's term sheet." });
+    } catch (e) {
+      setOwnTsMsg({ offerId, ok: false, text: getErrorMessage(e, "Your term sheet could not be made. Try again.") });
+    } finally { setOwnTsBusy(false); }
+  };
   const sendForSignature = async (offerId: string) => {
     if (sigBusyFor === offerId) return;
     setSigBusy(offerId); setSigMsg(offerId, null);
@@ -1145,10 +1158,14 @@ function describeSendFailure(err: unknown): string {
           <button type="button" data-testid="term-sheet-send-signature" disabled={sigBusy || sigMsg?.ok === true} aria-busy={sigBusy} onClick={() => void sendForSignature(savedTermSheet.offerId)} style={styles.btnPrimary}>
             {sigBusy ? "Sending…" : sigMsg?.ok ? "Sent for signature" : "Send to client for signature"}
           </button>
+          <button type="button" data-testid="term-sheet-own" disabled={ownTsBusy || sigBusy} onClick={() => void applyOwnTermSheet(savedTermSheet.offerId)} style={styles.btn} title="Fill your own term sheet (Settings > Your documents) with this offer">
+            {ownTsBusy ? "Making it…" : "Use our term sheet"}
+          </button>
           <button type="button" data-testid="term-sheet-create-quote" disabled={quoteBusy} onClick={() => void createQuoteFromTermSheet()} style={styles.btn}>
             {quoteBusy ? "Starting the quote…" : "Create quote from this term sheet"}
           </button>
           <button type="button" onClick={() => { setSavedTermSheet(null); }} style={styles.btn}>Not now</button>
+          {ownTsMsg && ownTsMsg.offerId === savedTermSheet.offerId ? <span data-testid="term-sheet-own-msg" role={ownTsMsg.ok ? "status" : "alert"} style={{ width: "100%", color: ownTsMsg.ok ? "#14532d" : "#7f1d1d" }}>{ownTsMsg.text}</span> : null}
           {sigMsg ? <span data-testid="term-sheet-signature-msg" role={sigMsg.ok ? "status" : "alert"} style={{ width: "100%", color: sigMsg.ok ? "#14532d" : "#7f1d1d" }}>{sigMsg.text}</span> : null}
           {quoteMsg ? <span role="alert" style={{ width: "100%", color: "#7f1d1d" }}>{quoteMsg}</span> : null}
         </div>
