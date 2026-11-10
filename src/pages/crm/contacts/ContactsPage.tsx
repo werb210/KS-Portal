@@ -74,7 +74,10 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
   const [total, setTotal] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [tagInput, setTagInput] = useState("");
-  const [busyMass, setBusyMass] = useState<"delete" | "tag" | "active" | "assign" | null>(null);
+  const [busyMass, setBusyMass] = useState<"delete" | "tag" | "active" | "assign" | "marketing" | null>(null);
+  // KS_PORTAL_MARKETING_CONTACTS_v1 - only marketing contacts get campaign emails / texts.
+  const [marketingFilter, setMarketingFilter] = useState<"" | "yes" | "no">(savedFilters.marketingFilter === "yes" || savedFilters.marketingFilter === "no" ? savedFilters.marketingFilter : "");
+  const [mkSummary, setMkSummary] = useState<{ total: number; marketing: number; emailable: number; budget: { allowance: number; used: number; remaining: number | null; addon: boolean } } | null>(null);
   const [assignOwnerId, setAssignOwnerId] = useState("");
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   // KS_PORTAL_v20_CRM_FIELDS - custom field columns (chosen in Columns) and filters.
@@ -115,6 +118,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
           sort: `${sort.col}:${sort.dir}`,
           owner_id: ownerId || undefined,
           tag: tagFilter || undefined, // BF_PORTAL_BLOCK_v806_TAG_FILTER
+          marketing: marketingFilter || undefined, // KS_PORTAL_MARKETING_CONTACTS_v1
           page: crmPage, // BF_PORTAL_BF_CONTACTS_PAGER_v1
           pageSize: CONTACTS_PAGE_SIZE,
           ...filterParams(cfFilters), // KS_PORTAL_v20_CRM_FIELDS
@@ -130,20 +134,31 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
       }
     })();
     return () => { cancelled = true; };
-  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, refreshKey, crmPage, cfParamKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, refreshKey, crmPage, cfParamKey, marketingFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // KS_PORTAL_MARKETING_CONTACTS_v1 - marketing contacts vs this month's campaign email allowance.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve(typeof crmApi.marketingSummary === "function" ? crmApi.marketingSummary() : null).then((s) => {
+      if (cancelled) return;
+      const ok = s && typeof s.total === "number" && typeof s.marketing === "number" && s.budget && typeof s.budget.allowance === "number";
+      setMkSummary(ok ? { ...s, emailable: Number(s.emailable ?? 0), budget: { ...s.budget, used: Number(s.budget.used ?? 0) } } : null);
+    }).catch(() => { if (!cancelled) setMkSummary(null); });
+    return () => { cancelled = true; };
+  }, [refreshKey]);
 
   // BF_PORTAL_BF_CONTACTS_PAGER_v1 - any change to the filters/sort re-queries from
   // the top; staying on page 7 of a now-2-page result would render an empty table.
   // BF_PORTAL_CRM_FILTER_PERSIST_v1 - save the view on change, and don't clobber the
   // restored page on the initial mount (only reset to page 1 when filters actually change).
   useEffect(() => {
-    try { sessionStorage.setItem("crm.contacts.filters", JSON.stringify({ q, ownerId, tagFilter, sort, crmPage, cfFilters })); } catch { /* ignore */ }
-  }, [q, ownerId, tagFilter, sort, crmPage, cfFilters]);
+    try { sessionStorage.setItem("crm.contacts.filters", JSON.stringify({ q, ownerId, tagFilter, sort, crmPage, cfFilters, marketingFilter })); } catch { /* ignore */ }
+  }, [q, ownerId, tagFilter, sort, crmPage, cfFilters, marketingFilter]);
   const filtersMountRef = useRef(false);
   useEffect(() => {
     if (!filtersMountRef.current) { filtersMountRef.current = true; return; }
     setCrmPage(1);
-  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, cfParamKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [silo, q, sort.col, sort.dir, ownerId, tagFilter, cfParamKey, marketingFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // BF_PORTAL_CRM_TOTALS_v1 - exact, from the server's total.
   const hasNext = crmPage * CONTACTS_PAGE_SIZE < total;
@@ -218,6 +233,31 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
     } finally { setBusyMass(null); }
   }
 
+  // KS_PORTAL_MARKETING_CONTACTS_v1
+  async function massMarketing(marketing: boolean) {
+    if (!isAdmin || selected.size === 0) return;
+    setBusyMass("marketing");
+    try {
+      await crmApi.bulkMarketingContacts({ ids: Array.from(selected) }, marketing);
+      setSelected(new Set());
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      window.alert(`Could not change marketing contacts: ${err instanceof Error ? err.message : String(err)}`);
+    } finally { setBusyMass(null); }
+  }
+  // Everyone shown by the current tag filter at once (all pages, not just the ticked rows).
+  async function tagMarketing(marketing: boolean) {
+    if (!isAdmin || !tagFilter) return;
+    setBusyMass("marketing");
+    try {
+      const r = await crmApi.bulkMarketingContacts({ tags: tagFilter.split(",").filter(Boolean) }, marketing);
+      window.alert(`${(r?.updated ?? 0).toLocaleString()} contact(s) ${marketing ? "are now" : "are no longer"} marketing contacts.`);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      window.alert(`Could not change marketing contacts: ${err instanceof Error ? err.message : String(err)}`);
+    } finally { setBusyMass(null); }
+  }
+
   async function massAssign() {
     if (!isAdmin || selected.size === 0 || !assignOwnerId) return;
     setBusyMass("assign");
@@ -252,6 +292,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
         ...(!hiddenCols.has("tags") ? [{ label: "Tags", value: (r: ContactRow) => r.tags }] : []),
         ...(!hiddenCols.has("lead_status") ? [{ label: "Lead status", value: (r: ContactRow) => r.lead_status ?? "New" }] : []),
         ...(!hiddenCols.has("owner_name") ? [{ label: "Owner", value: (r: ContactRow) => r.owner_name }] : []),
+        ...(!hiddenCols.has("marketing_contact") ? [{ label: "Marketing contact", value: (r: ContactRow) => (r.marketing_contact === false ? "No" : "Yes") }] : []),
         ...cf.shown.map((f) => ({ label: f.label, value: (r: ContactRow) => displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) })),
         { label: "Create date", value: (r) => r.created_at },
       ];
@@ -290,6 +331,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
       )}</td>
       )}
       {!hiddenCols.has("owner_name") && <td style={tdStyle}>{r.owner_name ?? "—"}</td>}
+      {!hiddenCols.has("marketing_contact") && <td style={tdStyle} data-testid="marketing-cell">{r.marketing_contact === false ? "No" : "Yes"}</td>}{/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
       {cf.shown.map((f) => <td key={f.name} style={tdStyle}>{displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) || "—"}</td>)}{/* BF_PORTAL_v870_CRM_DATA_MODEL */}
       <td style={tdStyle}>{formatDateTimeShort(r.created_at)}</td>
     </tr>
@@ -322,8 +364,14 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
             <option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>
           ))}
         </select>
+        {/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
+        <select data-testid="marketing-filter" value={marketingFilter} onChange={(e) => setMarketingFilter(e.target.value as "" | "yes" | "no")} style={ownerSelect}>
+          <option value="">Marketing: all</option>
+          <option value="yes">Marketing contacts</option>
+          <option value="no">Not marketing contacts</option>
+        </select>
         {roleCan.exp && <button style={toolbarBtn} disabled={exporting !== null} onClick={() => void exportAll()} data-testid="contacts-export">{exporting ?? "Export"}</button>}
-        <ColumnsMenu options={[{ key: "company_name", label: "Company" }, { key: "tags", label: "Tags" }, { key: "lead_status", label: "Lead status" }, { key: "owner_name", label: "Owner" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
+        <ColumnsMenu options={[{ key: "company_name", label: "Company" }, { key: "tags", label: "Tags" }, { key: "lead_status", label: "Lead status" }, { key: "owner_name", label: "Owner" }, { key: "marketing_contact", label: "Marketing" }, ...cf.columnOptions]} hidden={cf.hiddenWith(hiddenCols)} onToggle={(k) => (cf.isCfKey(k) ? cf.toggle(k) : toggleCol(k))} style={toolbarBtn} />
         {roleCan.create && <button onClick={() => setImportOpen(true)} style={toolbarBtn}>Import</button>}
         {/* BF_PORTAL_v907_SEGMENT_RESET - a segment replaces the whole view (anything it does not set goes back to the
             default), and "All contacts" clears it. Before, filters a segment did not mention stayed on, so choosing
@@ -343,6 +391,24 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
       <CrmTagViewBy backend={crmBackend} entity="contact" value={tagFilter ? tagFilter.split(",") : []}
         onChange={(next) => setTagFilter(next.join(","))} catalogue={tagCatalogue} onCatalogueChanged={reloadTags} />
       <CustomFieldFilters fields={cf.fields} value={cfFilters} onChange={setCfFilters} />{/* KS_PORTAL_v20_CRM_FIELDS */}
+      {/* KS_PORTAL_MARKETING_CONTACTS_v1 - who gets marketing, against this month's campaign emails. */}
+      {mkSummary && (
+        <div data-testid="marketing-summary" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", padding: "10px 12px", border: "1px solid var(--ui-border)", borderRadius: 8, marginBottom: 12, fontSize: 13, background: "var(--ui-surface-strong)" }}>
+          <span><strong>{mkSummary.marketing.toLocaleString()}</strong> of {mkSummary.total.toLocaleString()} contacts are marketing contacts ({mkSummary.emailable.toLocaleString()} can get campaign emails).</span>
+          <span style={{ color: mkSummary.budget.remaining !== null && mkSummary.emailable > mkSummary.budget.remaining ? "#b45309" : "var(--ui-text-muted)" }}>
+            {mkSummary.budget.addon
+              ? `${mkSummary.budget.used.toLocaleString()} campaign emails sent this month (Marketing add-on: no stop).`
+              : `${(mkSummary.budget.remaining ?? 0).toLocaleString()} of ${mkSummary.budget.allowance.toLocaleString()} campaign emails left this month.`}
+            {!mkSummary.budget.addon && mkSummary.budget.remaining !== null && mkSummary.emailable > mkSummary.budget.remaining ? " An email to every marketing contact would go over." : ""}
+          </span>
+          {isAdmin && tagFilter && (
+            <span style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
+              <button disabled={busyMass !== null} onClick={() => void tagMarketing(true)} style={{ padding: "5px 10px", borderRadius: 6, border: "1px solid var(--ui-border)", background: "#fff", cursor: "pointer", fontSize: 12 }}>Make everyone with this tag marketing</button>
+              <button disabled={busyMass !== null} onClick={() => void tagMarketing(false)} style={{ padding: "5px 10px", borderRadius: 6, border: "1px solid var(--ui-border)", background: "#fff", cursor: "pointer", fontSize: 12 }}>Make everyone with this tag not marketing</button>
+            </span>
+          )}
+        </div>
+      )}
       {isAdmin && selected.size > 0 && (
         <div style={{ display: "flex", gap: 8, padding: 12, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, marginBottom: 12, alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 13 }}>{selected.size} selected</span>
@@ -350,6 +416,9 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
           {/* BF_PORTAL_v856_CRM_UNIFY - Tag as... and Remove tag (Active included), same as every CRM. */}
           <CrmBulkTagActions backend={crmBackend} entity="contact" ids={Array.from(selected)} catalogue={tagCatalogue}
             onDone={() => { setSelected(new Set()); setRefreshKey((k) => k + 1); }} />
+          {/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
+          <button disabled={busyMass !== null} onClick={() => void massMarketing(true)} data-testid="bulk-marketing-yes" style={{ padding: "6px 12px", borderRadius: 6, background: "var(--ui-surface-strong)", border: "1px solid var(--ui-border)", cursor: "pointer", fontSize: 13 }}>{busyMass === "marketing" ? "Saving…" : "Make marketing"}</button>
+          <button disabled={busyMass !== null} onClick={() => void massMarketing(false)} data-testid="bulk-marketing-no" style={{ padding: "6px 12px", borderRadius: 6, background: "var(--ui-surface-strong)", border: "1px solid var(--ui-border)", cursor: "pointer", fontSize: 13 }}>Not marketing</button>
           <select value={assignOwnerId} onChange={(e) => setAssignOwnerId(e.target.value)} style={{ padding: "6px 10px", border: "1px solid var(--ui-border)", borderRadius: 6, fontSize: 13, background: "var(--ui-surface-strong)" }}>
             <option value="">Assign owner…</option>
             {owners.map((o) => (<option key={o.id} value={o.id}>{`${o.first_name ?? ""} ${o.last_name ?? ""}`.trim() || o.id}</option>))}
@@ -380,15 +449,16 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
             {!hiddenCols.has("tags") && <Th>Tags</Th>}{/* BF_PORTAL_BLOCK_v811_TAGS_COLUMN */}
             {!hiddenCols.has("lead_status") && <Th onClick={() => onSort("lead_status")}>Lead status{sortIndicator("lead_status")}</Th>}
             {!hiddenCols.has("owner_name") && <Th onClick={() => onSort("owner_name")}>Owner{sortIndicator("owner_name")}</Th>}
+            {!hiddenCols.has("marketing_contact") && <Th>Marketing</Th>}
             {cf.shown.map((f) => <Th key={f.name} onClick={() => onSort(`cf_${f.name}`)}>{f.label}{sortIndicator(`cf_${f.name}`)}</Th>)}
             <Th onClick={() => onSort("created_at")}>Create date{sortIndicator("created_at")}</Th>
           </tr>
         </thead>
         <tbody>
-          {loading && <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={emptyCell}>Loading…</td></tr>}
-          {err && <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
+          {loading && <tr><td colSpan={(isAdmin ? 8 : 7) - (hiddenCols.has("marketing_contact") ? 1 : 0) + cf.shown.length} style={emptyCell}>Loading…</td></tr>}
+          {err && <tr><td colSpan={(isAdmin ? 8 : 7) - (hiddenCols.has("marketing_contact") ? 1 : 0) + cf.shown.length} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
           {!loading && !err && rows.length === 0 && (
-            <tr><td colSpan={(isAdmin ? 7 : 6) + cf.shown.length} style={emptyCell}>No contacts in this silo.</td></tr>
+            <tr><td colSpan={(isAdmin ? 8 : 7) - (hiddenCols.has("marketing_contact") ? 1 : 0) + cf.shown.length} style={emptyCell}>No contacts in this silo.</td></tr>
           )}
           {!loading && !err && tableRows}
         </tbody>
