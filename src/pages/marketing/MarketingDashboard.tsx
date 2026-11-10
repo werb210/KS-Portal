@@ -3,6 +3,7 @@
 // BF_PORTAL_MARKETING_FUNNEL_LIVE_v1 — Analytics tab renders the live
 // application funnel from GET /api/marketing/funnel (respondOk envelope).
 import { useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import SocialPanel from "@/social/SocialPanel"; // KS_PORTAL_SOCIAL_POSTING
 import { Navigate } from "react-router-dom"; // BF_PORTAL_v864_CONTENT_TAB
 import { brandName, assistantName } from "@/config/brand";
 import { api } from "@/api";
@@ -36,7 +37,7 @@ import MetaAdsPanel from "@/components/marketing/MetaAdsPanel"; // BF_PORTAL_v90
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
 // the Analytics tab on BF, while BI had a dedicated Links tab. Same panel, same
 // data, two different places to look for it. BF now gets the tab too.
-type MarketingTab = "analytics" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps" | "report" | "kit" | "scoring" | "pages" | "email-types"; // KS_LANDING_PAGES_v1 pages, KS_EMAIL_SUBSCRIPTION_TYPES_v1 email-types // BF_PORTAL_v811_MOBILE_APPS - apps // KS_PORTAL_MARKETING_ADDON - report, kit, scoring
+type MarketingTab = "analytics" | "referrers" | "sequences" | "sms" | "email" | "links" | "ads" | "apps" | "report" | "kit" | "scoring" | "pages" | "email-types" | "social"; // KS_PORTAL_SOCIAL_POSTING social // KS_LANDING_PAGES_v1 pages, KS_EMAIL_SUBSCRIPTION_TYPES_v1 email-types // BF_PORTAL_v811_MOBILE_APPS - apps // KS_PORTAL_MARKETING_ADDON - report, kit, scoring
 // BF_PORTAL_GOOGLE_ADS_ANALYTICS_v707
 // BF_PORTAL_ADS_SERVICES_v709 - "Ads" section: one sub-tab per ad service
 // (Google, Microsoft, LinkedIn); every Google report sits under Google.
@@ -77,6 +78,7 @@ const MARKETING_TABS: { id: MarketingTab; label: string }[] = [
   { id: "sequences", label: "Sequences" },
   { id: "sms", label: "SMS" },
   { id: "email", label: "Email" },
+  { id: "social", label: "Social" }, // KS_PORTAL_SOCIAL_POSTING
   { id: "email-types", label: "Email types" }, // KS_EMAIL_SUBSCRIPTION_TYPES_v1
   { id: "pages", label: "Landing pages" }, // KS_LANDING_PAGES_v1
   { id: "links", label: "Links" }, // BF_PORTAL_BF_LINKS_TAB_v15
@@ -1483,6 +1485,7 @@ const MarketingDashboard = () => {
   // BF_PORTAL_PARTNERS_TABS_v720 - ?tab=referrers (old Broker Files links land on Referrers > Brokers).
   const [tab, setTab] = useState<MarketingTab>(() => {
     const t = new URLSearchParams(window.location.search).get("tab");
+    if (t === "social") return "social"; // KS_PORTAL_SOCIAL_POSTING - back from a network sign-in
     return t === "referrers" ? "referrers" : t === "apps" ? "apps" : "analytics"; // BF_PORTAL_v811_MOBILE_APPS - ?tab=apps
   });
   // BF_PORTAL_v811_MOBILE_APPS - the Mobile apps tab is Boreal Financial's client app, so it shows in the BF silo only.
@@ -1551,6 +1554,7 @@ const MarketingDashboard = () => {
       {tab === "pages" && <AddonGate tool="landing_pages"><LandingPagesPanel /></AddonGate>}{/* KS_LANDING_PAGES_v1 - Marketing add-on only */}
       {tab === "links" && <LinkClicksPanel />}{/* BF_PORTAL_BF_LINKS_TAB_v15 */}
       {tab === "sms" && <SmsComposerPanel />}
+      {tab === "social" && <SocialPanel />}{/* KS_PORTAL_SOCIAL_POSTING */}
       {tab === "sequences" && <SequencesPanel />}
       {tab === "report" && <CampaignReportPanel />}{/* KS_PORTAL_MARKETING_ADDON */}
       {tab === "kit" && <div className="space-y-2"><p data-testid="website-kit-explainer" style={{ margin: 0, fontSize: 14, color: "var(--ui-text)" }}>Add forms and chat to other websites so their leads land in this CRM.</p><WebsiteKitPanel /></div>}
