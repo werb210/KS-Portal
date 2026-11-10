@@ -419,14 +419,15 @@ export default function LendersTab({ applicationId }: Props) {
   const setSigMsg = (offerId: string, m: { ok: boolean; text: string } | null) => setSigMsgs((cur) => { const next = { ...cur }; if (m) next[offerId] = m; else delete next[offerId]; return next; });
   // KS_PORTAL_LICENSEE_DOCUMENTS - re-issue the lender's offer on the brokerage's own term sheet (Settings > Your documents).
   const [ownTsBusy, setOwnTsBusy] = useState(false);
+  const [ownTsMsg, setOwnTsMsg] = useState<{ offerId: string; ok: boolean; text: string } | null>(null); // review fix: its own message, not the signature-send one
   const applyOwnTermSheet = async (offerId: string) => {
     if (ownTsBusy) return;
-    setOwnTsBusy(true);
+    setOwnTsBusy(true); setOwnTsMsg(null);
     try {
       const r = await api.post<{ message?: string }>(`/api/licensee-documents/offers/${encodeURIComponent(offerId)}/term-sheet`, {});
-      setSigMsg(offerId, { ok: true, text: r?.message ?? "Your term sheet is now this offer's term sheet." });
+      setOwnTsMsg({ offerId, ok: true, text: r?.message ?? "Your term sheet is now this offer's term sheet." });
     } catch (e) {
-      setSigMsg(offerId, { ok: false, text: getErrorMessage(e, "Your term sheet could not be made. Try again.") });
+      setOwnTsMsg({ offerId, ok: false, text: getErrorMessage(e, "Your term sheet could not be made. Try again.") });
     } finally { setOwnTsBusy(false); }
   };
   const sendForSignature = async (offerId: string) => {
@@ -1164,6 +1165,7 @@ function describeSendFailure(err: unknown): string {
             {quoteBusy ? "Starting the quote…" : "Create quote from this term sheet"}
           </button>
           <button type="button" onClick={() => { setSavedTermSheet(null); }} style={styles.btn}>Not now</button>
+          {ownTsMsg && ownTsMsg.offerId === savedTermSheet.offerId ? <span data-testid="term-sheet-own-msg" role={ownTsMsg.ok ? "status" : "alert"} style={{ width: "100%", color: ownTsMsg.ok ? "#14532d" : "#7f1d1d" }}>{ownTsMsg.text}</span> : null}
           {sigMsg ? <span data-testid="term-sheet-signature-msg" role={sigMsg.ok ? "status" : "alert"} style={{ width: "100%", color: sigMsg.ok ? "#14532d" : "#7f1d1d" }}>{sigMsg.text}</span> : null}
           {quoteMsg ? <span role="alert" style={{ width: "100%", color: "#7f1d1d" }}>{quoteMsg}</span> : null}
         </div>

@@ -96,6 +96,9 @@ describe("v936 send the term sheet for signature", () => {
     h.post.mockImplementation(async (url: string) => (url.includes("/api/licensee-documents/offers/off-9/term-sheet") ? { ok: true, message: "Your Term sheet is now this offer's term sheet." } : {}));
     await saveTermSheet();
     fireEvent.click(screen.getByTestId("term-sheet-own"));
-    await waitFor(() => expect(screen.getByTestId("term-sheet-signature-msg").textContent).toBe("Your Term sheet is now this offer's term sheet."));
+    await waitFor(() => expect(screen.getByTestId("term-sheet-own-msg").textContent).toBe("Your Term sheet is now this offer's term sheet."));
+    // making the term sheet does not count as sending it for signature
+    expect((screen.getByTestId("term-sheet-send-signature") as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.getByTestId("term-sheet-send-signature").textContent).toBe("Send to client for signature");
   });
 });
