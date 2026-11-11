@@ -57,7 +57,7 @@ const BF_NAV: NavItem[] = [
   { label: "Pipeline",       path: "/pipeline",        roles: ["Admin", "Staff", "Ops"] },
   { label: "CRM",            path: "/crm/contacts",    roles: ["Admin", "Staff"] },
   // KS_PORTAL_NAV_REVENUE - Active Contracts is a tab inside CRM now; Revenue gathers forecast, commission and contracts.
-  { label: "Revenue",        path: "/revenue",         roles: ["Admin"] }, // KS_PORTAL_REVENUE_ADMIN_ONLY
+  { label: "Revenue",        path: "/revenue",         roles: ["Admin", "Staff"] }, // BF_PORTAL_v942_DEALS_AND_PAY - Staff see only their own deals and pay
   { label: "Communications", path: "/communications",  roles: ["Admin", "Staff"] },
   { label: "Calendar",       path: "/calendar",        roles: ["Admin", "Staff", "Ops"] },
   { label: "Marketing",      path: "/marketing",       roles: ["Admin"] },
@@ -140,7 +140,6 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
   const canSee = (item: NavItem) => {
     const label = item.label.toLowerCase();
     if (isAdmin) return true;
-    if (label === "revenue") return false; // KS_PORTAL_REVENUE_ADMIN_ONLY - Revenue is for Admins only
     if (isMarketing) return label !== "lenders" && label !== "get help" && label !== "active contracts" && label !== "revenue"; // KS_PORTAL_v6_SUPPORT + KS_PORTAL_ACTIVE_CONTRACTS
     if (isStaff) return label !== "marketing";
     return false;
