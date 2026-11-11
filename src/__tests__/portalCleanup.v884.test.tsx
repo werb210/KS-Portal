@@ -9,8 +9,6 @@ vi.mock("@/api", () => ({ api: { get: h.get, post: h.post, put: h.put, patch: h.
 vi.mock("@/utils/api", () => ({ apiBlob: vi.fn(async () => new Blob(["%PDF-"])) }));
 vi.mock("@/dealTools/ui", async (orig) => ({ ...(await orig<any>()), useIsAdmin: () => h.role === "Admin", useRole: () => h.role }));
 
-import QuotesTab from "@/quotes/QuotesTab";
-import type { Quote } from "@/quotes/quotesApi";
 import FundingConditionsPanel from "@/brokerTools/FundingConditionsPanel";
 import CallScriptsSettings from "@/callScripts/CallScriptsSettings";
 import { SetupText, plainSetupText, settingNamesIn, withoutSettingNames } from "@/components/SetupNotice";
@@ -21,9 +19,6 @@ beforeEach(() => {
   h.get.mockReset(); h.post.mockReset(); h.put.mockReset(); h.patch.mockReset(); h.del.mockReset(); h.role = "Staff";
   vi.spyOn(window, "confirm").mockReturnValue(true);
 });
-
-// ------------------------------------------------------------------------------------------------ 1. quotes
-const blank = (over: Partial<Quote> = {}): Quote => ({ id: "q1", application_id: "app-1", quote_number: "Q-261102-04AD9", status: "draft", title: "Your financing options", message: null, currency: "CAD", tax_province: "ON", expires_on: "2026-11-16", pdf_document_id: null, accepted_option_id: null, accepted_name: null, decline_reason: null, view_count: 0, created_at: "2026-11-02T10:00:00Z", sent_at: null, first_viewed_at: null, last_viewed_at: null, accepted_at: null, declined_at: null, withdrawn_at: null, options: [], ...over });
 
 // KS: the Quotes, Funding conditions and Server-setting-name blocks are left out - KS keeps its own (plan-gated)
 // versions of those screens.

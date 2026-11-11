@@ -161,10 +161,11 @@ describe("the presenter portal", () => {
 
     // The file's other tabs answer too; PGI and SBA signing are not part of the sample file.
     expect(screen.queryByRole("button", { name: "PGI insurance" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "SBA Signing" })).toBeNull();
-    for (const label of ["Application", "Request Items"]) {
+    expect(screen.queryByRole("button", { name: "SBA signing" })).toBeNull();
+    // v938: Overview opens on its Application sub-tab.
+    for (const label of ["Overview", "Request Items"]) {
       fireEvent.click(screen.getByRole("button", { name: label }));
-      await waitFor(() => expect(window.location.pathname).toMatch(label === "Application" ? /\/application$/ : /\/request-items$/));
+      await waitFor(() => expect(window.location.pathname).toMatch(label === "Overview" ? /\/application$/ : /\/request-items$/));
     }
     await waitFor(() => expect(screen.getAllByText("Request Items").length).toBeGreaterThan(0));
 

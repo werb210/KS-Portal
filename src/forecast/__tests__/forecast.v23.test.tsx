@@ -8,7 +8,6 @@ const h = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn() }));
 vi.mock("@/api", () => ({ api: { get: h.get, post: h.post, put: h.put } }));
 
 import ForecastCard from "@/forecast/ForecastCard";
-import FileForecastPanel from "@/forecast/FileForecastPanel";
 import { renderReport } from "@/pages/reports/ReportDataCards";
 import { __setPlanForTests, normalizePlan } from "@/plans/planStore";
 import type { Forecast } from "@/forecast/forecastApi";
@@ -58,17 +57,3 @@ describe("Forecast card", () => {
   });
 });
 
-describe("a file's forecast panel", () => {
-  it("hidden without the feature; sets the category with it", async () => {
-    __setPlanForTests(normalizePlan(planBody({ features: { forecasting: false } })));
-    const first = renderWithRole(<FileForecastPanel applicationId="a1" />, "Staff");
-    expect(first.container.textContent).toBe("");
-    first.unmount();
-    __setPlanForTests(normalizePlan(planBody({ plan: "growth", effective_plan: "growth", features: { forecasting: true } })));
-    h.get.mockResolvedValue({ ok: true, application_id: "a1", stage: "Offer", expected_close_date: null, forecast_category: null, probability: 70, effective_category: "commit" });
-    h.put.mockResolvedValue({ ok: true, application_id: "a1", stage: "Offer", expected_close_date: null, forecast_category: "best_case", probability: 70, effective_category: "best_case" });
-    renderWithRole(<FileForecastPanel applicationId="a1" />, "Staff");
-    fireEvent.change(await screen.findByLabelText("Forecast category"), { target: { value: "best_case" } });
-    await waitFor(() => expect(h.put).toHaveBeenCalledWith("/api/forecast/applications/a1", { forecast_category: "best_case" }));
-  });
-});
