@@ -486,6 +486,7 @@ export function createShim(opts: ShimOptions) {
     }],
     ["GET", new RegExp(`^/api/credit-summary-v2/${ID}/export\\.(pdf|docx)$`), () => raw({ success: false, error: "not_in_demo", message: "Downloads are switched off in the demo - the package arrives by email when you send it." }, 403)],
     ["POST", new RegExp(`^/api/credit-financials/${ID}/extract$`), () => ok({ documents: 1, skipped: [] })],
+    ["GET", new RegExp(`^/api/credit-financials/${ID}$`), () => ok({ table: { periods: [], rows: [] } })], // BF_PORTAL_v941 port - statement figures
     ["POST", new RegExp(`^/api/credit-collateral/${ID}/extract$`), () => ok({ documents: 0, skipped: [] })],
     ["POST", new RegExp(`^/api/credit-research/${ID}/refresh$`), () => ok({ found: 0, facts: [], notes: ["Research is switched off in the demo."] })],
 
