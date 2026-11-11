@@ -5,6 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/pages/reports/ReportDataCards", () => ({ ReportDataCard: ({ report }: { report: string }) => <div data-testid="card">{report}</div> }));
 vi.mock("@/plans/FeatureGate", () => ({ default: ({ children }: { children: unknown }) => children }));
+vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { role: "Admin" } }) }));
+vi.mock("../DealsAndPay", () => ({ default: () => <div data-testid="deals" /> }));
 vi.mock("@/features/activeContracts/PortfolioReport", () => ({ default: () => <div data-testid="portfolio">portfolio</div> }));
 
 import RevenuePage from "../RevenuePage";
@@ -13,7 +15,7 @@ import { CrmTabs } from "@/pages/crm/CRMPage";
 describe("Revenue", () => {
   it("opens on the forecast and switches tabs", () => {
     render(<RevenuePage />);
-    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Forecast", "Commission & fees", "Contract portfolio", "Goals"]);
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Forecast", "Commission & fees", "Contract portfolio", "Goals", "Deals & pay"]);
     expect(screen.getAllByTestId("card").map((c) => c.textContent)).toEqual(["forecast", "revenue_forecast"]);
     fireEvent.click(screen.getByRole("tab", { name: "Commission & fees" }));
     expect(screen.getAllByTestId("card").map((c) => c.textContent)).toContain("commission_receivable");

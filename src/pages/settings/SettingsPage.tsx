@@ -21,6 +21,7 @@ import PhoneLines from "./tabs/PhoneLines"; // BF_PORTAL_PHONE_LINES_v689
 import SettingsOverview from "./tabs/SettingsOverview";
 import PlanSettings from "./tabs/PlanSettings"; // KS_PORTAL_v3_PLANS
 import RetentionSettings from "./tabs/RetentionSettings"; // KS_PORTAL_v14_RETENTION
+import BrokerPaySettings from "@/pages/settings/BrokerPaySettings"; // BF_PORTAL_v942_BROKER_PAY
 import IdVerificationSettings from "@/kyc/IdVerificationSettings"; // KS_PORTAL_v22_KYC
 import VendorKeysSettings from "@/integrations/VendorKeysSettings"; // KS_PORTAL_VENDOR_KEYS
 import CompanySettings from "./tabs/CompanySettings"; // KS_PORTAL_v6_COMPANY
@@ -87,6 +88,7 @@ const SettingsPage = () => {
       { id: "company", label: "Company", visible: isAdmin, content: <CompanySettings /> },
       // KS_PORTAL_M365_ONE_CLICK - Microsoft 365 (one click for the company) and Google Workspace status (Admins only).
       { id: "connections", label: "Connections", visible: isAdmin && !isBI, content: <ConnectionsSettings /> },
+      { id: "broker-pay", label: "Broker pay", visible: isAdmin && !isBI, content: isAdmin ? <BrokerPaySettings /> : null }, // BF_PORTAL_v942_BROKER_PAY
       { id: "users", label: "Users & roles", visible: canUsers && !isBI, content: <UsersAndRoles /> }, // KS_PORTAL_CUSTOM_ROLES
       // KS_PORTAL_v20 - custom fields (every plan), teams and record visibility (growth+), webhooks and Zapier (pro). Admins only.
       { id: "properties", label: "Properties", visible: isAdmin && !isBI, content: <PropertiesSettings /> },
