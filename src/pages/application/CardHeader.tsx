@@ -8,7 +8,7 @@ import { getErrorMessage } from "@/utils/errors";
 import { RejectReasonsModal } from "@/components/applications/RejectReasonsModal";
 import ApplicationCardActions, { requestedAmountOf } from "@/components/applications/ApplicationCardActions"; // KS_PORTAL_v13 - calculator + QuickBooks invoice
 import OriginChip from "./OriginChip";
-import { nextStepFor } from "./nextStep";
+import { NEXT_STEP_EVENT, nextStepFor, offerStateOf, type OfferState } from "./nextStep";
 
 type AnyRecord = Record<string, any>;
 
@@ -66,7 +66,20 @@ export default function CardHeader({ applicationId, application, onNavigate }: {
   const name = businessName(application);
   const stage = String(a.stage ?? "");
   const parked = stage === "Hold" || stage === "Fraud";
-  const next = nextStepFor({ stage, signing: a.signing?.status ?? null, offers });
+  // BF_PORTAL_v946_OFFER_STEPS - at the Offer stage the button follows the term sheets: add, send, waiting, conditions.
+  const [offerState, setOfferState] = useState<OfferState | undefined>(undefined);
+  const [offersTick, setOffersTick] = useState(0);
+  useEffect(() => { const on = () => setOffersTick((n) => n + 1); window.addEventListener("bf:offers-changed", on); return () => window.removeEventListener("bf:offers-changed", on); }, []);
+  const atOffer = stage.trim().toLowerCase() === "offer";
+  useEffect(() => {
+    if (!atOffer || !applicationId) { setOfferState(undefined); return; }
+    let cancelled = false;
+    api.get<{ items?: Array<{ status?: string; expired?: boolean; has_amount?: boolean }> }>(`/api/offers?applicationId=${encodeURIComponent(applicationId)}`)
+      .then((r) => { if (!cancelled) setOfferState(offerStateOf(Array.isArray(r?.items) ? r.items : [])); })
+      .catch(() => { if (!cancelled) setOfferState(undefined); });
+    return () => { cancelled = true; };
+  }, [atOffer, applicationId, offers, offersTick]);
+  const next = nextStepFor({ stage, signing: a.signing?.status ?? null, offers, offerState });
 
   // Parking removes the file from the reported numbers, so it is never one click, and the reason is required
   // (the client is emailed a Hold reason).
@@ -126,8 +139,8 @@ export default function CardHeader({ applicationId, application, onNavigate }: {
         <span style={{ flex: 1 }} />
         <ApplicationCardActions applicationId={applicationId} application={application} />
         {next ? (
-          <button type="button" data-testid="next-step" style={primary} onClick={() => onNavigate(`/applications/${applicationId}/${next.tab}`)}>
-            Next: {next.label} →
+          <button type="button" data-testid="next-step" style={primary} onClick={() => { onNavigate(`/applications/${applicationId}/${next.tab}`); window.setTimeout(() => window.dispatchEvent(new CustomEvent(NEXT_STEP_EVENT, { detail: { tab: next.tab } })), 150); }}>
+            {next.waiting ? next.label : <>Next: {next.label} →</>}
           </button>
         ) : null}
         <div ref={menuRef} style={{ position: "relative" }}>
