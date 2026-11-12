@@ -263,7 +263,8 @@ export default function DocumentsTab({ applicationId }: Props) {
     const load = () => fraudApi.overview(applicationId).then((r) => {
       if (cancelled) return;
       const map: Record<string, string> = {};
-      for (const d of r?.documents ?? []) map[d.document_id] = d.tamper?.status ?? "pending";
+      // Forms we generate are never scanned, so they get no chip at all (it used to read "No data yet").
+      for (const d of r?.documents ?? []) { if (!(d as { generated?: boolean }).generated) map[d.document_id] = d.tamper?.status ?? "pending"; }
       setAutoTamper(map);
     }).catch(() => { /* fraud checks not available: no chips */ });
     void load();
