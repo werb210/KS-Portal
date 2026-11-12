@@ -30,8 +30,6 @@ import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 // KS_PORTAL_MARKETING_ADDON - the Marketing add-on's tools, and the new campaign report, website kit and lead scoring.
 import { AddonBadge, AddonGate, serverMessage, type MarketingTool } from "@/plans/marketing";
 import CampaignReportPanel from "@/components/marketing/CampaignReportPanel";
-import WebsiteKitPanel from "@/components/marketing/WebsiteKitPanel";
-import LeadScoringPanel from "@/components/marketing/LeadScoringPanel";
 import MetaAdsPanel from "@/components/marketing/MetaAdsPanel"; // BF_PORTAL_v909_META_ADS
 
 // BF_PORTAL_BF_LINKS_TAB_v15 - the link report was only reachable by scrolling
@@ -72,8 +70,6 @@ function AdsTabGate({ tab, children }: { tab: AdsTab; children: ReactNode }) {
 const MARKETING_TABS: { id: MarketingTab; label: string }[] = [
   { id: "analytics", label: "Analytics" },
   { id: "report", label: "Campaign report" }, // KS_PORTAL_MARKETING_ADDON
-  { id: "kit", label: "Website kit" }, // KS_PORTAL_MARKETING_ADDON
-  { id: "scoring", label: "Lead scoring" }, // KS_PORTAL_MARKETING_ADDON
   { id: "referrers", label: "Referrers" },
   { id: "sequences", label: "Sequences" },
   { id: "sms", label: "SMS" },
@@ -1499,6 +1495,12 @@ const MarketingDashboard = () => {
   const [adsService, setAdsService] = useState<AdsService>("google"); // BF_PORTAL_ADS_SERVICES_v709
 
   if (toContent) return <Navigate to="/settings/content?section=automations" replace />;
+  // BF_PORTAL_v947_BROKERAGE_SETUP - website kit, lead scoring rules and connecting social accounts are brokerage
+  // set-up now (Settings). Old links, and the return from a network sign-in, land there.
+  const q = new URLSearchParams(window.location.search);
+  if (q.get("tab") === "kit") return <Navigate to="/settings/website-kit" replace />;
+  if (q.get("tab") === "scoring") return <Navigate to="/settings/lead-scoring" replace />;
+  if (q.get("tab") === "social" && q.get("social")) return <Navigate to={`/settings/social-accounts?${q.toString()}`} replace />;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -1557,8 +1559,6 @@ const MarketingDashboard = () => {
       {tab === "social" && <SocialPanel />}{/* KS_PORTAL_SOCIAL_POSTING */}
       {tab === "sequences" && <SequencesPanel />}
       {tab === "report" && <CampaignReportPanel />}{/* KS_PORTAL_MARKETING_ADDON */}
-      {tab === "kit" && <div className="space-y-2"><p data-testid="website-kit-explainer" style={{ margin: 0, fontSize: 14, color: "var(--ui-text)" }}>Add forms and chat to other websites so their leads land in this CRM.</p><WebsiteKitPanel /></div>}
-      {tab === "scoring" && <AddonGate tool="lead_scoring"><LeadScoringPanel /></AddonGate>}
       {tab === "analytics" && (
         <div className="space-y-4">
           <AnalyticsFunnel />

@@ -51,6 +51,13 @@ import CallQueuesSettings from "@/callQueues/CallQueuesSettings"; // KS_HUBSPOT_
 import { hasFeature, usePlan } from "@/plans/planStore"; // KS_PORTAL_PLAN_FIXES
 import DealToolsSettings from "@/brokerTools/DealToolsSettings"; // KS_BROKER_TOOLS
 
+// BF_PORTAL_v947_BROKERAGE_SETUP - brokerage-wide set-up that used to sit in Marketing and My Profile.
+import WebsiteKitPanel from "@/components/marketing/WebsiteKitPanel";
+import LeadScoringPanel from "@/components/marketing/LeadScoringPanel";
+import SocialPanel from "@/social/SocialPanel";
+import SharedMailboxSignatures from "./tabs/SharedMailboxSignatures";
+import { AddonGate } from "@/plans/marketing";
+
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
 // KS_PORTAL_PLAN_FIXES (Todd, Oct 26) - Templates and Snippets are Growth and up: on Starter the tabs are hidden (the
 // server refuses /api/templates too). Phone lines is open on every plan: each section of it is gated by its own feature
@@ -128,6 +135,11 @@ const SettingsPage = () => {
       // KS_PORTAL_v16_DATA_IMPORT - bring records over from another system (Admins only).
       { id: "import", label: "Import data", visible: isAdmin && !isBI, content: <ImportData /> },
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
+      // BF_PORTAL_v947_BROKERAGE_SETUP
+      { id: "lead-scoring", label: "Lead scoring", visible: isAdmin, content: isAdmin ? <AddonGate tool="lead_scoring"><LeadScoringPanel /></AddonGate> : null }, // Marketing add-on, as it was under Marketing
+      { id: "website-kit", label: "Website kit", visible: isAdmin, content: isAdmin ? (<><p data-testid="website-kit-explainer" style={{ margin: "0 0 12px", fontSize: 14, color: "var(--ui-text)" }}>Add forms and chat to other websites so their leads land in this CRM.</p><WebsiteKitPanel /></>) : null },
+      { id: "shared-signatures", label: "Shared mailbox signatures", visible: isAdmin, content: isAdmin ? <SharedMailboxSignatures /> : null },
+      { id: "social-accounts", label: "Social accounts", visible: isAdmin && !isBI, content: isAdmin ? <SocialPanel mode="accounts" /> : null },
       // BF_PORTAL_PARTNERS_TABS_v720 - Broker Files moved to Marketing > Referrers > Brokers.
     ],
     [isAdmin, isStaff, isBI, hasTemplates, hasAutomations, isMarketing, canUsers, canBilling]
@@ -226,13 +238,15 @@ export const SETTINGS_GROUPS: Array<{ id: string; label: string; heading: string
   { id: "company", label: "Company", heading: "BROKERAGE SET-UP", sectionIds: ["company", "connections"] },
   { id: "plan", label: "Plan and billing", heading: "BROKERAGE SET-UP", sectionIds: ["plan"] },
   { id: "team", label: "Team and roles", heading: "BROKERAGE SET-UP", sectionIds: ["users", "teams"] },
-  { id: "crm", label: "CRM set-up", heading: "BROKERAGE SET-UP", sectionIds: ["properties", "pipelines"] },
+  { id: "crm", label: "CRM set-up", heading: "BROKERAGE SET-UP", sectionIds: ["properties", "pipelines", "lead-scoring"] },
   { id: "phone-group", label: "Phone", heading: "BROKERAGE SET-UP", sectionIds: ["phone", "phone-menu", "call-queues", "call-scripts", "lead-rotation", "blocked-numbers", "never-log", "booking"] },
+  { id: "email", label: "Email", heading: "BROKERAGE SET-UP", sectionIds: ["shared-signatures"] }, // BF_PORTAL_v947_BROKERAGE_SETUP
+  { id: "website", label: "Website", heading: "BROKERAGE SET-UP", sectionIds: ["website-kit"] }, // BF_PORTAL_v947_BROKERAGE_SETUP
   { id: "money", label: "Money", heading: "BROKERAGE SET-UP", sectionIds: ["broker-pay", "payments"] }, // Broker pay was built but in no group, so nobody could reach it
   { id: "risk", label: "Risk and ID checks", heading: "BROKERAGE SET-UP", sectionIds: ["id-verification", "your-services"] },
   { id: "sign-in", label: "Sign-in and security", heading: "BROKERAGE SET-UP", sectionIds: ["security", "sso"] },
   { id: "records", label: "Privacy and records", heading: "BROKERAGE SET-UP", sectionIds: ["retention", "privacy", "survey"] },
-  { id: "integrations", label: "Integrations", heading: "BROKERAGE SET-UP", sectionIds: ["webhooks", "api", "import"] },
+  { id: "integrations", label: "Integrations", heading: "BROKERAGE SET-UP", sectionIds: ["webhooks", "api", "import", "social-accounts"] },
   { id: "your-documents-group", label: "Your documents", heading: "BROKERAGE SET-UP", sectionIds: ["your-documents"] }, // KS_PORTAL_LICENSEE_DOCUMENTS
   { id: "deal-tools-group", label: "Deal tools", heading: "BROKERAGE SET-UP", sectionIds: ["deal-tools"] },
   { id: "labs-group", label: "Labs", heading: "BROKERAGE SET-UP", sectionIds: ["labs"] },
