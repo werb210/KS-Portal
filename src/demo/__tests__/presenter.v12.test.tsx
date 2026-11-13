@@ -151,6 +151,8 @@ describe("the presenter portal", () => {
       credit: () => document.querySelector('[data-testid="cs2-status"], [data-testid="cs2-submit"]'),
       fraud: () => document.querySelector('[data-testid="fraud-score"]'),
       lenders: () => document.querySelector('[data-testid="lenders-tab"] table'),
+      offer: () => document.querySelector('[data-testid="offer-tab"]'), // KS_PORTAL_DEMO_OFFER_CLOSE
+      close: () => document.querySelector('[data-testid="close-tab"]'),
       notes: () => document.querySelector('[data-testid="notes-list"]') ?? screen.queryByText(/Add note/),
     };
     for (const j of PRESENTER_JUMPS) {

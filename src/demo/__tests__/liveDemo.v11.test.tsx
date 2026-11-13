@@ -290,11 +290,11 @@ describe("the broker tour on the real portal", () => {
     // Signed in with the fake staff token: the real pipeline, not the login page.
     await waitFor(() => expect(screen.getAllByText("Juniper Hollow Millwork Ltd.").length).toBeGreaterThan(0), { timeout: 20_000 });
     expect(window.location.pathname).toBe("/pipeline");
-    expect(screen.getByText("Step 1 of 10")).toBeTruthy();
+    expect(screen.getByText("Step 1 of 12")).toBeTruthy();
 
     const titles: string[] = [];
     const card = () => screen.getByTestId("live-demo-card");
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 20; i++) {
       const title = card().querySelector("h2")?.textContent ?? "";
       if (titles[titles.length - 1] !== title) titles.push(title);
       const next = screen.queryByTestId("live-demo-next") as HTMLButtonElement | null;
@@ -331,12 +331,18 @@ describe("the broker tour on the real portal", () => {
       "Live call",
       "AI call note added to the file",
       "Pick your lenders",
+      "The lender's term sheet is back",
+      "Sam signed. Close the deal",
       "That's how to efficiently supply all requirements to your lenders and get your clients funded",
     ]);
     expect(screen.getByTestId("live-demo-sent").textContent).toContain("dana@brokerco.example");
     // KS_PORTAL_v12_DEMO_FIXES - Sign up opens the pre-filled sign-up from KS-Ops (id and key in the fragment only).
     expect(screen.getByTestId("live-demo-signup").getAttribute("href")).toBe(SESSION.signup_url);
-    expect(window.location.pathname).toBe(`/applications/${APP_ID}/lenders`);
+    expect(window.location.pathname).toBe(`/applications/${APP_ID}/close`);
+    // KS_PORTAL_DEMO_OFFER_CLOSE - the term sheet was sent and signed, the close saved and the file funded.
+    expect(getState().offer?.status).toBe("accepted");
+    expect(getState().close?.lines.map((l) => l.kind)).toEqual(["lender_commission", "client_fee"]);
+    expect(getState().stage).toBe("Funded");
 
     const submits = real.mock.calls.filter(([u]) => String(u).includes("guided-submit"));
     expect(submits).toHaveLength(1);

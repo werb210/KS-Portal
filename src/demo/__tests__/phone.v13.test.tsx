@@ -245,7 +245,7 @@ describe("the broker tour inside the phone's camera", () => {
     await waitFor(() => expect(bridgeOf(frameLike)?.get()?.key).toBe("pipeline"), { timeout: 20_000 });
     const bridge = bridgeOf(frameLike)!;
     const s = bridge.get()!;
-    expect(s).toMatchObject({ index: 0, total: 10, title: "A new application just arrived", nextLabel: "Open the file", backDisabled: true });
+    expect(s).toMatchObject({ index: 0, total: 12, title: "A new application just arrived", nextLabel: "Open the file", backDisabled: true });
     expect(s.body[0]!.text).toContain("Sam applied from his phone");
     expect(screen.queryByTestId("live-demo-card")).toBeNull();
     expect(screen.getByTestId("live-demo-tour").getAttribute("data-camera")).toBe("1");

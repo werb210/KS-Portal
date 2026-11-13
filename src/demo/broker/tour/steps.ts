@@ -1,7 +1,7 @@
 // KS_PORTAL_v11_LIVE_DEMO - the broker tour: what each pop-up says, what it points at, and what Next does. The
 // screens are the portal's own; Next presses their buttons (open the card, accept documents, submit the credit
 // summary, tick lenders and Send), and every one of those also works with a real click.
-import { APP_ID, BUSINESS, CALL_SUMMARY, DOCS, FINANCIALS, STATEMENTS, DOCTORED, dscr, matchLenders, money } from "../fixture";
+import { APP_ID, BUSINESS, CALL_SUMMARY, DOCS, FINANCIALS, STATEMENTS, DOCTORED, dscr, matchLenders, money, OFFER, REQUEST, offerPayment, offerRevenue } from "../fixture";
 import { getState } from "../state";
 import { buttonsLabelled, elementWithText, press, reveal, sleep, waitFor } from "./dom";
 
@@ -132,6 +132,40 @@ async function submitCreditSummary(ctx: TourCtx): Promise<ActionResult> {
   return "advance";
 }
 
+async function sendTermSheet(ctx: TourCtx): Promise<ActionResult> {
+  const signed = () => (document.querySelector('[data-testid^="offer-state-"]')?.textContent ?? "").includes("Signed by the client");
+  if (!signed()) {
+    const send = await waitFor(() => document.querySelector<HTMLButtonElement>('[data-testid^="offer-send-"]'));
+    ctx.setStatus("Sending the term sheet to Sam…");
+    press(send);
+    await waitFor(() => signed(), 8000);
+  }
+  ctx.setStatus("Sam reviewed it on his phone and signed.");
+  await pause(1800);
+  ctx.setStatus(null);
+  return "advance";
+}
+
+async function saveCloseAndFund(ctx: TourCtx): Promise<ActionResult> {
+  const funded = () => (document.querySelector('[data-testid="close-tab"] [role="status"]')?.textContent ?? "").includes("Funded");
+  if (!funded()) {
+    if (!document.querySelector('[data-testid="close-funded"]')) {
+      const save = await waitFor(() => document.querySelector<HTMLButtonElement>('[data-testid="close-save"]'));
+      ctx.setStatus("Saving the close…");
+      press(save);
+    }
+    const fund = await waitFor(() => document.querySelector<HTMLButtonElement>('[data-testid="close-funded"]'), 8000);
+    await pause(700);
+    ctx.setStatus("Marking the file funded…");
+    press(fund);
+    await waitFor(() => funded(), 8000);
+  }
+  ctx.setStatus("Funded. The revenue is on your Revenue page.");
+  await pause(1600);
+  ctx.setStatus(null);
+  return "advance";
+}
+
 export const STEPS: TourStep[] = [
   {
     key: "pipeline",
@@ -229,13 +263,38 @@ export const STEPS: TourStep[] = [
     },
     nextLabel: "Submit",
   },
+  // KS_PORTAL_DEMO_OFFER_CLOSE - what happens after the lender replies: the term sheet goes to the client to sign,
+  // then the deal is closed and the brokerage sees what it earned.
+  {
+    key: "offer",
+    track: "submit",
+    route: appTab("offer"),
+    title: "The lender's term sheet is back",
+    body: `The lender replied with a term sheet. It was read for you: ${money(REQUEST.amount)} at ${OFFER.rate_pct}% over ${OFFER.term_months} months, about ${money(offerPayment())} a month, with the lender's conditions listed below in the lender's own words. You earn ${money(offerRevenue())} on it. Next sends it to Sam to sign in his app.`,
+    target: () => {
+      const a = document.querySelector('[data-testid="offer-step-1"]'), b = document.querySelector('[data-testid="offer-step-2"]');
+      return a && b ? [a, b] : a;
+    },
+    nextLabel: "Send it to Sam",
+    action: sendTermSheet,
+  },
+  {
+    key: "close",
+    track: "submit",
+    route: appTab("close"),
+    title: "Sam signed. Close the deal",
+    body: `The Close tab is filled in from the signed term sheet: what funded, the lender, and how you are paid - the lender's commission and your broker fee, ${money(offerRevenue())} in all. Each line is ticked off as the money arrives, and each broker's pay is worked out from it. Next saves it and marks the file funded.`,
+    target: () => document.querySelector('[data-testid="close-tab"] section:nth-of-type(2)') ?? document.querySelector('[data-testid="close-tab"]'),
+    nextLabel: "Save and mark funded",
+    action: saveCloseAndFund,
+  },
   {
     key: "done",
     track: "submit",
-    route: appTab("lenders"),
+    route: appTab("close"),
     title: "That's how to efficiently supply all requirements to your lenders and get your clients funded",
     body: "",
-    target: () => document.querySelector('[data-testid="lenders-send-footer"]'),
+    target: () => document.querySelector('[data-testid="close-expected"]')?.parentElement?.parentElement ?? document.querySelector('[data-testid="close-tab"]'),
   },
 ];
 
