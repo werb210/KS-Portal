@@ -3,6 +3,7 @@
 // payment and balloon. Outputs: payment, number of payments, total interest, total cost and the full schedule.
 // Actions: Download PDF, Download spreadsheet, and Save to file (adds a note to the application).
 import { useMemo, useState, type CSSProperties } from "react";
+import BasicCalculator from "./BasicCalculator";
 import Modal from "@/components/ui/Modal";
 import {
   FREQUENCIES, amortize, isoDay, money, summaryText, validateLoan, type Frequency, type LoanInput,
@@ -31,6 +32,7 @@ const num = (s: string): number => Number(String(s).replace(/[^0-9.-]/g, ""));
 const fileStem = (s: string | null | undefined) => (s ?? "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 
 export default function LoanCalculatorPanel({ onClose, initialAmount, subtitle, onSaveNote }: Props) {
+  const [mode, setMode] = useState<"loan" | "basic">("loan");
   const [amount, setAmount] = useState(initialAmount && initialAmount > 0 ? String(Math.round(initialAmount * 100) / 100) : "");
   const [rate, setRate] = useState("10");
   const [term, setTerm] = useState("60");
@@ -62,9 +64,18 @@ export default function LoanCalculatorPanel({ onClose, initialAmount, subtitle, 
     }
   }
 
+  const tab = (m: "loan" | "basic"): CSSProperties => ({ padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+    border: "1px solid #0B1F3A", background: mode === m ? "#0B1F3A" : "#ffffff", color: mode === m ? "#ffffff" : "#0B1F3A" });
   return (
-    <Modal title="Loan calculator" onClose={onClose}>
-      <div data-testid="loan-calculator" style={{ display: "flex", flexDirection: "column", gap: 14, color: "var(--ui-text-soft)" }}>
+    <Modal title={mode === "loan" ? "Loan calculator" : "Calculator"} onClose={onClose}>
+      {/* KS_PORTAL_BASIC_CALCULATOR - the everyday calculator beside the loan calculator (same as the Boreal portal). */}
+      <div role="tablist" aria-label="Which calculator" style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        <button type="button" role="tab" aria-selected={mode === "loan"} data-testid="calculator-mode-loan" style={tab("loan")} onClick={() => setMode("loan")}>Loan</button>
+        <button type="button" role="tab" aria-selected={mode === "basic"} data-testid="calculator-mode-basic" style={tab("basic")} onClick={() => setMode("basic")}>Regular</button>
+      </div>
+      {mode === "basic" ? <BasicCalculator /> : null}
+      {/* The loan calculator stays mounted so its figures are still there when you switch back. */}
+      <div data-testid="loan-calculator" style={{ display: mode === "loan" ? "flex" : "none", flexDirection: "column", gap: 14, color: "var(--ui-text-soft)" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
           <label style={label}>Amount ($)<input style={input} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-label="Amount" /></label>
           <label style={label}>Annual rate (%)<input style={input} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} aria-label="Annual rate" /></label>

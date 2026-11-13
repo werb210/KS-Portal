@@ -6,6 +6,7 @@ const h = vi.hoisted(() => {
   const fn = vi.fn();
   return { api: Object.assign(fn, { get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() }), upload: vi.fn(), read: vi.fn() };
 });
+vi.mock("../InvoicePanel", () => ({ default: () => <div data-testid="invoice" /> }));
 vi.mock("@/api", () => ({ api: h.api, rawApiFetch: vi.fn(), default: h.api }));
 vi.mock("@/api/lenders", () => ({
   fetchLenderEnvelope: async () => ({ matches: [{ id: "lp-1", lenderName: "Northern Capital", productName: "Term" }] }),

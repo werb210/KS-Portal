@@ -48,6 +48,10 @@ export default function YourDocumentsSettings({ isAdmin }: { isAdmin: boolean })
           client&apos;s application. Upload a fillable PDF, or a Word file with fields written like {"{{business_name}}"}. If you don&apos;t upload one,
           the standard document is used.
         </p>
+        <p style={muted} data-testid="invoice-template-note">
+          An invoice template works the same way: choose "Invoice" under "What it is". Its fields are matched to the invoice number, date,
+          due date, what it is for, amount, tax and total, and to the client's business details. Invoices are made on a file's Close tab.
+        </p>
         {types.length > 0 ? (
           <p style={muted} data-testid="term-sheet-by-type-note">
             You can have one template for each type of financing. A file uses the template for its type; if that type has none, it
