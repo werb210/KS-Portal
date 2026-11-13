@@ -90,7 +90,7 @@ export function ChangeTerms({ offer, onSaved, onClose }: { offer: FileOffer; onS
       setRev(r?.offer?.revenue ?? null);
       if (mode !== "lender") {
         try { await api.post(`/api/licensee-documents/offers/${encodeURIComponent(offer.id)}/term-sheet`, {}); }
-        catch (e) { setMsg({ ok: false, text: getErrorMessage(e, "Saved, but your template could not be filled in. Upload it in Settings > Term sheet templates.") }); onSaved(); return; }
+        catch (e) { setMsg({ ok: false, text: getErrorMessage(e, "Saved, but your template could not be filled in. Upload it in Settings > Your documents.") }); onSaved(); return; }
       }
       setMsg({ ok: true, text: "Saved." });
       onSaved();
