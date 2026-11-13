@@ -6,11 +6,20 @@ import api from "@/api";
 import Button from "@/components/ui/Button";
 import { getAuthToken } from "@/lib/authToken";
 
-type GoogleCheck = { key: string; label: string; status: "ok" | "fail" | "off"; detail: string };
+export type GoogleCheck = { key: string; label: string; status: "ok" | "fail" | "off"; detail: string };
 type GoogleReport = { checkedAt: string; checks: GoogleCheck[] };
 
 const COLOR: Record<GoogleCheck["status"], string> = { ok: "green", fail: "red", off: "yellow" };
 const WORD: Record<GoogleCheck["status"], string> = { ok: "OK", fail: "FAILED", off: "Off" };
+
+/** KS_PORTAL_SYSTEM_CHECK_WORDING - a part of Google Ads the brokerage never connected is "Off", in plain words: not a
+ *  red FAILED naming an internal server setting. */
+export function forBrokerage(c: GoogleCheck): GoogleCheck {
+  if (c.status === "fail" && /\bis not set\b|\bnot configured\b/i.test(c.detail)) {
+    return { ...c, status: "off", detail: "Not connected for your brokerage. Connect Google Ads in Settings > Integrations to switch this on." };
+  }
+  return c;
+}
 
 export default function GoogleHealthPanel(): JSX.Element {
   const [report, setReport] = useState<GoogleReport | null>(null);
@@ -32,7 +41,7 @@ export default function GoogleHealthPanel(): JSX.Element {
         setError("The server sent an unexpected answer for the Google checks.");
         return;
       }
-      setReport({ checkedAt: String(data.checkedAt ?? new Date().toISOString()), checks: data.checks });
+      setReport({ checkedAt: String(data.checkedAt ?? new Date().toISOString()), checks: data.checks.map(forBrokerage) });
     } catch {
       setError("Could not run the Google checks. The server did not answer.");
     } finally {
@@ -45,7 +54,7 @@ export default function GoogleHealthPanel(): JSX.Element {
   return (
     <div data-testid="google-health" style={{ marginTop: 24 }}>
       <h3 style={{ margin: "0 0 4px" }}>Google Ads &amp; Analytics</h3>
-      <p style={{ margin: "0 0 12px" }}>Live checks against Google. Re-run every hour; a failure texts and emails Todd and Andrew.</p>
+      <p style={{ margin: "0 0 12px" }}>Live checks against Google, re-run every hour. Rows marked Off are parts of Google Ads your brokerage has not connected.</p>
       {error && <p role="alert" style={{ color: "#991b1b", fontWeight: 600 }}>{error}</p>}
       {!report && !error && <p>Checking Google...</p>}
       {report && (
