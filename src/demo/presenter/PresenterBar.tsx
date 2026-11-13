@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { useLocation, useNavigate } from "react-router-dom";
 import { declineIncoming } from "@/dialer/actions";
 import { demoClientOrigin, demoClientUrl } from "../config";
-import { BUSINESS } from "../broker/fixture";
+import { BUSINESS, DOCS } from "../broker/fixture";
 import { getState, resetState } from "../broker/state";
 import { exitLiveDemo } from "../broker/session";
 import CallOverlay from "../broker/tour/CallOverlay";
@@ -211,7 +211,7 @@ export default function PresenterBar() {
           lines={call.lines}
           startedAt={call.startedAt}
           caller={CALLER}
-          facts={[BUSINESS.legal_name, "6 of 6 documents received", `Owner, ${BUSINESS.years_in_business} years in business`]}
+          facts={[BUSINESS.legal_name, `${DOCS.length} of ${DOCS.length} documents received`, `Owner, ${BUSINESS.years_in_business} years in business`]}
           flag="Fraud flag: September statement"
           onAnswer={() => void answer()}
           onDecline={() => declineIncoming()}

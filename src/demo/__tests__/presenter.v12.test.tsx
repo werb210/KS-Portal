@@ -147,7 +147,7 @@ describe("the presenter portal", () => {
       pipeline: () => screen.queryAllByText("Juniper Hollow Millwork Ltd.")[0] ?? null,
       documents: () => document.querySelector('[data-testid="documents-drop-target"]'),
       financials: () => document.querySelector("main table"),
-      banking: () => screen.queryByText("3-Month Trend"),
+      banking: () => screen.queryByText("6-Month Trend"),
       credit: () => document.querySelector('[data-testid="cs2-status"], [data-testid="cs2-submit"]'),
       fraud: () => document.querySelector('[data-testid="fraud-score"]'),
       lenders: () => document.querySelector('[data-testid="lenders-tab"] table'),

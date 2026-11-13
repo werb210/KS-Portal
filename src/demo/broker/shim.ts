@@ -200,7 +200,7 @@ export function createShim(opts: ShimOptions) {
       },
       product_category: card?.product_category ?? null,
       documents: main ? DOCS.map(docRow) : [],
-      bankCoverage: main ? { requiredMonths: 3, missingMonths: [], undatedStatements: 0, statements: 3, summary: "3 of 3 months on file (Jul - Sep 2026)" } : undefined,
+      bankCoverage: main ? { requiredMonths: 6, missingMonths: [], undatedStatements: 0, statements: STATEMENTS.length, summary: `${STATEMENTS.length} of 6 months on file (Apr - Sep 2026)` } : undefined,
     };
   };
 
@@ -272,13 +272,13 @@ export function createShim(opts: ShimOptions) {
       monthGroups: months,
       inflows: { totalDeposits, averageMonthlyDeposits: Math.round(totalDeposits / 3) },
       outflows: { totalWithdrawals },
-      cashFlow: { currentMonthNet: months[2]!.net, monthsProfitableNumerator: months.filter((m) => m.net > 0).length, monthsProfitableDenominator: 3 },
-      balances: { averageDailyBalance: Math.round(STATEMENTS.reduce((a, s) => a + s.opening, 0) / 3 + 4_100), negativeBalanceDays: 0, lowestBalance: Math.round(lowest) },
+      cashFlow: { currentMonthNet: months[months.length - 1]!.net, monthsProfitableNumerator: months.filter((m) => m.net > 0).length, monthsProfitableDenominator: months.length },
+      balances: { averageDailyBalance: Math.round(STATEMENTS.reduce((a, s) => a + s.opening, 0) / STATEMENTS.length + 4_100), negativeBalanceDays: 0, lowestBalance: Math.round(lowest) },
       riskFlags: {
         averageMonthlyNsfs: 0, daysWithInsufficientFunds: 0,
         unusualTransactions: [{ date: DOCTORED.date, amount: DOCTORED.shown, description: "Customer payment - Lakeside Builders (balance does not reconcile)", type: "Check" }],
       },
-      accountBalances: [{ accountLabel: `${BANK} - business chequing`, averageDailyBalance: Math.round(STATEMENTS.reduce((a, s) => a + s.opening, 0) / 3 + 4_100), negativeBalanceDays: 0, days: 92 }],
+      accountBalances: [{ accountLabel: `${BANK} - business chequing`, averageDailyBalance: Math.round(STATEMENTS.reduce((a, s) => a + s.opening, 0) / STATEMENTS.length + 4_100), negativeBalanceDays: 0, days: 183 }],
       documents: DOCS.filter((d) => d.key.startsWith("bank_")).map((d) => ({ document_id: d.id, filename: state().docs[d.id]?.displayName ?? d.filename, transaction_count: 12, usable_count: 12, pages: 2 })),
       topVendors: [...vendors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([vendor, total]) => ({ vendor, total: Math.round(total) })),
     };
