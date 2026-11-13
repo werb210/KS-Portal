@@ -242,7 +242,7 @@ describe("the fetch shim", () => {
     expect(url).toBe("https://demo.example/api/demo/staff/guided-submit");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer staff-token");
     expect(JSON.parse(String(init.body))).toEqual({
-      accepted: ["bank_2026_07", "bank_2026_08", "bank_2026_09", "financials_2025", "void_cheque"],
+      accepted: ["bank_2026_04", "bank_2026_05", "bank_2026_06", "bank_2026_07", "bank_2026_08", "bank_2026_09", "financials_2025", "financials_2024", "equipment_quote", "void_cheque"],
       rejected: ["photo_id"],
       lenders: ["aspen-ridge", "northgate"],
       call_answered: true,

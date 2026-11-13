@@ -1,6 +1,6 @@
 // KS_PORTAL_v13_PHONE_DEMO - on a phone the client's call is the phone itself ringing: the iPhone call screen fills the
 // screen above the guidance sheet (no drawn iPhone, Apple Watch or softphone). Ringing shows who is calling with the file
-// card ($250,000 equipment, 6 of 6 documents, the fraud flag) and Accept / Decline; answered shows the conversation as it
+// card ($250,000 equipment, every document, the fraud flag) and Accept / Decline; answered shows the conversation as it
 // is transcribed. The call itself runs in the portal (callSim); this screen presses its buttons through the bridge.
 import { useEffect, useState } from "react";
 import type { TourSnapshot } from "../broker/tour/bridge";

@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { declineIncoming } from "@/dialer/actions";
 import { getKeeper, subscribeKeeper } from "../../demoApi";
-import { BUSINESS, REQUEST, money } from "../fixture";
+import { BUSINESS, DOCS, REQUEST, money } from "../fixture";
 import { getState } from "../state";
 import { exitLiveDemo } from "../session";
 import CallOverlay from "./CallOverlay";
@@ -18,7 +18,7 @@ import { CALL_TEXT, MAX_PICK, STEPS, appTab, pickedLenders, tickAndSend, type To
 
 const TOUR_KEY = "ks_live_demo_tour_v1";
 
-const callFacts = [BUSINESS.legal_name, "6 of 6 documents received", `Owner, ${BUSINESS.years_in_business} years in business`];
+const callFacts = [BUSINESS.legal_name, `${DOCS.length} of ${DOCS.length} documents received`, `Owner, ${BUSINESS.years_in_business} years in business`];
 const CALL_FLAG = "Fraud flag: September statement";
 
 /**

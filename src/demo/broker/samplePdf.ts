@@ -1,6 +1,6 @@
 // KS_PORTAL_v11_LIVE_DEMO - a small, valid PDF drawn in the browser, so a document preview works before the demo
 // session is open (afterwards the demo server's own sample PDFs are shown). Text only, Helvetica, one page.
-import { BANK, BUSINESS, DOCS, FINANCIALS, STATEMENTS, money, type SampleDoc } from "./fixture";
+import { BANK, BUSINESS, DOCS, FINANCIALS, REQUEST, STATEMENTS, money, type SampleDoc } from "./fixture";
 
 type Line = { text: string; size?: number; bold?: boolean; x?: number; gap?: number };
 
@@ -93,8 +93,15 @@ export function samplePdfBytes(docId: string): Uint8Array {
   const doc = DOCS.find((d) => d.id === docId);
   const lines: Line[] = doc?.key.startsWith("bank_")
     ? statementLines(doc)
-    : doc?.key === "financials_2025"
+    : doc?.key === "financials_2025" || doc?.key === "financials_2024"
       ? financialLines()
+      : doc?.key === "equipment_quote"
+        ? [
+            { text: "Equipment quote - Timberline Machinery (sample supplier)", size: 16, bold: true },
+            { text: `Prepared for ${BUSINESS.legal_name}`, gap: 22 },
+            { text: `5x10 CNC router and dust collection, new: ${money(REQUEST.equipment_cost)} delivered and installed.` },
+            { text: `Deposit received ${money(REQUEST.equipment_cost - REQUEST.amount)}; balance to be financed ${money(REQUEST.amount)}.` },
+          ]
       : [
           { text: doc?.label ?? "Sample document", size: 16, bold: true },
           { text: BUSINESS.legal_name, gap: 22 },

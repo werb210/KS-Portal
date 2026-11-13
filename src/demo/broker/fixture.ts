@@ -90,9 +90,65 @@ export type SampleTx = { date: string; description: string; amount: number };
 export type SampleStatement = { month: string; label: string; opening: number; tx: SampleTx[] };
 const tx = (date: string, description: string, amount: number): SampleTx => ({ date, description, amount });
 
+// KS_PORTAL_DEMO_FULL_FILE - six months of statements, the same as KS-server's sample file (src/demo/fixture.ts).
+const JULY_OPENING = 84_216.42;
 export const STATEMENTS: SampleStatement[] = [
   {
-    month: "2026-07", label: "July 2026", opening: 84_216.42,
+    month: "2026-04", label: "April 2026", opening: 0,
+    tx: [
+      tx("2026-04-02", "Customer payment - Lakeside Builders", 31_240.0),
+      tx("2026-04-03", "Payroll", -31_410.6),
+      tx("2026-04-07", "Lumber supplier - Aurora Wood Supply", -23_905.4),
+      tx("2026-04-09", "Customer payment - Westfield Homes", 38_760.0),
+      tx("2026-04-12", "Equipment loan payment", -5_400.0),
+      tx("2026-04-15", "Customer payment - Kestrel Developments", 34_115.0),
+      tx("2026-04-17", "Payroll", -31_388.25),
+      tx("2026-04-21", "Hardware and finishes - Northline Supply", -11_764.9),
+      tx("2026-04-24", "Customer payment - Riverbend Interiors", 36_890.0),
+      tx("2026-04-27", "Corporate income tax instalment", -38_000.0),
+      tx("2026-04-28", "Shop rent", -9_500.0),
+      tx("2026-04-29", "Customer payment - Westfield Homes", 29_480.0),
+      tx("2026-04-30", "Payroll", -15_702.15),
+    ],
+  },
+  {
+    month: "2026-05", label: "May 2026", opening: 0,
+    tx: [
+      tx("2026-05-04", "Customer payment - Riverbend Interiors", 35_420.0),
+      tx("2026-05-05", "Payroll", -31_512.8),
+      tx("2026-05-08", "Lumber supplier - Aurora Wood Supply", -26_318.75),
+      tx("2026-05-11", "Customer payment - Westfield Homes", 40_875.0),
+      tx("2026-05-12", "Equipment loan payment", -5_400.0),
+      tx("2026-05-14", "Customer payment - Lakeside Builders", 27_330.0),
+      tx("2026-05-19", "Payroll", -31_640.45),
+      tx("2026-05-21", "Utilities", -3_288.6),
+      tx("2026-05-25", "Customer payment - Kestrel Developments", 41_960.0),
+      tx("2026-05-26", "Shareholder dividend", -45_000.0),
+      tx("2026-05-27", "Shop rent", -9_500.0),
+      tx("2026-05-28", "Customer payment - Westfield Homes", 26_745.0),
+      tx("2026-05-29", "Payroll", -15_820.3),
+    ],
+  },
+  {
+    month: "2026-06", label: "June 2026", opening: 0,
+    tx: [
+      tx("2026-06-02", "Customer payment - Kestrel Developments", 39_610.0),
+      tx("2026-06-03", "Payroll", -31_705.5),
+      tx("2026-06-08", "Lumber supplier - Aurora Wood Supply", -25_112.35),
+      tx("2026-06-10", "Customer payment - Lakeside Builders", 30_285.0),
+      tx("2026-06-12", "Equipment loan payment", -5_400.0),
+      tx("2026-06-15", "Customer payment - Westfield Homes", 37_940.0),
+      tx("2026-06-17", "Payroll", -31_798.1),
+      tx("2026-06-22", "Hardware and finishes - Northline Supply", -12_046.8),
+      tx("2026-06-24", "Customer payment - Riverbend Interiors", 38_205.0),
+      tx("2026-06-25", "Deposit on CNC router - Timberline Machinery", -18_000.0),
+      tx("2026-06-26", "Shop rent", -9_500.0),
+      tx("2026-06-29", "Customer payment - Lakeside Builders", 28_660.0),
+      tx("2026-06-30", "Payroll", -15_911.4),
+    ],
+  },
+  {
+    month: "2026-07", label: "July 2026", opening: JULY_OPENING,
     tx: [
       tx("2026-07-02", "Customer payment - Westfield Homes", 42_300.0),
       tx("2026-07-03", "Payroll", -31_884.12),
@@ -143,6 +199,10 @@ export const STATEMENTS: SampleStatement[] = [
     ],
   },
 ];
+{
+  const before = STATEMENTS.filter((st) => st.month < "2026-07");
+  STATEMENTS[0]!.opening = r2(JULY_OPENING - before.reduce((a, st) => a + st.tx.reduce((b, t) => b + t.amount, 0), 0));
+}
 for (let i = 1; i < STATEMENTS.length; i++) {
   const prev = STATEMENTS[i - 1]!;
   STATEMENTS[i]!.opening = r2(prev.opening + prev.tx.reduce((a, t) => a + t.amount, 0));
@@ -165,10 +225,15 @@ export type SampleDoc = {
 };
 
 export const DOCS: SampleDoc[] = [
+  { key: "bank_2026_04", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e07", label: "Bank statement - April 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-04-SAMPLE.pdf", documentType: "Bank Statement", period: "April 2026", size: 48_020, fraud: "green" },
+  { key: "bank_2026_05", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e08", label: "Bank statement - May 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-05-SAMPLE.pdf", documentType: "Bank Statement", period: "May 2026", size: 48_566, fraud: "green" },
+  { key: "bank_2026_06", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e09", label: "Bank statement - June 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-06-SAMPLE.pdf", documentType: "Bank Statement", period: "June 2026", size: 48_871, fraud: "green" },
   { key: "bank_2026_07", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e01", label: "Bank statement - July 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-07-SAMPLE.pdf", documentType: "Bank Statement", period: "July 2026", size: 48_312, fraud: "green" },
   { key: "bank_2026_08", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e02", label: "Bank statement - August 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-08-SAMPLE.pdf", documentType: "Bank Statement", period: "August 2026", size: 47_904, fraud: "green" },
   { key: "bank_2026_09", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e03", label: "Bank statement - September 2026", category: "6 months business banking statements", filename: "Bank-Statement-2026-09-SAMPLE.pdf", documentType: "Bank Statement", period: "September 2026", size: 51_086, fraud: "red" },
   { key: "financials_2025", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e04", label: "Financial statements - FY2025", category: "3 years accountant prepared financials", filename: "Financials-FY2025-SAMPLE.pdf", documentType: "Financial Statements", period: "FY2025", size: 112_640, fraud: "green" },
+  { key: "financials_2024", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e0a", label: "Financial statements - FY2024", category: "3 years accountant prepared financials", filename: "Financials-FY2024-SAMPLE.pdf", documentType: "Financial Statements", period: "FY2024", size: 108_210, fraud: "green" },
+  { key: "equipment_quote", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e0b", label: "Equipment quote - CNC router", category: "Equipment quote", filename: "Equipment-Quote-SAMPLE.pdf", documentType: "Equipment Quote", period: "CNC router", size: 64_118, fraud: "green" },
   { key: "void_cheque", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e05", label: "Void cheque", category: "VOID cheque or PAD", filename: "Void-Cheque-SAMPLE.pdf", documentType: "Void Cheque", period: null, size: 21_455, fraud: "green" },
   { key: "photo_id", id: "8c2f0d1a-1b7e-4a52-9f60-1d0c5b7a3e06", label: "Photo ID (placeholder)", category: "2 pieces of Government Issued ID", filename: "Photo-ID-PLACEHOLDER-SAMPLE.pdf", documentType: "Photo ID", period: null, size: 18_220, fraud: "green" },
 ];
