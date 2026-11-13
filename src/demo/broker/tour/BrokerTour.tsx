@@ -1,5 +1,5 @@
 // KS_PORTAL_v11_LIVE_DEMO - the pop-ups over the real portal: a spotlight on what is being explained and a small card
-// (title, one or two sentences, Back / Next, "Step 3 of 10", Exit demo). Next performs the step's action, then moves
+// (title, one or two sentences, Back / Next, "Step 3 of 12", Exit demo). Next performs the step's action, then moves
 // on; the page underneath stays fully clickable. The step is kept in sessionStorage so a reload resumes it.
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router-dom";

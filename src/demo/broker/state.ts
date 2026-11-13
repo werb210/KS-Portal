@@ -5,6 +5,10 @@ import { DOCS } from "./fixture";
 
 export type DocDecision = { status: "pending" | "accepted" | "rejected"; displayName: string | null; reason: string | null; decidedAt: string | null };
 export type DemoNote = { id: string; body: string; owner_name: string; created_at: string };
+/** The term sheet that comes back after the package is sent, and the close recorded once the client signs. */
+export type DemoOffer = { status: "pending" | "accepted"; pricing: Record<string, string> };
+export type DemoCloseLine = { id: string; kind: string; description: string | null; basis: "flat" | "percent"; percent: number | null; expected_amount: number | null; status: string; received_amount?: number | null; received_on?: string | null };
+export type DemoClose = { fields: Record<string, unknown>; lines: DemoCloseLine[] };
 export type Submission = { submitted_at: string | null; emailed_to: string | null; lenders: string[]; already?: boolean };
 
 export type BrokerDemoState = {
@@ -17,6 +21,9 @@ export type BrokerDemoState = {
   notes: DemoNote[];
   sent: Array<{ lenderId: string; sentAt: string }>;
   submission: Submission | null;
+  offer: DemoOffer | null;
+  conditions: Record<string, string>;
+  close: DemoClose | null;
 };
 
 const KEY = "ks_live_demo_state_v1";
@@ -34,6 +41,9 @@ export function freshState(now = new Date()): BrokerDemoState {
     notes: [],
     sent: [],
     submission: null,
+    offer: null,
+    conditions: {},
+    close: null,
   };
 }
 

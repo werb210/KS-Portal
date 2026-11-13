@@ -284,3 +284,20 @@ export const OTHER_CARDS: BoardCard[] = [
 ];
 
 export const money = (n: number) => `$${Math.round(n).toLocaleString("en-CA")}`;
+
+// ---------------------------------------------------------------- the term sheet and the close (KS_PORTAL_DEMO_OFFER_CLOSE)
+
+/** The term sheet a lender sends back: the first lender the prospect sent the file to. */
+export const OFFER_ID = "demo-offer-1";
+export const OFFER = { rate_pct: 8.4, term_months: REQUEST.term_months, commission_pct: 2, broker_fee: 1_500, expires_in_days: 14 };
+export const offerPayment = () => Math.round(monthlyPayment(REQUEST.amount, OFFER.rate_pct, OFFER.term_months));
+export const offerCommission = () => Math.round((REQUEST.amount * OFFER.commission_pct) / 100);
+export const offerRevenue = () => offerCommission() + OFFER.broker_fee;
+
+/** The conditions read from the lender's term sheet, in the lender's own words. */
+export const OFFER_CONDITIONS: Array<{ id: string; title: string; owner: "client" | "staff" | "lender"; requires_document: boolean }> = [
+  { id: "demo-cond-1", title: "Supplier's final invoice for the CNC router and dust collection", owner: "client", requires_document: true },
+  { id: "demo-cond-2", title: "Proof of insurance naming the lender as loss payee on the equipment", owner: "client", requires_document: true },
+  { id: "demo-cond-3", title: "Explanation of the September bank statement, with a copy direct from the bank", owner: "staff", requires_document: false },
+  { id: "demo-cond-4", title: "Lender registers its security interest on the equipment", owner: "lender", requires_document: false },
+];

@@ -29,6 +29,8 @@ export const PRESENTER_JUMPS: Array<{ key: string; label: string; route: string 
   { key: "credit", label: "Credit summary", route: appTab("credit-summary") },
   { key: "fraud", label: "Fraud", route: appTab("fraud") },
   { key: "lenders", label: "Lenders", route: appTab("lenders") },
+  { key: "offer", label: "Offer", route: appTab("offer") }, // KS_PORTAL_DEMO_OFFER_CLOSE
+  { key: "close", label: "Close", route: appTab("close") },
   { key: "notes", label: "Notes", route: appTab("notes") },
 ];
 

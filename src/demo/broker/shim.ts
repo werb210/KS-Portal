@@ -9,6 +9,7 @@ import { fetchSamplePdf, guidedSubmit, type DemoSessionInfo } from "../demoApi";
 import {
   APP_ID, BANK, BUSINESS, CALL_SUMMARY, CONTACT, DOCS, FINANCIALS, OTHER_CARDS, REQUEST, SEPTEMBER_FINDINGS, STATEMENTS, ASSUMED_RATE_PCT,
   DOCTORED, docById, dscr, lenderIdForMatch, matchIdFor, matchLenders, money, monthlyPayment,
+  LENDERS, OFFER, OFFER_CONDITIONS, OFFER_ID, offerCommission, offerPayment, offerRevenue,
 } from "./fixture";
 import { getState, keysWith, updateState, type BrokerDemoState } from "./state";
 import { samplePdfFor } from "./samplePdf";
@@ -74,6 +75,58 @@ export function createShim(opts: ShimOptions) {
       owner_user_id: DEMO_STAFF_ID, owner_first_name: p.first, owner_last_name: p.last, contact_name: CONTACT.name, contact_id: null,
       phone: CONTACT.phone, doc_progress: docProgress(), product_category: REQUEST.product_category,
     };
+  };
+
+  // ---------------------------------------------------------------- the term sheet and the close
+  // KS_PORTAL_DEMO_OFFER_CLOSE - once the package is sent, the first lender picked "replies" with a term sheet. The
+  // prospect sends it to Sam, Sam signs, and the Close tab is filled in from it.
+  const offerLender = () => {
+    const id = state().sent[0]?.lenderId;
+    return id ? LENDERS.find((l) => l.id === id) ?? LENDERS[0]! : null;
+  };
+  const day = (offsetDays: number) => new Date(now().getTime() + offsetDays * 86_400_000).toISOString().slice(0, 10);
+  const offerRow = () => {
+    const lender = offerLender();
+    if (!lender) return null;
+    const o = state().offer ?? { status: "pending" as const, pricing: {} };
+    const pr = o.pricing;
+    const commission = Number(pr.lender_commission ?? offerCommission());
+    const fee = Number(pr.broker_fee ?? OFFER.broker_fee);
+    const setup = Number(pr.setup_fee ?? 0), proceeds = Number(pr.proceeds_fee ?? 0);
+    return {
+      id: OFFER_ID, lender_name: lender.name, amount: REQUEST.amount, rate_factor: `${OFFER.rate_pct}%`, term: `${OFFER.term_months} months`,
+      payment_frequency: "Monthly", expiry_date: day(OFFER.expires_in_days), document_url: null, status: o.status === "accepted" ? "accepted" : "pending",
+      created_at: ago(3), expired: false, has_amount: true, term_sheet_mode: "lender", client_rate: pr.client_rate ?? null,
+      term_months: Number(pr.term_months ?? OFFER.term_months), broker_fee: String(fee), setup_fee: pr.setup_fee ?? null, proceeds_fee: pr.proceeds_fee ?? null,
+      lender_commission: String(commission), has_lender_term_sheet: true,
+      revenue: {
+        lender_commission: commission, broker_fee: fee, setup_fee: setup, proceeds_fee: proceeds, spread: 0, total: commission + fee + setup + proceeds,
+        funds_to_client: REQUEST.amount - proceeds, client_payment: offerPayment(), client_total_repaid: offerPayment() * OFFER.term_months, term_months: OFFER.term_months, note: null,
+      },
+    };
+  };
+  const conditionRows = () => (offerLender() ? OFFER_CONDITIONS.map((c) => ({
+    id: c.id, title: c.title, description: null, owner: c.owner, assigned_user_id: null, assigned_name: null, due_date: day(10),
+    status: state().conditions[c.id] ?? "open", requires_document: c.requires_document, document_id: null, document_url: null,
+    waived_reason: null, client_submitted_at: null, overdue: false,
+  })) : []);
+  const suggestedClose = () => {
+    const o = offerRow();
+    if (!o || o.status !== "accepted") return null;
+    return {
+      offer_id: OFFER_ID, closed_on: day(0), currency: "CAD", funded_amount: REQUEST.amount, rate: o.rate_factor, term_months: OFFER.term_months,
+      payment_frequency: "Monthly", lender_name: o.lender_name, broker_user_id: DEMO_STAFF_ID, lead_source: "company", clawback_days: 90,
+      residual_percent: null, residual_months: null, notes: null, referral_partner: null,
+      lines: [
+        { kind: "lender_commission", description: `${OFFER.commission_pct}% from ${o.lender_name}`, basis: "percent", percent: OFFER.commission_pct, expected_amount: offerCommission(), status: "expected" },
+        { kind: "client_fee", description: "Broker fee, paid by the client at funding", basis: "flat", percent: null, expected_amount: OFFER.broker_fee, status: "expected" },
+      ],
+    };
+  };
+  const closeAnswer = () => {
+    const c = state().close;
+    if (c) return { saved: true, close: { id: "demo-close-1", ...c.fields }, lines: c.lines };
+    return { saved: false, suggested: suggestedClose() };
   };
 
   const otherCards = () => OTHER_CARDS.map((c) => ({
@@ -487,8 +540,46 @@ export function createShim(opts: ShimOptions) {
     ["GET", new RegExp(`^/api/credit-summary-v2/${ID}/export\\.(pdf|docx)$`), () => raw({ success: false, error: "not_in_demo", message: "Downloads are switched off in the demo - the package arrives by email when you send it." }, 403)],
     ["POST", new RegExp(`^/api/credit-financials/${ID}/extract$`), () => ok({ documents: 1, skipped: [] })],
     ["GET", new RegExp(`^/api/credit-financials/${ID}$`), () => ok({ table: { periods: [], rows: [] } })], // BF_PORTAL_v941 port - statement figures
-    ["GET", /^\/api\/offers$/, () => ok({ items: [] })],
-    ["GET", new RegExp(`^/api/deals/applications/${ID}/close$`), () => ok({ saved: false, suggested: null })],
+    // KS_PORTAL_DEMO_OFFER_CLOSE - the Offer and Close tabs on the sample file.
+    ["GET", /^\/api\/offers$/, (r) => { const o = isMain(r.query.get("applicationId") ?? "") ? offerRow() : null; return raw({ items: o ? [o] : [] }); }],
+    ["POST", new RegExp(`^/api/offers/${ID}/send-for-signature$`), () => {
+      updateState((s) => { s.offer = { status: "accepted", pricing: s.offer?.pricing ?? {} }; s.stage = "Accepted"; });
+      return raw({ ok: true });
+    }],
+    ["PATCH", new RegExp(`^/api/offers/${ID}/pricing$`), (r) => {
+      updateState((s) => {
+        const pricing = { ...(s.offer?.pricing ?? {}) };
+        for (const [k, v] of Object.entries(r.body ?? {})) if (v !== null && v !== undefined && String(v) !== "") pricing[k] = String(v);
+        s.offer = { status: s.offer?.status ?? "pending", pricing };
+      });
+      return raw({ offer: offerRow() });
+    }],
+    ["POST", new RegExp(`^/api/offers/${ID}/term-sheet-link$`), () => raw({ success: false, error: "not_in_demo", message: "The lender's file is not opened in the demo." }, 403)],
+    ["DELETE", new RegExp(`^/api/offers/${ID}$`), () => raw({ success: false, error: "not_in_demo", message: "The sample term sheet stays on the file in the demo." }, 409)],
+    ["POST", /^\/api\/offers$/, () => raw({ success: false, error: "not_in_demo", message: "The demo has one sample term sheet. In your own system you add as many as lenders send." }, 409)],
+    ["GET", /^\/api\/licensee-documents$/, () => raw({ documents: [] })],
+    ["GET", /^\/api\/broker-tools\/people$/, () => raw({ people: [] })],
+    ["GET", new RegExp(`^/api/broker-tools/applications/${ID}/conditions$`), (_r, m) => raw({ conditions: isMain(m[1]!) ? conditionRows() : [] })],
+    ["PATCH", new RegExp(`^/api/broker-tools/applications/${ID}/conditions/${ID}$`), (r, m) => {
+      const st = typeof r.body?.status === "string" ? r.body.status : null;
+      if (st) updateState((s) => { s.conditions[decodeURIComponent(m[2]!)] = st; });
+      return raw({ ok: true });
+    }],
+    ["GET", new RegExp(`^/api/deals/applications/${ID}/close$`), (_r, m) => raw(isMain(m[1]!) ? closeAnswer() : { saved: false, suggested: null })],
+    ["PUT", new RegExp(`^/api/deals/applications/${ID}/close$`), (r) => {
+      const { lines = [], id: _id, ...fields } = (r.body ?? {}) as { lines?: any[]; id?: string } & Record<string, unknown>;
+      updateState((s) => {
+        s.close = { fields, lines: lines.map((l, i) => ({ status: "expected", ...l, id: l.id ?? `demo-line-${i + 1}` })) };
+      });
+      return raw(closeAnswer());
+    }],
+    ["POST", new RegExp(`^/api/deals/lines/${ID}/received$`), (r, m) => {
+      updateState((s) => {
+        const l = s.close?.lines.find((x) => x.id === decodeURIComponent(m[1]!));
+        if (l) { l.status = "received"; l.received_amount = Number(String(r.body?.amount ?? "").replace(/[^0-9.]/g, "")) || l.expected_amount; l.received_on = String(r.body?.on ?? day(0)); }
+      });
+      return raw({ ok: true });
+    }],
     ["POST", new RegExp(`^/api/credit-collateral/${ID}/extract$`), () => ok({ documents: 0, skipped: [] })],
     ["POST", new RegExp(`^/api/credit-research/${ID}/refresh$`), () => ok({ found: 0, facts: [], notes: ["Research is switched off in the demo."] })],
 
