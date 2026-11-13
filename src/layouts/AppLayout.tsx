@@ -6,7 +6,7 @@
 // insurers they place with. Communications + Calendar removed; Pipeline
 // + Lenders added. BF and SLF nav definitions are unchanged.
 import { useState } from "react";
-import { brandName, useBrand } from "@/config/brand";
+import { assistantName, brandName, useBrand } from "@/config/brand";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
@@ -258,7 +258,7 @@ export default function AppLayout({ children }: { children?: React.ReactNode }) 
               fontWeight: 600, cursor: "pointer", letterSpacing: "0.04em",
             }}
           >
-            <span>MAYA</span>
+            <span>{assistantName().toUpperCase()}</span>
             <span>{mayaOpen ? "▼" : "▲"}</span>
           </button>
           {mayaOpen && !isLiveDemo() && (
