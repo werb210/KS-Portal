@@ -1,5 +1,6 @@
 // BF_PORTAL_REPORTS_SECTION_v714 - cards for the reports BF-Server v714 serves
 // from /api/reports/data/:key.
+import { featureInfo, includedInText, isPlanKey } from "@/plans/catalogue";
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { brandName } from "@/config/brand";
 import { api } from "@/api";
@@ -179,16 +180,26 @@ export function renderReport(report: string, d: any): ReactNode {
   return <p style={{ color: "var(--ui-text-muted)", fontSize: 13 }}>This report is not available.</p>;
 }
 
+/** A report the plan does not include answers 402: say which plan has it, not "Could not load". */
+export function planLockText(e: unknown): string | null {
+  const x = e as { status?: number; details?: { feature?: unknown; required_plan?: unknown } } | null;
+  if (!x || x.status !== 402) return null;
+  const info = featureInfo(typeof x.details?.feature === "string" ? x.details.feature : "");
+  const plan = isPlanKey(x.details?.required_plan) ? x.details.required_plan : info?.plan ?? null;
+  return plan ? `This report is not in your plan. ${includedInText(plan)}.` : "This report is not in your plan.";
+}
+
 export function ReportDataCard({ report, days }: { report: string; days?: number }) {
   const [d, setD] = useState<any>(null);
-  const [err, setErr] = useState(false);
+  const [err, setErr] = useState<false | true | string>(false); // a string: the report is not in the brokerage's plan
   const team = useReportTeam();
   useEffect(() => {
     let off = false;
     setD(null); setErr(false);
-    api.get(withTeam(`/api/reports/data/${encodeURIComponent(report)}${days ? `?days=${days}` : ""}`, team)).then((r) => { if (!off) setD(r); }).catch(() => { if (!off) setErr(true); });
+    api.get(withTeam(`/api/reports/data/${encodeURIComponent(report)}${days ? `?days=${days}` : ""}`, team)).then((r) => { if (!off) setD(r); }).catch((e) => { if (!off) setErr(planLockText(e) ?? true); });
     return () => { off = true; };
   }, [report, days, team]);
+  if (typeof err === "string") return <p style={{ color: "var(--ui-text-muted)", fontSize: 13 }}>{err}</p>;
   if (err) return <p style={{ color: "var(--ui-text-muted)", fontSize: 13 }}>Could not load this report.</p>;
   if (!d) return <p style={{ color: "var(--ui-text-muted)", fontSize: 13 }}>Loading...</p>;
   return <>{renderReport(report, d)}</>;
