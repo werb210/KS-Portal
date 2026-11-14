@@ -7,7 +7,9 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { api } from "@/api";
 import { getErrorMessage } from "@/utils/errors";
+import InvoicePanel from "./InvoicePanel"; // the brokerage's own invoice for this file (Settings > Your documents)
 import PaymentLinksPanel from "@/payments/PaymentLinksPanel";
+import { isLiveDemo } from "@/demo/mode"; // the sample deal in the live demo has no invoice step
 
 type Line = {
   id?: string; kind: string; description: string | null; basis: "flat" | "percent"; percent: number | null; expected_amount: number | null;
@@ -207,6 +209,7 @@ export default function CloseTab({ applicationId }: { applicationId: string }) {
         </section>
       ) : null}
 
+      {isLiveDemo() ? null : <InvoicePanel applicationId={applicationId} suggestedAmount={lines.filter((l) => l.kind === "broker_fee" || l.kind === "client_fee").reduce((sum, l) => sum + lineAmount(l), 0) || null} />}
       <PaymentLinksPanel applicationId={applicationId} />
     </div>
   );
