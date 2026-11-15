@@ -142,14 +142,14 @@ export default function ContactDetailPage() {
           <div style={{ marginBottom: 8 }}>
             <div style={fieldLabel}>Marketing contact</div>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer" }}>
-              <input type="checkbox" data-testid="contact-marketing-toggle" checked={contact.marketing_contact !== false}
+              <input type="checkbox" data-testid="contact-marketing-toggle" checked={contact.marketing_contact !== false && contact.marketing_opt_out !== true} disabled={contact.marketing_opt_out === true}
                 onChange={async (e) => {
                   const next = e.target.checked;
                   setContact((c) => (c ? { ...c, marketing_contact: next } : c));
                   try { await api.patch(`/api/crm/contacts/${id}`, { marketing_contact: next }); }
                   catch (err) { setContact((c) => (c ? { ...c, marketing_contact: !next } : c)); window.alert(`Could not save: ${err instanceof Error ? err.message : String(err)}`); }
                 }} />
-              {contact.marketing_contact !== false ? "Yes - gets campaign emails and texts" : "No - kept in the CRM, not marketed to"}
+              {contact.marketing_opt_out === true ? "Unsubscribed - they asked not to get marketing, so they cannot be marketed to" : contact.marketing_contact !== false ? "Yes - gets campaign emails and texts" : "No - kept in the CRM, not marketed to"}
             </label>
           </div>
           <Field label="Created" value={contact.created_at ? formatDateTimeShort(contact.created_at) : null} />
