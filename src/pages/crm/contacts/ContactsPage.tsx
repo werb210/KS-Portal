@@ -28,6 +28,12 @@ type SortCol = "name" | "company_name" | "lead_status" | "owner_name" | "created
 
 // v884: onUnfilteredTotal lets the CRM tab show the same number as the pager. The server's /api/crm/counts also counts
 // archived (merged) contacts, which the list hides, so the two disagreed (2,501 vs 2,467).
+// KS_PORTAL_MARKETING_UNSUBSCRIBE - "Unsubscribed" is its own answer: that person took themselves off, and cannot be put back.
+function marketingLabel(r: { marketing_contact?: boolean | null; marketing_opt_out?: boolean | null }): string {
+  if (r.marketing_opt_out === true) return "Unsubscribed";
+  return r.marketing_contact === false ? "No" : "Yes";
+}
+
 export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?: (n: number) => void } = {}) {
   const { silo } = useSilo();
   const { user } = useAuth();
@@ -77,7 +83,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
   const [busyMass, setBusyMass] = useState<"delete" | "tag" | "active" | "assign" | "marketing" | null>(null);
   // KS_PORTAL_MARKETING_CONTACTS_v1 - only marketing contacts get campaign emails / texts.
   const [marketingFilter, setMarketingFilter] = useState<"" | "yes" | "no">(savedFilters.marketingFilter === "yes" || savedFilters.marketingFilter === "no" ? savedFilters.marketingFilter : "");
-  const [mkSummary, setMkSummary] = useState<{ total: number; marketing: number; emailable: number; budget: { allowance: number; used: number; remaining: number | null; addon: boolean } } | null>(null);
+  const [mkSummary, setMkSummary] = useState<{ total: number; marketing: number; emailable: number; unsubscribed?: number; budget: { allowance: number; used: number; remaining: number | null; addon: boolean } } | null>(null);
   const [assignOwnerId, setAssignOwnerId] = useState("");
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   // KS_PORTAL_v20_CRM_FIELDS - custom field columns (chosen in Columns) and filters.
@@ -142,7 +148,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
     Promise.resolve(typeof crmApi.marketingSummary === "function" ? crmApi.marketingSummary() : null).then((s) => {
       if (cancelled) return;
       const ok = s && typeof s.total === "number" && typeof s.marketing === "number" && s.budget && typeof s.budget.allowance === "number";
-      setMkSummary(ok ? { ...s, emailable: Number(s.emailable ?? 0), budget: { ...s.budget, used: Number(s.budget.used ?? 0) } } : null);
+      setMkSummary(ok ? { ...s, emailable: Number(s.emailable ?? 0), unsubscribed: Number((s as { unsubscribed?: number }).unsubscribed ?? 0), budget: { ...s.budget, used: Number(s.budget.used ?? 0) } } : null);
     }).catch(() => { if (!cancelled) setMkSummary(null); });
     return () => { cancelled = true; };
   }, [refreshKey]);
@@ -238,7 +244,8 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
     if (!isAdmin || selected.size === 0) return;
     setBusyMass("marketing");
     try {
-      await crmApi.bulkMarketingContacts({ ids: Array.from(selected) }, marketing);
+      const r = await crmApi.bulkMarketingContacts({ ids: Array.from(selected) }, marketing);
+      if (marketing && (r?.skipped_unsubscribed ?? 0) > 0) window.alert(`${r.skipped_unsubscribed} of these unsubscribed from marketing and were left out.`);
       setSelected(new Set());
       setRefreshKey((k) => k + 1);
     } catch (err) {
@@ -292,7 +299,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
         ...(!hiddenCols.has("tags") ? [{ label: "Tags", value: (r: ContactRow) => r.tags }] : []),
         ...(!hiddenCols.has("lead_status") ? [{ label: "Lead status", value: (r: ContactRow) => r.lead_status ?? "New" }] : []),
         ...(!hiddenCols.has("owner_name") ? [{ label: "Owner", value: (r: ContactRow) => r.owner_name }] : []),
-        ...(!hiddenCols.has("marketing_contact") ? [{ label: "Marketing contact", value: (r: ContactRow) => (r.marketing_contact === false ? "No" : "Yes") }] : []),
+        ...(!hiddenCols.has("marketing_contact") ? [{ label: "Marketing contact", value: (r: ContactRow) => marketingLabel(r) }] : []),
         ...cf.shown.map((f) => ({ label: f.label, value: (r: ContactRow) => displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) })),
         { label: "Create date", value: (r) => r.created_at },
       ];
@@ -331,7 +338,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
       )}</td>
       )}
       {!hiddenCols.has("owner_name") && <td style={tdStyle}>{r.owner_name ?? "—"}</td>}
-      {!hiddenCols.has("marketing_contact") && <td style={tdStyle} data-testid="marketing-cell">{r.marketing_contact === false ? "No" : "Yes"}</td>}{/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
+      {!hiddenCols.has("marketing_contact") && <td style={tdStyle} data-testid="marketing-cell">{marketingLabel(r)}</td>}{/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
       {cf.shown.map((f) => <td key={f.name} style={tdStyle}>{displayValue(f, (r as { custom_fields?: Record<string, unknown> }).custom_fields?.[f.name]) || "—"}</td>)}{/* BF_PORTAL_v870_CRM_DATA_MODEL */}
       <td style={tdStyle}>{formatDateTimeShort(r.created_at)}</td>
     </tr>
@@ -394,7 +401,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
       {/* KS_PORTAL_MARKETING_CONTACTS_v1 - who gets marketing, against this month's campaign emails. */}
       {mkSummary && (
         <div data-testid="marketing-summary" style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", padding: "10px 12px", border: "1px solid var(--ui-border)", borderRadius: 8, marginBottom: 12, fontSize: 13, background: "var(--ui-surface-strong)" }}>
-          <span><strong>{mkSummary.marketing.toLocaleString()}</strong> of {mkSummary.total.toLocaleString()} contacts are marketing contacts ({mkSummary.emailable.toLocaleString()} can get campaign emails).</span>
+          <span><strong>{mkSummary.marketing.toLocaleString()}</strong> of {mkSummary.total.toLocaleString()} contacts are marketing contacts ({mkSummary.emailable.toLocaleString()} can get campaign emails{(mkSummary.unsubscribed ?? 0) > 0 ? `; ${(mkSummary.unsubscribed ?? 0).toLocaleString()} unsubscribed` : ""}).</span>
           <span style={{ color: mkSummary.budget.remaining !== null && mkSummary.emailable > mkSummary.budget.remaining ? "#b45309" : "var(--ui-text-muted)" }}>
             {mkSummary.budget.addon
               ? `${mkSummary.budget.used.toLocaleString()} campaign emails sent this month (Marketing add-on: no stop).`

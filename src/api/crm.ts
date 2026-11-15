@@ -161,6 +161,7 @@ export type ContactRow = {
   owner_id?: string | null;
   owner_name?: string | null;
   marketing_contact?: boolean | null; // KS_PORTAL_MARKETING_CONTACTS_v1
+  marketing_opt_out?: boolean | null; // KS_PORTAL_MARKETING_UNSUBSCRIBE - unsubscribed from marketing
   role?: string | null;
   ownership_percent?: number | null;
   is_primary_applicant?: boolean | null;
@@ -253,7 +254,7 @@ export const crmApi = {
   bulkAssignContacts: (ids: string[], ownerUserId: string) => api.post("/api/crm/contacts/bulk-assign", { ids, ownerUserId }),
   // KS_PORTAL_MARKETING_CONTACTS_v1
   bulkMarketingContacts: (sel: { ids?: string[]; tags?: string[] }, marketing: boolean) =>
-    api.post<{ updated: number }>("/api/crm/contacts/bulk-marketing", { ...sel, marketing }),
+    api.post<{ updated: number; skipped_unsubscribed?: number }>("/api/crm/contacts/bulk-marketing", { ...sel, marketing }),
   marketingSummary: () =>
     api.get<{ total: number; marketing: number; emailable: number; budget: { allowance: number; used: number; remaining: number | null; addon: boolean } }>("/api/crm/contacts/marketing-summary"),
   bulkDeleteCompanies: (ids: string[]) => api.post("/api/crm/companies/bulk-delete", { ids }),
