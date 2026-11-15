@@ -243,6 +243,7 @@ export const SETTINGS_GROUPS: Array<{ id: string; label: string; heading: string
   { id: "crm", label: "CRM set-up", heading: "BROKERAGE SET-UP", sectionIds: ["properties", "pipelines", "lead-scoring"] },
   { id: "phone-group", label: "Phone", heading: "BROKERAGE SET-UP", sectionIds: ["phone", "phone-menu", "call-queues", "call-scripts", "lead-rotation", "blocked-numbers", "never-log", "booking"] },
   { id: "email", label: "Email", heading: "BROKERAGE SET-UP", sectionIds: ["shared-signatures"] }, // BF_PORTAL_v947_BROKERAGE_SETUP
+  { id: "links", label: "Your links", heading: "BROKERAGE SET-UP", sectionIds: ["your-links"] }, // KS_PORTAL_YOUR_LINKS
   { id: "website", label: "Website", heading: "BROKERAGE SET-UP", sectionIds: ["website-kit"] }, // BF_PORTAL_v947_BROKERAGE_SETUP
   { id: "money", label: "Money", heading: "BROKERAGE SET-UP", sectionIds: ["broker-pay", "payments"] }, // Broker pay was built but in no group, so nobody could reach it
   { id: "risk", label: "Risk and ID checks", heading: "BROKERAGE SET-UP", sectionIds: ["id-verification", "your-services"] },
