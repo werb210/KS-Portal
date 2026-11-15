@@ -10,6 +10,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { api } from "@/api";
 import FeatureGate from "@/plans/FeatureGate";
 import KeepNumberPanel from "@/pages/settings/porting/KeepNumberPanel"; // KS_PORTAL_NUMBER_PORTING_v1
+import BusinessDetailsCard from "./BusinessDetailsCard"; // KS_PORTAL_SETUP_BUSINESS_DETAILS_v1
 
 type Kind = "main" | "toll_free" | "direct";
 type Line = { id: string; name: string; email: string | null; direct_number: string | null };
@@ -46,7 +47,7 @@ function errorMessage(e: unknown, fallback: string): string {
 }
 
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "");
-const ADDRESS_NOTE = "Twilio needs your registered business address (regulatory information) before it sells this number. Pick another number, or ask Keystone support to add the address.";
+const ADDRESS_NOTE = "Twilio needs your registered business address (regulatory information) before it sells this number. Add your business address at the top of this page, or pick another number.";
 
 /** Offers an area code, shows a few numbers for sale, and buys the one clicked (or swaps it in for `replaceId`). */
 function NumberPicker({ kind, userId, replaceId, initial, onDone, onCancel }: {
@@ -225,6 +226,7 @@ export default function PhoneLines(): JSX.Element {
         voicemail, and their outgoing calls show it. Numbers are set up for you: pick one and it works straight away.
       </p>
       <p style={muted}>A number you change or release keeps working for {grace} days first, so you can change your mind.</p>
+      <BusinessDetailsCard onSaved={load} />
       {loadError && <p role="alert" style={notice}>{loadError}</p>}
       {overview && (
         <div data-testid="phone-setup" style={notice}>
