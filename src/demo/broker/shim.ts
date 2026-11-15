@@ -644,6 +644,7 @@ export function createShim(opts: ShimOptions) {
     ["GET", new RegExp(`^/api/applications/${ID}/signing-sms$`), () => ok({ name: CONTACT.name, sms: null })],
     ["GET", new RegExp(`^/api/applications/${ID}/sent-lenders$`), (_r, m) => ok({ sent: isMain(m[1]!) ? state().sent.map((x) => ({ lenderId: x.lenderId, sentAt: x.sentAt })) : [] })],
     ["GET", new RegExp(`^/api/applications/${ID}/lender-responses$`), () => ok({ responses: [] })],
+    ["GET", new RegExp(`^/api/portal/applications/${ID}/lender-reps$`), () => ok({ ok: true, lenders: [] })], // v960 lender reps - none in the demo
     ["GET", new RegExp(`^/api/portal/applications/${ID}/fee-agreement$`), () => ok({ required: false })],
     ["POST", /^\/api\/portal\/lender-submissions$/, (r) => submitToLenders(r.body ?? {})],
     ["POST", new RegExp(`^/api/applications/${ID}/product-category$`), () => ok({ ok: true })],
