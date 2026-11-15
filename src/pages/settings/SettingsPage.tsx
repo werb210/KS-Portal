@@ -56,6 +56,7 @@ import WebsiteKitPanel from "@/components/marketing/WebsiteKitPanel";
 import LeadScoringPanel from "@/components/marketing/LeadScoringPanel";
 import SocialPanel from "@/social/SocialPanel";
 import SharedMailboxSignatures from "./tabs/SharedMailboxSignatures";
+import YourLinks from "./tabs/YourLinks"; // KS_PORTAL_YOUR_LINKS
 import { AddonGate } from "@/plans/marketing";
 
 // KS_PORTAL_v3_PLANS - tabs that are a plan feature: a badge on the tab and a locked card instead of the content.
@@ -137,6 +138,7 @@ const SettingsPage = () => {
       { id: "help", label: "Help", visible: isAdmin || isStaff, content: <HelpPage /> }, // KS_PORTAL_v6_SUPPORT
       // BF_PORTAL_v947_BROKERAGE_SETUP
       { id: "lead-scoring", label: "Lead scoring", visible: isAdmin, content: isAdmin ? <AddonGate tool="lead_scoring"><LeadScoringPanel /></AddonGate> : null }, // Marketing add-on, as it was under Marketing
+      { id: "your-links", label: "Your links", visible: (isAdmin || isStaff) && !isBI, content: <YourLinks /> }, // KS_PORTAL_YOUR_LINKS - client, lender, referrer and partner broker links to copy and share
       { id: "website-kit", label: "Website kit", visible: isAdmin, content: isAdmin ? (<><p data-testid="website-kit-explainer" style={{ margin: "0 0 12px", fontSize: 14, color: "var(--ui-text)" }}>Add forms and chat to other websites so their leads land in this CRM.</p><WebsiteKitPanel /></>) : null },
       { id: "shared-signatures", label: "Shared mailbox signatures", visible: isAdmin, content: isAdmin ? <SharedMailboxSignatures /> : null },
       { id: "social-accounts", label: "Social accounts", visible: isAdmin && !isBI, content: isAdmin ? <SocialPanel mode="accounts" /> : null },
