@@ -103,7 +103,10 @@ export default function QuickBooksCard() {
       </p>
       {off ? (
         <>
-          <p style={{ ...muted, color: "var(--ui-text)" }} data-testid="quickbooks-off-reason">{status.reason ?? "QuickBooks is not set up on this server yet."}</p>
+          <p style={{ ...muted, color: "var(--ui-text)" }} data-testid="quickbooks-off-reason">{/* KS_PORTAL_QBO_WORDING_v1 - the server's reason names its settings (KS_INTUIT_CLIENT_ID...): fine for support, not for a brokerage. */}
+            {!status.reason || /not set up on this server/i.test(status.reason)
+              ? "QuickBooks isn't available yet: Keystone is finishing the QuickBooks set-up. We'll let you know when you can connect it."
+              : status.reason}</p>
           <button type="button" style={{ ...disabled, marginTop: 10 }} disabled>Connect QuickBooks</button>
         </>
       ) : status.connected ? (

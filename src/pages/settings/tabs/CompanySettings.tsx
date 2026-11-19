@@ -284,10 +284,8 @@ export default function CompanySettings() {
 
   return (
     <div style={{ maxWidth: 860, color: "var(--ui-text)" }} data-testid="company-settings">
-      <h2 style={{ fontSize: 18, margin: "0 0 12px" }}>Company</h2>
-
       <section style={card} data-testid="company-section-company">
-        <h3 style={h3}>Company</h3>
+        <h3 style={h3}>Business details</h3>
         <p style={muted}>Your trading name appears across the portal, the client app and your emails.</p>
         <div style={grid}>
           {text("company_name")}

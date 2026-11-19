@@ -217,7 +217,8 @@ const SettingsPage = () => {
                 {activeGroup && activeGroup.sections.length > 1 && <h2 className="settings-group-title">{activeGroup.label}</h2>}
                 {activeGroup?.sections.map((t) => (
                   <section key={t.id} id={`settings-section-${t.id}`} className="settings-group-section" aria-label={t.label}>
-                    {activeGroup.sections.length > 1 && <h3 className="settings-section-title">{t.label}{TAB_FEATURE[t.id] && <LockedBadge feature={TAB_FEATURE[t.id]!} />}</h3>}
+                    {/* KS_PORTAL_SETTINGS_HEADINGS_v1 - a section named like its group (Company > Company) does not repeat the title. */}
+                    {activeGroup.sections.length > 1 && t.label !== activeGroup.label && <h3 className="settings-section-title">{t.label}{TAB_FEATURE[t.id] && <LockedBadge feature={TAB_FEATURE[t.id]!} />}</h3>}
                     <ErrorBoundary>{TAB_FEATURE[t.id] ? <FeatureGate key={t.id} feature={TAB_FEATURE[t.id]!}>{t.content}</FeatureGate> : t.content}</ErrorBoundary>
                   </section>
                 ))}

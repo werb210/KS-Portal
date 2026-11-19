@@ -464,7 +464,7 @@ const UserManagement = () => {
               onChange={(updates) => setUserForm((prev) => ({ ...prev, ...updates }))}
             />
             <div className="ui-field">
-              <label className="ui-field__label">Silo access</label>
+              <label className="ui-field__label">Access</label>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 12, background: "var(--ui-card-bg)", border: "1px solid var(--ui-border)", borderRadius: 6 }}>
                 {[
                   { v: "BF", label: "Lending" }, // KS_PORTAL_v1_NO_BI

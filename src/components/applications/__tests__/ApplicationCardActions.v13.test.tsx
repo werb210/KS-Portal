@@ -80,7 +80,10 @@ describe("QuickBooks Settings card", () => {
   it("is greyed out with the reason when the server is not set up", async () => {
     h.get.mockResolvedValue({ ...base, configured: false, connected: false, reason: "QuickBooks is not set up on this server yet (QBO_CLIENT_ID)." });
     render(<QuickBooksCard />);
-    expect((await screen.findByTestId("quickbooks-off-reason")).textContent).toContain("QBO_CLIENT_ID");
+    // KS_PORTAL_QBO_WORDING_v1 - the brokerage sees plain words, never the server's setting names.
+    const reason = (await screen.findByTestId("quickbooks-off-reason")).textContent ?? "";
+    expect(reason).toContain("Keystone is finishing the QuickBooks set-up");
+    expect(reason).not.toContain("QBO_CLIENT_ID");
     expect((screen.getByText("Connect QuickBooks") as HTMLButtonElement).disabled).toBe(true);
   });
 
