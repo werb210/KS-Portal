@@ -279,7 +279,7 @@ export default function CompaniesPage() {
           {loading && <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={emptyCell}>Loading…</td></tr>}
           {err && <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={{ ...emptyCell, color: "#b00020" }}>{err}</td></tr>}
           {!loading && !err && rows.length === 0 && (
-            <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={emptyCell}>No companies in this silo.</td></tr>
+            <tr><td colSpan={(isAdmin ? 6 : 5) + cf.shown.length} style={emptyCell}>No companies yet.</td></tr>
           )}
           {!loading && !err && tableRows}
         </tbody>
