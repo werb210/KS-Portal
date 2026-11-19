@@ -1414,7 +1414,7 @@ function MessagesTab({ onStartConversation }: { onStartConversation: (contact: C
             </button>
           </div>
         ))}
-        {rows.length === 0 && <div style={{ color: "var(--ui-text-muted)", padding: 12 }}>No contacts in this silo yet.</div>}
+        {rows.length === 0 && <div style={{ color: "var(--ui-text-muted)", padding: 12 }}>No contacts yet.</div>}
       </div>
       <div style={{ display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, height: "100%", overflow: "hidden", background: "var(--ui-surface-strong)" }}>
         {!selected && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ui-text-muted)", flex: 1 }}>Choose a contact.</div>}

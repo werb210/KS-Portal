@@ -220,7 +220,7 @@ export default function PhoneLines(): JSX.Element {
 
   return (
     <div style={{ maxWidth: 860 }}>
-      <h2 style={{ fontSize: 18, marginBottom: 4, color: "var(--ui-text)" }}>Phone lines</h2>
+      {/* KS_PORTAL_SETTINGS_HEADINGS_v1 - Settings already titles this section "Phone lines". */}
       <p style={{ ...text, marginBottom: 8 }}>
         Calls to your business and toll-free lines go to the receptionist. A direct line rings only its person, then their
         voicemail, and their outgoing calls show it. Numbers are set up for you: pick one and it works straight away.
