@@ -78,7 +78,8 @@ export function staffTagOptions(catalogue?: TagCatalogue | null): Array<{ slug: 
   const out = new Map<string, string>();
   for (const t of CORE_TAGS) out.set(t.slug, t.label);
   for (const t of catalogue?.custom ?? []) out.set(t.slug, t.label);
-  for (const t of catalogue?.inUse ?? []) if (t.kind === "other" && !out.has(t.tag)) out.set(t.tag, t.label);
+  // BF_PORTAL_TAG_LABELS_v1 - code-style tags (broker_list_nov_2026) read as words on the View-by row, like the chips.
+  for (const t of catalogue?.inUse ?? []) if (t.kind === "other" && !out.has(t.tag)) out.set(t.tag, /_/.test(t.label) ? humanizeCode(t.label) : t.label);
   return Array.from(out, ([slug, label]) => ({ slug, label }));
 }
 

@@ -4,7 +4,7 @@ import { LeadScoreBadge, useLeadScores } from "@/components/marketing/LeadScore"
 import { CrmSegmentBar } from "@/components/crm/CrmSegmentBar"; // BF_PORTAL_CRM_SEGMENTS_v1
 import { Link, useSearchParams } from "react-router-dom";
 import { api } from "@/api";
-import { crmToolbar, crmSearch, crmSelect, crmButton, crmPrimary } from "@/components/crm/crmToolbar"; // BF_PORTAL_CRM_TOOLBAR_ONE_ROW_v1
+import { crmToolbar, crmSearch, crmSelect, crmButton, crmPrimary, crmMarketingSelect } from "@/components/crm/crmToolbar"; // BF_PORTAL_CRM_TOOLBAR_ONE_ROW_v1
 import ColumnsMenu from "@/components/crm/ColumnsMenu";
 import { contactDisplayName } from "@/utils/contactName";
 import { crmApi, type ContactRow } from "@/api/crm";
@@ -375,7 +375,7 @@ export default function ContactsPage({ onUnfilteredTotal }: { onUnfilteredTotal?
           ))}
         </select>
         {/* KS_PORTAL_MARKETING_CONTACTS_v1 */}
-        <select data-testid="marketing-filter" value={marketingFilter} onChange={(e) => setMarketingFilter(e.target.value as "" | "yes" | "no")} style={crmSelect} aria-label="Marketing">
+        <select data-testid="marketing-filter" value={marketingFilter} onChange={(e) => setMarketingFilter(e.target.value as "" | "yes" | "no")} style={crmMarketingSelect} aria-label="Marketing">
           {/* BF_PORTAL_MARKETING_TWO_OPTIONS_v1 - a contact is a marketing contact or it is not: the list offers just those
               two. "Marketing" is only the label shown until one is picked (hidden from the list); x clears it. */}
           <option value="" hidden>Marketing</option>
