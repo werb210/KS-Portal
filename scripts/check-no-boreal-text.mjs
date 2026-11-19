@@ -18,7 +18,7 @@ const WORD = /\bBoreal\b/;
 // the native identifiers that remain (BorealVoice, BorealPortalSummary) do not match the whole word "Boreal".
 export const ALLOW = new Set([
   // KS_PORTAL_v9_PGI - the insurance partner licensees refer PGI to, named on purpose in one constant.
-  "src/pgi/partner.ts:Boreal Insurance",
+  "src/pgi/partner.ts:Boreal Risk Management",
 ]);
 
 /** Every piece of user-visible text in a TS/TSX source that contains "Boreal". */
