@@ -11,6 +11,7 @@ import { useSettingsStore, type AdminUser } from "@/state/settings.store";
 import { getErrorMessage } from "@/utils/errors";
 import { usePlan } from "@/plans/planStore"; // KS_PORTAL_MARKETING_ADDON
 import UserDetailsFields from "../components/UserDetailsFields";
+import TeamImportModal from "../components/TeamImportModal"; // KS_PORTAL_TEAM_IMPORT_v1
 import { useRoleChoices } from "@/roles/useRoleChoices"; // KS_PORTAL_CUSTOM_ROLES
 import { assignRole, bodyForChoice, choiceForUser } from "@/roles/rolesApi"; // KS_PORTAL_CUSTOM_ROLES
 
@@ -47,6 +48,10 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [pendingUserIds, setPendingUserIds] = useState<Set<string>>(new Set());
+  // KS_PORTAL_TEAM_IMPORT_v1 - bulk import, and invites the owner sends when ready.
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [inviteNote, setInviteNote] = useState<string | null>(null);
+  const notInvited = (u: AdminUser) => !u.disabled && (u as { invited_at?: string | null }).invited_at === null && u.role !== "Admin";
 
   const visibleUsers = useMemo(() => users, [users]);
   const safeUsers = Array.isArray(visibleUsers) ? visibleUsers : [];
@@ -255,6 +260,22 @@ const UserManagement = () => {
     }
   };
 
+  // KS_PORTAL_TEAM_IMPORT_v1
+  const onInvite = async (ids: string[]) => {
+    if (!ids.length) return;
+    setInviteNote(null);
+    setFormError(null);
+    try {
+      const r = await api.post<{ ok: boolean; sent: string[]; failed: Array<{ user_id: string; error: string }> }>("/api/users/invite", { user_ids: ids });
+      const sent = r.sent?.length ?? 0;
+      const failed = r.failed?.length ?? 0;
+      setInviteNote(`${sent} invite${sent === 1 ? "" : "s"} sent.${failed ? ` ${failed} could not be sent (check their email address).` : ""}`);
+      await fetchUsers();
+    } catch (error) {
+      setFormError(getErrorMessage(error, "The invites could not be sent. Try again."));
+    }
+  };
+
   const planState = usePlan();
   const marketingAddonOn = planState.marketing?.addon.active === true;
   const marketingSeats = planState.marketing?.addon.marketing_seats ?? 3;
@@ -300,7 +321,17 @@ const UserManagement = () => {
         >
           Add user
         </Button>
+        {/* KS_PORTAL_TEAM_IMPORT_v1 */}
+        <Button type="button" variant="secondary" disabled={isLoadingUsers} onClick={() => setIsImportOpen(true)}>
+          Import team
+        </Button>
+        {safeUsers.some(notInvited) && (
+          <Button type="button" variant="secondary" onClick={() => onInvite(safeUsers.filter(notInvited).map((u) => u.id))}>
+            Invite everyone not yet invited ({safeUsers.filter(notInvited).length})
+          </Button>
+        )}
       </div>
+      {inviteNote && <div role="status" data-testid="invite-note">{inviteNote}</div>}
 
       <div className="user-management__table">
         <Table headers={["Name", "Role", "Status", "Actions"]}>
@@ -338,8 +369,12 @@ const UserManagement = () => {
                 </td>
                 <td>
                   <span className={`status-pill status-pill--${statusLabel.toLowerCase()}`}>{statusLabel}</span>
+                  {notInvited(user) && <span className="status-pill status-pill--pending" style={{ marginLeft: 6 }}>Not invited</span>}
                 </td>
                 <td className="user-actions">
+                  {notInvited(user) && (
+                    <Button type="button" variant="secondary" onClick={() => onInvite([userId])}>Invite</Button>
+                  )}
                   <Button
                     type="button"
                     variant="secondary"
@@ -402,6 +437,7 @@ const UserManagement = () => {
                   <div className="user-card__email">{user.email}</div>
                 </div>
                 <span className={`status-pill status-pill--${statusLabel.toLowerCase()}`}>{statusLabel}</span>
+                {notInvited(user) && <span className="status-pill status-pill--pending">Not invited</span>}
               </div>
               <div className="user-card__body">
                 <Select
@@ -412,6 +448,9 @@ const UserManagement = () => {
                   disabled={isLoadingUsers || isPending || !userId}
                 />
                 <div className="user-card__actions">
+                  {notInvited(user) && (
+                    <Button type="button" variant="secondary" onClick={() => onInvite([userId])}>Invite</Button>
+                  )}
                   <Button
                     type="button"
                     variant="secondary"
@@ -451,6 +490,13 @@ const UserManagement = () => {
       </div>
 
       {statusMessage && <div role="status">{statusMessage}</div>}
+
+      {isImportOpen && (
+        <TeamImportModal
+          onClose={() => setIsImportOpen(false)}
+          onDone={(message) => { setIsImportOpen(false); setInviteNote(message); void fetchUsers(); }}
+        />
+      )}
 
       {isModalOpen && (
         <Modal title={editingUser ? "Edit user" : "Add user"} onClose={() => setIsModalOpen(false)}>
