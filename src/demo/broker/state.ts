@@ -1,7 +1,7 @@
 // KS_PORTAL_v11_LIVE_DEMO - what the prospect has done on the broker side (documents accepted, credit summary
 // submitted, the call, notes, lenders sent). The fetch shim reads and writes it; it is kept in sessionStorage so a
 // reload carries on where it was.
-import { DOCS } from "./fixture";
+import { DOCS, type DemoLenderRep } from "./fixture";
 
 export type DocDecision = { status: "pending" | "accepted" | "rejected"; displayName: string | null; reason: string | null; decidedAt: string | null };
 export type DemoNote = { id: string; body: string; owner_name: string; created_at: string };
@@ -24,6 +24,9 @@ export type BrokerDemoState = {
   offer: DemoOffer | null;
   conditions: Record<string, string>;
   close: DemoClose | null;
+  /** KS_PORTAL_DEMO_LENDER_REPS_v1 - the rep picked per lender, and reps the prospect added. */
+  repByLender: Record<string, string | null>;
+  addedReps: DemoLenderRep[];
 };
 
 const KEY = "ks_live_demo_state_v1";
@@ -44,6 +47,8 @@ export function freshState(now = new Date()): BrokerDemoState {
     offer: null,
     conditions: {},
     close: null,
+    repByLender: {},
+    addedReps: [],
   };
 }
 

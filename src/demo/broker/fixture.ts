@@ -263,6 +263,30 @@ export const LENDERS: DemoLender[] = [
   { id: "harbourline", name: "Harbourline Asset Finance", product: "Large-ticket equipment", category: "Equipment", min_amount: 250_000, max_amount: 10_000_000, min_years: 5, min_revenue: 5_000_000, provinces: "all", equipment: true, rate: "6.5% - 8.9%", term: "36 - 96 months", preferred_industries: [], note: "Mid-market and larger companies." },
 ];
 
+// KS_PORTAL_DEMO_LENDER_REPS_v1 - the people at each sample lender, so the Lenders tab can show "Rep handling this file".
+export type DemoLenderRep = { id: string; lender_id: string; name: string; position: string | null; email: string; phone: string | null; phone_extension: string | null };
+export const LENDER_REPS: Record<string, DemoLenderRep[]> = {
+  "aspen-ridge": [
+    { id: "rep-aspen-1", lender_id: "aspen-ridge", name: "Megan Holt", position: "Senior Account Manager", email: "megan.holt@aspenridge.example", phone: "403-555-0141", phone_extension: "214" },
+    { id: "rep-aspen-2", lender_id: "aspen-ridge", name: "Daniel Okafor", position: "Credit Analyst", email: "daniel.okafor@aspenridge.example", phone: "403-555-0141", phone_extension: "238" },
+  ],
+  northgate: [
+    { id: "rep-northgate-1", lender_id: "northgate", name: "Priya Sandhu", position: "Business Development Manager", email: "priya.sandhu@northgate.example", phone: "780-555-0192", phone_extension: "105" },
+  ],
+  "granite-peak": [
+    { id: "rep-granite-1", lender_id: "granite-peak", name: "Tom Lindqvist", position: "Commercial Lending Officer", email: "tom.lindqvist@granitepeak.example", phone: "587-555-0177", phone_extension: null },
+  ],
+  silverline: [
+    { id: "rep-silverline-1", lender_id: "silverline", name: "Rachel Moreau", position: "Relationship Manager", email: "rachel.moreau@silverline.example", phone: "416-555-0133", phone_extension: "402" },
+  ],
+  "cobalt-bay": [
+    { id: "rep-cobalt-1", lender_id: "cobalt-bay", name: "Jordan Pike", position: "Funding Specialist", email: "jordan.pike@cobaltbay.example", phone: "604-555-0158", phone_extension: null },
+  ],
+  harbourline: [
+    { id: "rep-harbour-1", lender_id: "harbourline", name: "Alicia Brandt", position: "Vice President, Origination", email: "alicia.brandt@harbourline.example", phone: "905-555-0119", phone_extension: "11" },
+  ],
+};
+
 export type LenderScore = { lender: DemoLender; score: number; fit: "strong" | "possible" | "poor" };
 
 /** Same rules as KS-server scoreLender(). */

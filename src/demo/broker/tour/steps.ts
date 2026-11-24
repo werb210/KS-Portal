@@ -263,6 +263,16 @@ export const STEPS: TourStep[] = [
     },
     nextLabel: "Submit",
   },
+  // KS_PORTAL_DEMO_LENDER_REPS_v1 - once a lender replies, the file is tied to the person handling it there.
+  {
+    key: "lender_rep",
+    track: "lenders",
+    route: appTab("lenders"),
+    title: "The lender replied. Pick who's handling it",
+    body: "Each lender shows the people you deal with there, with their direct line and extension. Pick the rep handling this file, or add a new one, and from then on everything for this file - the package again, the signed term sheet, the lender's questions answered - goes to that person only.",
+    target: () => document.querySelector('[data-testid^="lender-rep-"]'),
+    nextLabel: "Next",
+  },
   // KS_PORTAL_DEMO_OFFER_CLOSE - what happens after the lender replies: the term sheet goes to the client to sign,
   // then the deal is closed and the brokerage sees what it earned.
   {
