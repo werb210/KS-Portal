@@ -9,7 +9,7 @@ import { fetchSamplePdf, guidedSubmit, type DemoSessionInfo } from "../demoApi";
 import {
   APP_ID, BANK, BUSINESS, CALL_SUMMARY, CONTACT, DOCS, FINANCIALS, OTHER_CARDS, REQUEST, SEPTEMBER_FINDINGS, STATEMENTS, ASSUMED_RATE_PCT,
   DOCTORED, docById, dscr, lenderIdForMatch, matchIdFor, matchLenders, money, monthlyPayment,
-  LENDERS, OFFER, OFFER_CONDITIONS, OFFER_ID, offerCommission, offerPayment, offerRevenue,
+  LENDERS, LENDER_REPS, OFFER, OFFER_CONDITIONS, OFFER_ID, offerCommission, offerPayment, offerRevenue,
 } from "./fixture";
 import { getState, keysWith, updateState, type BrokerDemoState } from "./state";
 import { samplePdfFor } from "./samplePdf";
@@ -417,6 +417,18 @@ export function createShim(opts: ShimOptions) {
     return { response: new Response(blob, { status: 200, headers: { "content-type": "application/pdf" } }) };
   }
 
+  /** KS_PORTAL_DEMO_LENDER_REPS_v1 - the lenders the package went to, each with its people and the rep picked. */
+  function fileLenderReps() {
+    const st = state();
+    // The first lender has replied, so its rep is already picked; the prospect can change it or add one.
+    return st.sent.map(({ lenderId }, i) => ({
+      lender_id: lenderId,
+      lender_name: LENDERS.find((l) => l.id === lenderId)?.name ?? lenderId,
+      rep_id: st.repByLender && lenderId in st.repByLender ? st.repByLender[lenderId] ?? null : i === 0 ? LENDER_REPS[lenderId]?.[0]?.id ?? null : null,
+      reps: [...(LENDER_REPS[lenderId] ?? []), ...(st.addedReps ?? []).filter((r) => r.lender_id === lenderId)],
+    }));
+  }
+
   async function submitToLenders(body: { applicationId?: string; lenderProductIds?: string[] }): Promise<Out> {
     if (!isMain(String(body?.applicationId ?? ""))) return raw({ success: false, error: "not_in_demo", message: "Only the sample file can be sent in the demo." }, 409);
     const lenders = (body.lenderProductIds ?? []).map(lenderIdForMatch);
@@ -644,7 +656,24 @@ export function createShim(opts: ShimOptions) {
     ["GET", new RegExp(`^/api/applications/${ID}/signing-sms$`), () => ok({ name: CONTACT.name, sms: null })],
     ["GET", new RegExp(`^/api/applications/${ID}/sent-lenders$`), (_r, m) => ok({ sent: isMain(m[1]!) ? state().sent.map((x) => ({ lenderId: x.lenderId, sentAt: x.sentAt })) : [] })],
     ["GET", new RegExp(`^/api/applications/${ID}/lender-responses$`), () => ok({ responses: [] })],
-    ["GET", new RegExp(`^/api/portal/applications/${ID}/lender-reps$`), () => ok({ ok: true, lenders: [] })], // v960 lender reps - none in the demo
+    // KS_PORTAL_DEMO_LENDER_REPS_v1 - every lender the package went to has its people; pick one or add one.
+    ["GET", new RegExp(`^/api/portal/applications/${ID}/lender-reps$`), (_r, m) => ok({ ok: true, lenders: isMain(m[1]!) ? fileLenderReps() : [] })],
+    ["PUT", new RegExp(`^/api/portal/applications/${ID}/lenders/${ID}/rep$`), (r, m) => {
+      const lid = decodeURIComponent(m[2]!);
+      updateState((s) => { s.repByLender[lid] = r.body?.rep_id ? String(r.body.rep_id) : null; });
+      return ok({ ok: true, lenders: fileLenderReps() });
+    }],
+    ["POST", new RegExp(`^/api/portal/lenders/${ID}/reps$`), (r, m) => {
+      const lid = decodeURIComponent(m[1]!);
+      const b = r.body ?? {};
+      const errors: Record<string, string> = {};
+      if (!String(b.name ?? "").trim()) errors.name = "Enter the rep's name.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email ?? "").trim())) errors.email = "Enter a valid email address.";
+      if (Object.keys(errors).length) return raw({ ok: false, errors, message: Object.values(errors)[0] }, 400);
+      const rep = { id: `rep-added-${Date.now()}`, lender_id: lid, name: String(b.name).trim(), position: String(b.position ?? "").trim() || null, email: String(b.email).trim(), phone: String(b.phone ?? "").trim() || null, phone_extension: String(b.phone_extension ?? "").trim() || null };
+      updateState((s) => { s.addedReps.push(rep); s.repByLender[lid] = rep.id; });
+      return ok({ ok: true, lenders: fileLenderReps() });
+    }],
     ["GET", new RegExp(`^/api/portal/applications/${ID}/fee-agreement$`), () => ok({ required: false })],
     ["POST", /^\/api\/portal\/lender-submissions$/, (r) => submitToLenders(r.body ?? {})],
     ["POST", new RegExp(`^/api/applications/${ID}/product-category$`), () => ok({ ok: true })],

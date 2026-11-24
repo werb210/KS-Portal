@@ -290,7 +290,7 @@ describe("the broker tour on the real portal", () => {
     // Signed in with the fake staff token: the real pipeline, not the login page.
     await waitFor(() => expect(screen.getAllByText("Juniper Hollow Millwork Ltd.").length).toBeGreaterThan(0), { timeout: 20_000 });
     expect(window.location.pathname).toBe("/pipeline");
-    expect(screen.getByText("Step 1 of 12")).toBeTruthy();
+    expect(screen.getByText("Step 1 of 13")).toBeTruthy();
 
     const titles: string[] = [];
     const card = () => screen.getByTestId("live-demo-card");
@@ -331,6 +331,7 @@ describe("the broker tour on the real portal", () => {
       "Live call",
       "AI call note added to the file",
       "Pick your lenders",
+      "The lender replied. Pick who's handling it",
       "The lender's term sheet is back",
       "Sam signed. Close the deal",
       "That's how to efficiently supply all requirements to your lenders and get your clients funded",
@@ -343,6 +344,7 @@ describe("the broker tour on the real portal", () => {
     expect(getState().offer?.status).toBe("accepted");
     expect(getState().close?.lines.map((l) => l.kind)).toEqual(["lender_commission", "client_fee"]);
     expect(getState().stage).toBe("Funded");
+    // KS_PORTAL_DEMO_LENDER_REPS_v1 - the lender that replied has its rep picked on the Lenders tab.
 
     const submits = real.mock.calls.filter(([u]) => String(u).includes("guided-submit"));
     expect(submits).toHaveLength(1);
