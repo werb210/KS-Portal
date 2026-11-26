@@ -42,6 +42,7 @@ import SsoSettings from "./tabs/SsoSettings"; // KS_PORTAL_SSO_API_KEYS
 import ApiSettings from "./tabs/ApiSettings"; // KS_PORTAL_SSO_API_KEYS
 import PropertiesSettings from "@/crmFields/PropertiesSettings"; // KS_PORTAL_v20_CRM_FIELDS
 import TeamsSettings from "@/teams/TeamsSettings"; // KS_PORTAL_v20_TEAMS
+import ScreensSettings from "@/scoreboard/ScreensSettings"; // KS_PORTAL_TV_SCOREBOARD_v1
 import WebhooksSettings from "@/webhooks/WebhooksSettings"; // KS_PORTAL_v20_WEBHOOKS
 import PaymentsSettings from "@/payments/PaymentsSettings"; // KS_HUBSPOT_GAPS_1_PAYMENTS
 import CallScriptsSettings from "@/callScripts/CallScriptsSettings"; // KS_HUBSPOT_GAPS_1_CALL_SCRIPTS
@@ -101,6 +102,7 @@ const SettingsPage = () => {
       // KS_PORTAL_v20 - custom fields (every plan), teams and record visibility (growth+), webhooks and Zapier (pro). Admins only.
       { id: "properties", label: "Properties", visible: isAdmin && !isBI, content: <PropertiesSettings /> },
       { id: "teams", label: "Teams", visible: canUsers && !isBI, content: <TeamsSettings /> },
+      { id: "screens", label: "Screens", visible: isAdmin && !isBI, content: isAdmin ? <ScreensSettings /> : null }, // KS_PORTAL_TV_SCOREBOARD_v1 - office TVs
       { id: "webhooks", label: "Webhooks", visible: isAdmin && !isBI, content: <WebhooksSettings /> },
       // KS_HUBSPOT_GAPS_1 - HubSpot-parity gaps.
       { id: "payments", label: "Payments", visible: isAdmin && !isBI, content: <PaymentsSettings /> }, // Stripe Connect (growth+)

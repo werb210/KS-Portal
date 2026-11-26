@@ -33,7 +33,13 @@ export const ACTIVE_CONTRACTS_REPORT: LibraryEntry = {
   key: ACTIVE_CONTRACTS_KEY, title: "Active contracts portfolio", silo: "BF", group: "money", size: "full",
   description: "Active contracts, outstanding, renewals due, conversion, repeat volume, revenue by lender / product, expected vs received.",
 };
-const PORTAL_REPORTS: LibraryEntry[] = [MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT, PIPELINES_REPORT, ACTIVE_CONTRACTS_REPORT];
+// KS_PORTAL_TV_SCOREBOARD_v1 - this month's funded volume and deals by broker and team (what the office TVs show).
+export const LEADERBOARD_KEY = "leaderboard";
+export const LEADERBOARD_REPORT: LibraryEntry = {
+  key: LEADERBOARD_KEY, title: "Leaderboard", silo: "BF", group: "operations", size: "full",
+  description: "This month's funded volume and deals funded by broker and team, against their funding goals.",
+};
+const PORTAL_REPORTS: LibraryEntry[] = [LEADERBOARD_REPORT, MOBILE_APPS_REPORT, FEE_PAYMENTS_REPORT, PIPELINES_REPORT, ACTIVE_CONTRACTS_REPORT];
 
 // BF_PORTAL_v819_MOBILE_REPORT - mirrors BF-Server canSee(): Admin sees all, Marketing all but money, others operations.
 export function canSeeReportGroup(role: unknown, group: ReportGroup): boolean {
